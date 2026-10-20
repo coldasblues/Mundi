@@ -8,6 +8,8 @@ import { patchLastLine } from './ui/scene.js';
 import { installSfx } from './ui/sfx.js';
 import { refreshPrompt, clearPrompt } from './sim/prompt.js';
 import { applyGameLore } from './sim/lore.js';
+import { onReply, onEdited, runChecks, refreshPState, absorbVisit, registerMacros } from './sim/pstate-live.js';
+import { onSent, onAnswered } from './ui/pstateui.js';
 
 // A reply that came back empty (the prompt did not fit the model's context, or the reply ran out of tokens while the
 // model was still thinking) is removed, so it does not pile up in the story, and Mundi says why.
@@ -70,7 +72,13 @@ function addSettingsBlock() {
 
 function follow() {
     const redraw = () => { if (state.open) notify(); };
-    on('GENERATION_STARTED', (_type: string, _opts: unknown, dryRun: boolean) => { if (dryRun) return; state.generating = true; redraw(); });
+    on('GENERATION_STARTED', (type: string, _opts: unknown, dryRun: boolean) => {
+        if (dryRun) return;
+        state.generating = true;
+        // player state: a reply being redone does not count for the state the model is told about
+        if (game() && type !== 'quiet') refreshPState(type === 'swipe' || type === 'regenerate');
+        redraw();
+    });
     const done = () => {
         state.generating = false;
         if (state.impersonating) {   // the AI wrote the player's line into SillyTavern's box: bring it to Mundi's composer
@@ -80,11 +88,16 @@ function follow() {
         }
         redraw();
     };
-    on('GENERATION_ENDED', () => { emptyReply(); done(); void import('./ui/relui.js').then(m => m.checkAsk()); void import('./ui/events.js').then(m => m.checkEventEnd()); });
+    on('GENERATION_ENDED', () => { emptyReply(); done(); void runChecks(); void import('./ui/relui.js').then(m => m.checkAsk()); void import('./ui/events.js').then(m => m.checkEventEnd()); });
     on('GENERATION_STOPPED', done);
-    on('GROUP_WRAPPER_FINISHED', done);
+    on('GROUP_WRAPPER_FINISHED', () => { done(); void runChecks(); });
     on('STREAM_TOKEN_RECEIVED', () => { if (state.open && state.view === 'scene') patchLastLine(); });
-    on('MESSAGE_SENT', (id: number) => { const m: any = (globalThis as any).SillyTavern?.getContext?.().chat?.[id]; if (m?.is_user) void import('./ui/relui.js').then(x => x.detectAsk(String(m.mes ?? ''))); });
+    on('MESSAGE_SENT', (id: number) => { const m: any = (globalThis as any).SillyTavern?.getContext?.().chat?.[id]; if (m?.is_user) { onSent(id); void import('./ui/relui.js').then(x => x.detectAsk(String(m.mes ?? ''))); } });
+    // player state: each reply's hidden block is read and cut out of the text
+    on('MESSAGE_RECEIVED', (id: number) => { if (!game()) return; const m: any = chat()[id]; if (m && !m.is_user && !m.is_system) { onReply(id); onAnswered(); } });
+    on('MESSAGE_UPDATED', (id: number) => { if (game()) onReply(id); });
+    on('MESSAGE_EDITED', (id: number) => { if (game()) onEdited(id); });
+    for (const ev of ['MESSAGE_SWIPED', 'MESSAGE_DELETED']) on(ev, () => { if (game()) refreshPState(); });
     // someone you did not know answered you in the scene: now you know them
     on('MESSAGE_RECEIVED', async (id: number) => {
         const { game, saveGame } = await import('./core/store.js');
@@ -107,7 +120,7 @@ function follow() {
         // the chat was switched (maybe from SillyTavern's own list): the game follows the open chat
         // the world state follows the chat: a Mundi save keeps it even when played in SillyTavern's own chat
         void applyGameLore();   // the lorebooks this game uses go on (and the previous game's go off)
-        if (game()) refreshPrompt();
+        if (game()) { absorbVisit(); refreshPrompt(); }
         else { clearPrompt(); if (state.view === 'map' || state.view === 'scene') state.view = scenarioOpen() ? 'chat' : 'menu'; }
         if (state.view === 'chat' && !scenarioOpen()) state.view = game() ? 'scene' : 'menu';
         redraw();
@@ -122,7 +135,8 @@ async function init() {
     addLauncher();
     addSettingsBlock();
     follow();
-    if (game()) refreshPrompt(); else clearPrompt();
+    try { registerMacros(); } catch (e) { console.warn('[Mundi] macros', e); }
+    if (game()) { absorbVisit(); refreshPrompt(); } else clearPrompt();
     if (settings().openOnStart) openApp();
 }
 

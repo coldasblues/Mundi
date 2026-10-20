@@ -31,6 +31,7 @@ import { toolsHtml } from './tools.js';
 import { ACT } from './reg.js';
 import { featureOn } from '../sim/creator.js';
 import { icon } from './icons.js';
+import { allow, passOnce, walkOnsHere, PSUI } from './pstateui.js';
 
 const KMAX = 5;
 const ctxW = () => { const g = game()!; return { g, w: getWorld(g.world)! }; };
@@ -44,11 +45,11 @@ function pinsHtml(g: Save, w: WorldDef) {
     const sel = state.sel ?? g.player.loc;
     return pins(g, w).filter(p => p.map === map.id).map(p => {
         const here = presentAt(g, w, p.id);
-        const known = here.filter(r => r.met), strangers = here.length - known.length;
+        const known = here.filter(r => r.met), strangers = here.length - known.length + walkOnsHere(g, w, p.id).length;
         if (p.link) return `<button class="mu-pin is-link" data-act="pin" data-loc="${esc(p.id)}" style="left:${p.x}%;top:${p.y}%" aria-label="${esc(p.name)}"><span class="dot">${icon('map')}</span><span class="label">${esc(p.name)}</span></button>`;
         return `<button class="mu-pin ${p.home ? 'is-home' : ''} ${p.id === sel ? 'is-sel' : ''} ${p.id === g.player.loc ? 'is-you' : ''}" data-act="pin" data-loc="${esc(p.id)}" style="left:${p.x}%;top:${p.y}%" aria-label="${esc(p.name)}">
             <span class="dot"></span><span class="label">${esc(p.name)}</span>
-            ${here.length ? `<span class="faces">${known.slice(0, 3).map(r => `<img draggable="false" src="${esc(thumb(r.avatar))}" alt="" title="${esc(r.name)}">`).join('')}${strangers || known.length > 3 ? `<i>+${strangers + Math.max(0, known.length - 3)}</i>` : ''}</span>` : ''}
+            ${here.length || strangers ? `<span class="faces">${known.slice(0, 3).map(r => `<img draggable="false" src="${esc(thumb(r.avatar))}" alt="" title="${esc(r.name)}">`).join('')}${strangers || known.length > 3 ? `<i>+${strangers + Math.max(0, known.length - 3)}</i>` : ''}</span>` : ''}
         </button>`;
     }).join('');
 }
@@ -81,7 +82,8 @@ function popHtml(g: Save, w: WorldDef, loc: string, touch: boolean) {
     }
     const you = loc === g.player.loc;
     const here = presentAt(g, w, loc);
-    const people = here.length ? `<div class="mu-pop-people">${here.map(r => `<span class="mu-pop-person"><img src="${esc(thumb(r.avatar))}" alt=""><b>${esc(r.met ? r.name : 'Someone')}</b></span>`).join('')}</div>`
+    const extras = walkOnsHere(g, w, loc);   // people the story brought in (not in the cast)
+    const people = here.length || extras.length ? `<div class="mu-pop-people">${here.map(r => `<span class="mu-pop-person"><img src="${esc(thumb(r.avatar))}" alt=""><b>${esc(r.met ? r.name : 'Someone')}</b></span>`).join('')}${extras.map(n => `<span class="mu-pop-person is-walkon"><i class="mh-walkon-pic">${icon('user')}</i><b data-notr>${esc(n)}</b></span>`).join('')}</div>`
         : '<small class="mu-muted">Nobody here right now.</small>';
     return `<h3>${esc(p.name)}</h3>
         ${p.desc ? `<p>${esc(p.desc)}</p>` : ''}${p.event ? `<p class="mu-muted">${esc(p.event)}</p>` : ''}
@@ -262,10 +264,14 @@ export const mapInput = {
 /* ---------- actions ---------- */
 
 // Moves the player: time passes, the scene follows (who is there now), and the screen goes to the scene.
-export async function travelTo(loc: string) {
+// `force`: the engine moves you (you already walked out, or got away): no questions asked.
+export async function travelTo(loc: string, opts: { force?: boolean } = {}): Promise<boolean> {
     const { g, w } = ctxW();
-    if (loc === g.player.loc) return;
-    if (state.generating) { toast('Wait until they finish speaking.', 'info'); return; }   // nobody walks out mid-sentence
+    if (loc === g.player.loc) return false;
+    if (state.generating) { toast('Wait until they finish speaking.', 'info'); return false; }   // nobody walks out mid-sentence
+    // player state: in a conversation you walk out (it costs), held or restrained you have to get away first
+    if (!opts.force && !allow('travel', () => { void travelTo(loc, { force: true }).then(() => { state.view = 'scene'; notify(); }); }, loc)) { notify(); return false; }
+    PSUI.gotAwayTo = '';
     const mins = travelMinutes(g, w, g.player.loc, loc);
     await endVisit(g, w);   // the scene you leave closes; the next one starts clean
     beforeTravel(g, w, loc).forEach(m => toast(m, 'info'));
@@ -281,6 +287,7 @@ export async function travelTo(loc: string) {
     state.view = 'scene';   // arriving somewhere opens its scene (with its things to do), even when nobody is there
     startElevator(g, w, g.player.loc);
     notify();
+    return true;
 }
 
 // Goes to a place and straight into its scene.
@@ -290,7 +297,7 @@ async function goTo(loc: string) {
     const door = doorAnswer(g, w, loc);
     if (!door.ok) { toast(door.text, 'info'); notify(); return; }
     if (door.text) toast(door.text, 'info');
-    if (loc !== g.player.loc) await travelTo(loc);
+    if (loc !== g.player.loc && !(await travelTo(loc))) { notify(); return; }
     state.view = 'scene';
     notify();
 }
@@ -345,6 +352,7 @@ export async function finishWork(msgs: string[], jobName: string) {
 
 Object.assign(ACT, {
     work: async () => {
+        if (!allow('work', () => { passOnce(); void ACT.work(document.body, new Event('click')); })) return;
         const { g, w } = ctxW();
         const job = g.player.job && w.occupations.find(o => o.id === g.player.job!.id);
         if (!job || !isOpen(g, job)) { toast('The place is closed now.', 'info'); return; }
@@ -371,6 +379,7 @@ Object.assign(ACT, {
     go: (el) => goTo(el.dataset.loc!),
     travel: (el) => goTo(el.dataset.loc!),
     sleep: () => {
+        if (!allow('sleep', () => { passOnce(); void ACT.sleep(document.body, new Event('click')); })) return;
         const { g, w } = ctxW();
         const until = w.sleep.until;
         const mins = g.minutes < until ? until - g.minutes : 1440 - g.minutes + until;
@@ -381,6 +390,7 @@ Object.assign(ACT, {
         const { g, w } = ctxW();
         const a = actionsHere(g, w).find(x => x.id === el.dataset.id);
         if (!a) return;
+        if (!allow('do', () => undefined)) return;
         if (!canAfford(g, a)) { toast('Not enough money.', 'info'); return; }
         const tired = tooTired(g, w, Object.fromEntries(Object.entries(a.effects ?? {}).map(([k, v]) => [k, -v])), a.label.toLowerCase()); if (tired) { toast(tired, 'warn'); return; }
         if (isDoing()) return;

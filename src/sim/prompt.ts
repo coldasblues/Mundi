@@ -21,6 +21,7 @@ import { social, livePlan } from './social.js';
 import { personaName } from '../st/bridge.js';
 import { nowAbs, type Save, type Resident } from '../core/store.js';
 import type { WorldDef } from '../core/world.js';
+import { walkOns, psOn, refreshPState, clearPState } from './pstate-live.js';
 
 export const PROMPT_KEY = 'mundi_scene';
 
@@ -59,12 +60,14 @@ export function sceneBlocks(): Built[] {
     const present = presentAt(g, w, g.player.loc);
     const met = present.filter(r => r.met);
     const names = present.map(r => r.name);
+    const extras = psOn() ? walkOns(g, w) : [];   // people the story brought in (player state)
     const raw: Record<string, string[]> = {
         core: [
             `[World state — ${w.name}]`,
             `Now: ${weekday(g.day)}, day ${g.day}, ${hm(g.minutes)} (${period(w, g.minutes).name.toLowerCase()}). Weather: ${weatherOf(g).name.toLowerCase()}. Season: ${seasonOf(g).name.toLowerCase()}.`,
             `Place: ${here?.name ?? 'somewhere'}${here?.desc ? ` — ${here.desc}` : ''}`,
-            names.length ? `Here with {{user}}: ${names.join(', ')}. Only they are in this scene; nobody else speaks or appears.` : 'Nobody else is here right now.',
+            names.length ? `Here with {{user}}: ${names.join(', ')}. Only they${extras.length ? ' and the people below' : ''} are in this scene; nobody else speaks or appears.` : extras.length ? '' : 'Nobody else is here right now.',
+            ...(extras.length ? [`Also here, already part of this scene (not regulars): ${extras.join(', ')}. They stay until the story has them leave.`] : []),
             ...(present.some(r => !r.met) ? [`Strangers to {{user}}: ${present.filter(r => !r.met).map(r => r.name).join(', ')}. They and {{user}} have never met: they do not know each other's names until they talk and introduce themselves.`] : []),
         ],
         // only the people in this scene and this place: nobody else's memories, nobody else's whereabouts
@@ -114,8 +117,8 @@ export function sceneText(): string {
     return [basics, ...mid, rules].filter(Boolean).join('\n');
 }
 
-export function refreshPrompt() { setPrompt(PROMPT_KEY, sceneText()); }
-export const clearPrompt = () => setPrompt(PROMPT_KEY, '');
+export function refreshPrompt() { setPrompt(PROMPT_KEY, sceneText()); refreshPState(); }
+export const clearPrompt = () => { setPrompt(PROMPT_KEY, ''); clearPState(); };
 export const speakerName = (avatar: string) => nameOf(avatar);
 
 // The scene's focus (a short directive so the story does not wander): the plan or company that brought you here.

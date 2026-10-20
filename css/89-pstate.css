@@ -1,0 +1,35 @@
+/* Player state: the chip under the clock, the walk-ons in the "Here" row, the ending card. */
+#mundi-root .mh-pstate { position: absolute; z-index: 21; top: 140px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; max-width: min(560px, calc(100% - 28px)); padding: 7px 14px; border-radius: 999px; font-size: 13px; }
+#mundi-root:not(:has(.mh-here)) .mh-pstate { top: 86px; }
+#mundi-root .mh-pstate b { white-space: nowrap; }
+#mundi-root .mh-pstate small { color: var(--hud-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+#mundi-root .mh-pstate .mu-ic { flex: none; }
+#mundi-root .mh-pstate.is-engaged .mu-ic { color: #7fd3ff; }
+#mundi-root .mh-pstate.is-held { box-shadow: inset 0 0 0 1.5px rgba(240, 173, 19, .75); }
+#mundi-root .mh-pstate.is-held .mu-ic { color: #f0ad13; }
+#mundi-root .mh-pstate.is-restrained, #mundi-root .mh-pstate.is-incapacitated, #mundi-root .mh-pstate.is-over { box-shadow: inset 0 0 0 1.5px rgba(226, 59, 65, .8); }
+#mundi-root .mh-pstate.is-restrained .mu-ic, #mundi-root .mh-pstate.is-incapacitated .mu-ic, #mundi-root .mh-pstate.is-over .mu-ic { color: #ff6b70; }
+#mundi-root .mh-pstate.is-free { box-shadow: inset 0 0 0 1.5px rgba(67, 181, 27, .8); padding: 0; }
+#mundi-root .mh-ps-go { display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px !important; background: none !important; border: 0 !important; color: inherit; font: inherit; font-weight: 700; cursor: pointer; border-radius: 999px; }
+#mundi-root .mh-pstate.is-over { padding: 0; }
+@media (max-width: 1100px) { #mundi-root .mh-pstate { top: 250px; } #mundi-root:not(:has(.mh-here)) .mh-pstate { top: 196px; } }
+@media (max-width: 760px) { #mundi-root .mh-pstate { top: 150px !important; } }
+#mundi-root[data-mobile] .mh-pstate { top: calc(var(--m-gap, 10px) + 140px) !important; }
+
+/* walk-ons: a plain face in the "Here" row and on the map card */
+#mundi-root .mh-walkon-pic { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; background: rgba(255, 255, 255, .14); box-shadow: 0 0 0 2px rgba(255, 255, 255, .35); color: rgba(255, 255, 255, .85); }
+#mundi-root .mh-here-p.is-walkon { cursor: default; }
+#mundi-root .mh-here-p.is-walkon:hover b { opacity: 1; }
+#mundi-root .mu-pop-person.is-walkon .mh-walkon-pic { width: 28px; height: 28px; }
+#mundi-root .mu-pop-person.is-walkon .mh-walkon-pic .mu-ic { width: 15px; height: 15px; }
+
+/* the end of the story */
+#mundi-root .mu-ps-veil { z-index: 70; background: rgba(0, 0, 0, .62); backdrop-filter: blur(3px); }
+#mundi-root .mu-ps-end { z-index: 71; text-align: center; justify-items: center; width: min(460px, calc(100vw - 32px)); }
+#mundi-root .mu-ps-end h3 { font-size: 24px; }
+#mundi-root .mu-ps-end-ic { width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; background: rgba(226, 59, 65, .18); color: #ff6b70; }
+#mundi-root .mu-ps-end-ic .mu-ic { width: 28px; height: 28px; }
+#mundi-root .mu-ps-end.is-captured .mu-ps-end-ic { background: rgba(240, 173, 19, .18); color: #f0ad13; }
+#mundi-root .mu-ps-end-btns { flex-wrap: wrap; justify-content: center; gap: 8px; }
+#mundi-root .mu-ps-over { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 14px; color: var(--hud-muted, #aab); }
+#mundi-root .mu-ps-over button { border-radius: 10px; padding: 6px 14px; }

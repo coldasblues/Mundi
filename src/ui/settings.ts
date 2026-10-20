@@ -10,6 +10,7 @@ import { setSkin } from './skins.js';
 import { addonsTab } from './addons.js';
 import { lookPanelHtml, lookConfirmHtml } from './chatlook.js';
 import { DATE_FORMATS, fmtDate, fmtClock } from '../core/fmt.js';
+import { pstateSettingsHtml } from './pstateui.js';
 
 // Fonts: Mundi's default, the system's, or one of these (the world's style font is used when "world" is chosen).
 export const FONTS: [string, string, string][] = [['default', 'Mundi (Nunito)', ''], ['system', 'System', 'system-ui, "Segoe UI", sans-serif'], ['inter', 'Inter', '"Inter", sans-serif'],
@@ -59,6 +60,7 @@ function tabGame() {
     const g = game();
     return `<section><h3>General</h3>
             <label class="mu-check"><input type="checkbox" data-input="set-openstart" ${settings().openOnStart ? 'checked' : ''}><span>Open Mundi when SillyTavern starts</span></label></section>
+        ${pstateSettingsHtml()}
         <section><h3>Diary</h3>
             <label class="mu-check"><input type="checkbox" data-input="set-diary" ${(settings() as any).diaryOnSleep !== false ? 'checked' : ''}><span>Write the day in the diary when you sleep<small>One AI call per night: the day's facts and conversations become a short first-person entry in the Journal, and the story remembers the past days through it.</small></span></label></section>
         <section><h3>Background</h3>

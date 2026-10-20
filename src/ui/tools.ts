@@ -20,6 +20,8 @@ Object.assign(ACT, {
     skip: async () => {
         const g = game(); const w = g && getWorld(g.world);
         if (!g || !w) return;
+        const { allow, passOnce } = await import('./pstateui.js');
+        if (!allow('skip', () => { passOnce(); void ACT.skip(document.body, new Event('click')); })) return;
         advance(g, w, toNextPeriod(w, g.minutes)).forEach(m => toast(m, 'warn'));
         showTransition(period(w, g.minutes).name, `Day ${g.day}`, 'time');
         runPlans();

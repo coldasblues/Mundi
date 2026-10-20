@@ -37,6 +37,7 @@ import { PL, facePlanHtml } from './plans.js';
 import { relBar } from './relui.js';
 import { weatherOf } from '../sim/weather.js';
 import { chanceOf } from '../sim/dice.js';
+import { pstateOverlays, walkOnChips } from './pstateui.js';
 
 /* ---------- you ---------- */
 
@@ -130,8 +131,9 @@ function peopleColumn(g: Save, w: WorldDef) {
 function hereBar(g: Save, w: WorldDef) {
     if (state.view !== 'scene') return '';
     const list = presentAt(g, w, g.player.loc);   // everyone in the place, the people who came with you too
-    if (!list.length) return '';
-    return `<nav class="mh-here mh-glass" aria-label="Who is here"><small>Here</small>${list.map(r => `<button class="mh-here-p ${PL.card === r.avatar ? 'is-on' : ''} ${soloOf(g) === r.avatar ? 'is-solo' : ''} ${isWith(g, r.avatar) ? 'is-with' : ''}" data-act="pc-open" data-who="${esc(r.avatar)}" title="${esc(r.met ? r.name : 'Someone')}"><img src="${esc(thumb(r.avatar))}" alt=""><b data-notr>${esc(r.met ? r.name : '?')}</b></button>`).join('')}</nav>`;
+    const extras = walkOnChips(g, w);             // and the people the story brought in
+    if (!list.length && !extras) return '';
+    return `<nav class="mh-here mh-glass" aria-label="Who is here"><small>Here</small>${extras}${list.map(r => `<button class="mh-here-p ${PL.card === r.avatar ? 'is-on' : ''} ${soloOf(g) === r.avatar ? 'is-solo' : ''} ${isWith(g, r.avatar) ? 'is-with' : ''}" data-act="pc-open" data-who="${esc(r.avatar)}" title="${esc(r.met ? r.name : 'Someone')}"><img src="${esc(thumb(r.avatar))}" alt=""><b data-notr>${esc(r.met ? r.name : '?')}</b></button>`).join('')}</nav>`;
 }
 
 /* ---------- things to do (inside a scene) ---------- */
@@ -177,7 +179,7 @@ function phoneButton(w: WorldDef) {
 export function hudHtml() {
     const g = game(); const w = g && getWorld(g.world);
     if (!g || !w) return '';
-    return `${personaCard(g, w)}${houseBar(g, w)}${clockCard(g, w)}${corner(g, w)}${eventPanelHtml(g, w)}${hereBar(g, w)}${peopleColumn(g, w)}${actsColumn(g, w)}${phoneButton(w)}${bumpHtml()}${apptReminderHtml(g, w)}${conflictHtml(g, w)}${facePlanHtml()}${customModalHtml()}${doingHtml()}${lifeOverlays()}`;
+    return `${personaCard(g, w)}${houseBar(g, w)}${clockCard(g, w)}${corner(g, w)}${eventPanelHtml(g, w)}${hereBar(g, w)}${peopleColumn(g, w)}${actsColumn(g, w)}${phoneButton(w)}${bumpHtml()}${apptReminderHtml(g, w)}${conflictHtml(g, w)}${facePlanHtml()}${customModalHtml()}${doingHtml()}${lifeOverlays()}${pstateOverlays(g, w)}`;
 }
 
 Object.assign(ACT, {

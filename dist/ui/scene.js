@@ -25,12 +25,16 @@ import { tr } from '../core/tr.js';
 import { stFormat, avatarHtml, cardPicHtml, portraitHtml, lightboxHtml, lookPanelHtml, lookConfirmHtml } from './chatlook.js';
 import { avatarUrl } from '../st/bridge.js';
 import { charPicker } from './charpick.js';
+import { stripBlock } from '../sim/pstate.js';
+import { narratorExtra, splitNarration, onEdited } from '../sim/pstate-live.js';
+import { afterNarration, storyOver, endedComposerHtml } from './pstateui.js';
 const LOG_SIZE = 40;
 /* ---------- text ---------- */
 export function cleanText(t) {
-    return String(t ?? '')
+    // the hidden state block (player state) is cut too, even while it streams in
+    return stripBlock(String(t ?? '')
         .replace(/<(think|thinking|reasoning)>[\s\S]*?<\/\1>/gi, '')
-        .replace(/<(think|thinking|reasoning)>[\s\S]*$/i, '')
+        .replace(/<(think|thinking|reasoning)>[\s\S]*$/i, ''))
         .trim();
 }
 // Pictures in a line: Markdown ![…](url) and <img src="…"> written by the character (anything else stays text).
@@ -169,7 +173,7 @@ export function sceneHtml() {
         
         <section class="mu-dialog">
             <div class="mu-log" data-keep="log" data-bottom>${logHtml()}</div>
-            <div class="mu-composer">
+            ${storyOver(g) ? endedComposerHtml() : `<div class="mu-composer">
                 ${modesHtml()}
                 <textarea data-focus="composer" rows="2" placeholder="${nobody ? 'You are alone here. Write what you do or think; the narrator describes the moment.' : 'Write what you say or do…'}">${esc(state.composer)}</textarea>
                 <div class="mu-composer-tools">
@@ -180,7 +184,7 @@ export function sceneHtml() {
                        <button data-act="regenerate" title="Regenerate the last answer" ${nobody ? 'disabled' : ''}>${icon('redo')}</button>
                        <button data-act="impersonate" title="The AI writes your line" ${nobody ? 'disabled' : ''}>${icon('pen')}</button>${sdButton()}${micButton()}<button data-act="ext-menu" class="${EXT.open ? 'is-on' : ''}" title="SillyTavern extensions">${icon('grid')}</button>`}
                 </div>
-            </div>
+            </div>`}
         </section>
         ${sceneCard(g, w)}
         ${portraitHtml()}${lightboxHtml()}${lookConfirmHtml()}
@@ -446,8 +450,10 @@ Object.assign(ACT, {
     'edit-cancel': () => { state.modal = null; notify(); },
     'edit-save': (el) => {
         const ta = document.getElementById(ROOT_ID)?.querySelector('.mu-msgedit');
-        if (ta)
+        if (ta) {
             editMessage(Number(el.dataset.i), ta.value);
+            onEdited(Number(el.dataset.i));
+        } // player state follows the new text
         state.modal = null;
         notify();
     },
@@ -455,6 +461,18 @@ Object.assign(ACT, {
     'delete-yes': async (el) => { state.modal = null; await deleteMessageAt(Number(el.dataset.i)); notify(); },
 });
 Object.assign(INPUT, { 'sc-q': (el) => { SC.q = el.value; notify(); } });
+/** A line from a button (trying to get away…): to the people here, or to the narrator when nobody of the cast is here. */
+export async function sendSceneLine(text) {
+    const g = game();
+    const w = g && getWorld(g.world);
+    if (g && w && !presentAt(g, w, g.player.loc).length && !scenarioOpen()) {
+        await soloNarrate(g, w, text);
+        return;
+    }
+    const { sendCanned } = await import('../st/bridge.js');
+    if (!sendCanned(text))
+        toast('SillyTavern\'s message box was not found.', 'error');
+}
 // The invisible narrator for scenes with nobody else: your line goes into the chat, and the narrator answers with the
 // surroundings, the passing moment and how you feel. No character is made to appear.
 async function soloNarrate(g, w, text) {
@@ -464,9 +482,16 @@ async function soloNarrate(g, w, text) {
         await addUserLine(text);
         const me = personaName();
         const recent = chat().slice(-8).filter((m) => !m.is_system).map((m) => `${m.is_user ? me : m.name}: ${String(m.mes ?? '').replace(/\s+/g, ' ').slice(0, 300)}`).join('\n');
-        const out = await quiet(`${sceneText().replace(/\{\{user\}\}/g, me)}\n\n${recent}\n\nNarrate what happens next in 2 to 4 sentences, in the second person ("you"), following ${me}'s last line. ${me} is alone: describe only the place, small details, the passing moment and ${me}'s feelings and thoughts. No other character appears, speaks or arrives. Do not write ${me}'s words or decisions.${aiLangNote() ? ` ${aiLangNote()}` : ''}`, 260, 'You are the quiet narrator of a life simulation. You never bring other characters into the scene.');
-        if (out.trim())
-            await narratorLine(out.trim());
+        // player state: who is here (the story may have brought someone in), and how a roll to get away went
+        const extra = narratorExtra().replace(/\{\{user\}\}/g, me);
+        const alone = !extra.includes('Also in the scene:');
+        const out = await quiet(`${sceneText().replace(/\{\{user\}\}/g, me)}\n\n${recent}\n\nNarrate what happens next in 2 to 4 sentences, in the second person ("you"), following ${me}'s last line. ${alone ? `${me} is alone: describe only the place, small details, the passing moment and ${me}'s feelings and thoughts. No other character appears, speaks or arrives.` : `Describe the place, the moment and the people already in the scene; voice them briefly when they speak. Nobody new arrives.`} Do not write ${me}'s words or decisions.${aiLangNote() ? ` ${aiLangNote()}` : ''}${extra ? `\n\n${extra}` : ''}`, extra ? 420 : 260, alone ? 'You are the quiet narrator of a life simulation. You never bring other characters into the scene.' : 'You are the narrator of a life simulation.');
+        const told = splitNarration(out.trim());
+        if (told.text.trim()) {
+            await narratorLine(told.text.trim());
+            if (extra)
+                afterNarration(told.rep);
+        }
         else
             toast('No answer (is the AI connected?).', 'warn');
     }

@@ -14,6 +14,14 @@ export const visitStart = (g) => {
 };
 export const recaps = (g) => (g.recaps ??= []);
 export async function endVisit(g, w) {
+    // the people the story brought in (player state) are remembered too, before the visit closes
+    let extras = [];
+    try {
+        const ps = await import('./pstate-live.js');
+        if (ps.psOn())
+            extras = ps.seenWalkOns(g, w);
+    }
+    catch { /* */ }
     const list = chat();
     const start = visitStart(g), end = list.length - 1;
     g.visitStart = list.length;
@@ -27,6 +35,8 @@ export async function endVisit(g, w) {
     const who = Object.values(g.cast).filter(r => talked.has(r.name));
     if (who.length)
         note(g, '{u} spent time with {0} at {1}.', [who.map(r => r.name).join(', '), placeName(g, w, g.player.loc)], who.map(r => r.avatar), g.player.loc, 'visit');
+    if (extras.length)
+        note(g, '{u} ran into {0} at {1}.', [extras.join(', '), placeName(g, w, g.player.loc)], [], g.player.loc, 'visit');
 }
 // For the world prompt: what happened earlier (the last few visits).
 export function recapLines(g) {
