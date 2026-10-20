@@ -20,7 +20,16 @@ export const recaps = (g: Save): Recap[] => ((g as any).recaps ??= []);
 export async function endVisit(g: Save, w: WorldDef) {
     // the people the story brought in (player state) are remembered too, before the visit closes
     let extras: string[] = [];
-    try { const ps = await import('./pstate-live.js'); if (ps.psOn()) extras = ps.seenWalkOns(g, w); } catch { /* */ }
+    try {
+        const ps = await import('./pstate-live.js');
+        if (ps.psOn()) {
+            extras = ps.seenWalkOns(g, w);
+            // the roster: who was part of this visit, and what happened to them (before the lines are hidden)
+            const spoke = new Set(chat().slice(visitStart(g)).filter(m => !m.is_user && !m.is_system).map(m => String(m.name ?? '')));
+            const who = Object.values(g.cast).filter(r => spoke.has(r.name)).map(r => ({ name: r.name }));
+            (await import('./roster.js')).endVisitRoster(g, w, who, extras);
+        }
+    } catch (e) { console.warn('[Mundi] roster', e); }
     const list = chat();
     const start = visitStart(g), end = list.length - 1;
     (g as any).visitStart = list.length;

@@ -224,13 +224,20 @@ function animBar(label, t0, t1, v0, v1) {
     return `<div class="mu-rb ${cls}"><span class="mu-rb-head"><small>${label}</small><b style="color:${t1.color}">${esc(t1.name)}</b>${up ? '<em>New level!</em>' : down ? '<em class="is-bad">Went down</em>' : ''}</span>
         <span class="mu-rb-bar" style="--a:${a}%;--b:${b}%;--c0:${t0.color};--c1:${t1.color}"><i></i></span></div>`;
 }
+// The diary as written by the model: paragraphs, **bold** and *italics* (it used to show the asterisks).
+function proseHtml(t) {
+    return String(t ?? '').trim().split(/\n\s*\n/).map(p => `<p>${esc(p.trim())
+        .replace(/\*\*([^*\n]+)\*\*/g, '<b>$1</b>')
+        .replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<i>$2</i>')
+        .replace(/\n/g, '<br>')}</p>`).join('');
+}
 function recapHtml() {
     const g = game();
     if (!DAY.open || !g)
         return '';
     return `<div class="mu-recap-veil"><section class="mu-recap mh-glass" role="dialog" aria-label="How the day went">
         <header><small>Day ${DAY.day}</small><h3>How the day went</h3></header>
-        ${(g.journalProse ?? {})[DAY.day] ? `<div class="mu-recap-diary"><blockquote data-notr>${esc(diaryShown(g, DAY.day))}</blockquote>${diaryTtsButton(DAY.day)}</div>` : ''}
+        ${(g.journalProse ?? {})[DAY.day] ? `<div class="mu-recap-diary"><blockquote data-notr>${proseHtml(diaryShown(g, DAY.day))}</blockquote>${diaryTtsButton(DAY.day)}</div>` : ''}
         <div class="mu-recap-list">${DAY.changes.map((c, i) => {
         const fT0 = friendTier(c.f0), fT1 = friendTier(c.f1);
         const rT0 = romanceTier(g, c.avatar, c.r0), rT1 = romanceTier(g, c.avatar, c.r1);

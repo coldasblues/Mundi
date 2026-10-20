@@ -15,6 +15,7 @@ export const MOBILITY = ['free', 'engaged', 'held', 'restrained', 'incapacitated
 export const OUTCOMES = ['none', 'dead', 'failed', 'captured'];
 export const rank = (m) => MOBILITY.indexOf(m);
 const worse = (a, b) => (rank(a) >= rank(b) ? a : b);
+export const CHANGES = ['arrived', 'left', 'injured', 'recovered', 'captured', 'freed', 'missing', 'returned', 'dead'];
 export const TAG = 'state';
 const OPEN = /<\s*state\s*>/gi;
 const BLOCK = /(?:```[a-z]*\s*)?<\s*state\s*>([\s\S]*?)<\s*\/\s*state\s*>(?:\s*```)?/gi;
@@ -75,6 +76,54 @@ export function namesOf(v, user = '') {
     }
     return out.slice(0, 12);
 }
+const CHANGE_SYN = [
+    ['dead', /^(dead|died|dies|killed|deceased|slain|murdered|is dead|was killed|passed away)\b/],
+    ['captured', /^(captured|arrested|kidnapped|abducted|taken|imprisoned|jailed|detained)\b/],
+    ['freed', /^(freed|released|rescued|escaped|let go)\b/],
+    ['missing', /^(missing|vanished|disappeared|lost|gone missing)\b/],
+    ['returned', /^(returned|back|came back|found|reappeared)\b/],
+    ['injured', /^(injured|hurt|wounded|bleeding|beaten|shot)\b/],
+    ['recovered', /^(recovered|healed|better|fine again)\b/],
+    ['left', /^(left|leaves|leaving|departed|gone|walked out|went away|ran off)\b/],
+    ['arrived', /^(arrived|arrives|came in|entered|enters|joined|joins|showed up|appeared|new)\b/],
+];
+export function changeOf(v) {
+    const s = String(v ?? '').toLowerCase().replace(/[*_`"'[\]().!]/g, '').trim();
+    if (!s || s.includes('|'))
+        return undefined;
+    for (const [c, re] of CHANGE_SYN)
+        if (re.test(s))
+            return c;
+    return undefined;
+}
+/** "Officer Diaz = dead; Mara = left" (also "Diaz: died", "Diaz died"). */
+export function changesOf(v, user = '') {
+    const out = [];
+    const self = new Set(['{{user}}', 'you', 'user', 'player', user.toLowerCase()].filter(Boolean));
+    const raw = String(v ?? '');
+    if (NOBODY.test(raw.trim()) || raw.includes('|'))
+        return out;
+    const parts = raw.split(/;|\n|,(?=[^,]*(?:=|:|→|->))/);
+    for (let p of parts) {
+        p = p.replace(/[*_`"[\]]/g, '').trim();
+        if (!p || NOBODY.test(p))
+            continue;
+        let m = p.match(/^(.+?)\s*(?:=|:|→|->|—|–)\s*(.+)$/);
+        if (!m) {
+            const w = p.match(/^(.+?)\s+((?:is |was |has )?[a-z]+(?: [a-z]+)?)$/i);
+            if (w)
+                m = [p, w[1], w[2].replace(/^(is|was|has) /i, '')];
+        }
+        if (!m)
+            continue;
+        const name = m[1].replace(/\([^)]*\)/g, '').trim(), change = changeOf(m[2]);
+        if (!name || !change || name.length > 60 || self.has(name.toLowerCase()))
+            continue;
+        if (!out.some(x => x.name.toLowerCase() === name.toLowerCase() && x.change === change))
+            out.push({ name, change });
+    }
+    return out.slice(0, 12);
+}
 /** Reads the last state block in a reply. null when there is none. */
 export function parseBlock(text, user = '') {
     const t = String(text ?? '');
@@ -111,6 +160,8 @@ export function parseBlock(text, user = '') {
             if (o)
                 out.outcome = o;
         }
+        else if (/^(changes|change|events|others|people changes|what happened)$/.test(key))
+            out.changes = changesOf(val, user);
     }
     return out;
 }
@@ -187,6 +238,15 @@ export function fold(lines, start = freshState()) {
             s.pending = null;
             return;
         }
+        // a cause the engine can see in the same reply: someone died, left, was taken or went missing (the one
+        // holding you, most likely), so a better state counts at once (from restrained, still one step at a time)
+        if (r.changes?.some(c => c.change === 'dead' || c.change === 'left' || c.change === 'captured' || c.change === 'missing')) {
+            const step = now >= rank('restrained') && rank(r.mobility) < rank('held');
+            s.mobility = step ? 'held' : r.mobility;
+            s.reason = step ? s.reason : (r.reason ?? '');
+            s.pending = null;
+            return;
+        }
         if (s.pending) {
             const to = worse(s.pending.to, r.mobility);
             const step = now >= rank('restrained') && rank(to) < rank('held');
@@ -234,6 +294,7 @@ export function instructionText(s, walkOns) {
         'reason: a few words',
         'present: everyone else in the scene, comma separated, or none',
         'outcome: none | dead | failed | captured',
+        'changes: what happened to OTHER people in this reply, as Name = arrived | left | injured | recovered | captured | freed | missing | returned | dead (several separated by ;), or none',
         '</state>',
         'Pick ONE value per line. free = {{user}} can walk away; engaged = in a conversation or task they could leave, but it would be rude; held = someone is keeping {{user}} here (blocking the way, questioning, guarding); restrained = tied, cuffed, grabbed, locked in; incapacitated = unconscious or too hurt to move. outcome stays none unless {{user}} has died, has failed for good, or is captured for good.',
         'Only the game decides whether {{user}} gets away: never write {{user}} leaving the place on their own.',
@@ -250,6 +311,7 @@ export function checkPrompt(reply, before, user) {
         'reason: a few words',
         `present: everyone in the scene besides ${user}, comma separated, or none`,
         'outcome: none | dead | failed | captured',
+        `changes: what happened to people other than ${user} in the reply, as Name = arrived | left | injured | recovered | captured | freed | missing | returned | dead (separated by ;), or none`,
         '</state>',
         `free = ${user} can walk away; engaged = in a conversation they could leave; held = someone keeps ${user} there; restrained = tied, cuffed, grabbed, locked in; incapacitated = unconscious or cannot move. outcome is none unless ${user} died, failed for good, or was captured for good.`,
     ].join('\n');

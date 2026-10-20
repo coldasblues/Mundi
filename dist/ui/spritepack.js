@@ -89,6 +89,23 @@ async function checkComfy() {
             SP.unets = m.filter(x => /^(UNet|GGUF):/.test(String(x.text))).map(x => String(x.value));
             SP.vaes = v.map(String);
             SP.workflows = wf.map(String);
+            // the model file named in the settings is not there, but another Qwen Image Edit file of this version
+            // is (a GGUF, an int8…): use that one
+            const ver = p.preset === 'qwen-2509' ? '2509' : '2511';
+            if (p.mode === 'preset' && SP.unets.length && !SP.unets.includes(p.models.unet)) {
+                const pick = SP.unets.find(f => /qwen[-_ ]?image[-_ ]?edit/i.test(f) && f.includes(ver));
+                if (pick) {
+                    p.models.unet = pick;
+                    saveSettings();
+                }
+            }
+            if (SP.vaes.length && !SP.vaes.includes(p.models.vae)) {
+                const v2 = SP.vaes.find(f => /qwen[-_ ]?image[-_ ]?vae/i.test(f));
+                if (v2) {
+                    p.models.vae = v2;
+                    saveSettings();
+                }
+            }
         }
     }
     catch {

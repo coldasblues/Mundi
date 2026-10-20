@@ -18,10 +18,17 @@ export async function endVisit(g, w) {
     let extras = [];
     try {
         const ps = await import('./pstate-live.js');
-        if (ps.psOn())
+        if (ps.psOn()) {
             extras = ps.seenWalkOns(g, w);
+            // the roster: who was part of this visit, and what happened to them (before the lines are hidden)
+            const spoke = new Set(chat().slice(visitStart(g)).filter(m => !m.is_user && !m.is_system).map(m => String(m.name ?? '')));
+            const who = Object.values(g.cast).filter(r => spoke.has(r.name)).map(r => ({ name: r.name }));
+            (await import('./roster.js')).endVisitRoster(g, w, who, extras);
+        }
     }
-    catch { /* */ }
+    catch (e) {
+        console.warn('[Mundi] roster', e);
+    }
     const list = chat();
     const start = visitStart(g), end = list.length - 1;
     g.visitStart = list.length;

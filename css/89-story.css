@@ -1,0 +1,23 @@
+/* People in your story (the roster) and Save…, from the game menu; save cards on the Load screen. */
+/* "How the day went" is for reading: the stronger glass of the dialogue box, so the map does not show through the diary */
+#mundi-root .mu-recap.mh-glass { background: linear-gradient(180deg, rgba(255, 255, 255, .08), rgba(255, 255, 255, 0) 30%), var(--glass-strong) !important; }
+#mundi-root .mu-recap-veil { background: rgba(4, 6, 14, .72); }
+#mundi-root .mu-story { width: min(620px, calc(100vw - 32px)); max-height: min(80vh, 760px); display: grid; grid-template-rows: auto auto 1fr auto; gap: 10px; }
+#mundi-root .mu-story-top { display: flex; align-items: center; justify-content: space-between; }
+#mundi-root .mu-story-list { list-style: none; margin: 0; padding: 0; overflow-y: auto; display: grid; gap: 8px; min-height: 0; }
+#mundi-root .mu-story-p { display: grid; grid-template-columns: 48px 1fr; gap: 10px; padding: 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg2); }
+#mundi-root .mu-story-p > img, #mundi-root .mu-story-nopic { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; object-position: top; display: grid; place-items: center; background: rgba(255, 255, 255, .1); color: var(--muted); }
+#mundi-root .mu-story-p.is-dead > img { filter: grayscale(1) brightness(.7); }
+#mundi-root .mu-story-p p { margin: 4px 0; font-size: 13px; line-height: 1.45; }
+#mundi-root .mu-story-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+#mundi-root .mu-story-chip { font-size: 11px; font-weight: 800; letter-spacing: .5px; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; background: rgba(255, 255, 255, .1); }
+#mundi-root .mu-story-chip.is-ok { color: #6fd34a; }
+#mundi-root .mu-story-chip.is-warn { color: #f0ad13; }
+#mundi-root .mu-story-chip.is-bad { color: #ff6b70; background: rgba(226, 59, 65, .15); }
+#mundi-root .mu-story-chip.is-muted { color: var(--muted); }
+#mundi-root .mu-story .mu-check small, #mundi-root .mu-story-save .mu-check small { display: block; color: var(--muted); font-size: 12px; }
+#mundi-root .mu-story-save { width: min(440px, calc(100vw - 32px)); }
+#mundi-root .mu-story-save .mu-row button { display: inline-flex; align-items: center; gap: 6px; }
+#mundi-root .mh-menu-save small { display: block; font-size: 11px; color: var(--hud-muted); font-weight: 500; }
+#mundi-root .mu-save-kind.is-slot { background: var(--accent2, var(--accent)); color: #fff; }
+#mundi-root .mu-save-snap { color: var(--text, inherit) !important; opacity: .85; }

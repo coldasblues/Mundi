@@ -2401,7 +2401,13 @@ body.mundi-open #toast-container { display: none !important; }
 #mundi-root .mu-recap header small { color: var(--hud-muted); font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; font-size: 12px; }
 #mundi-root .mu-recap header h3 { margin: 2px 0 0; font-size: 22px; }
 #mundi-root .mu-recap-list { display: grid; gap: 12px; overflow: auto; }
-#mundi-root .mu-recap-p { display: grid; grid-template-columns: 56px 1fr; gap: 12px; align-items: start; padding: 12px; border-radius: 16px; background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .1); opacity: 0; animation: mu-recap-in .5s ease forwards; animation-delay: var(--d); }
+/* the diary has a row of its own (it used to land in the row that may shrink to nothing, and showed one line);
+   the list of people is what scrolls when it all does not fit */
+#mundi-root .mu-recap:has(> .mu-recap-diary) { grid-template-rows: auto auto minmax(0, 1fr) auto; }
+#mundi-root .mu-recap-list { min-height: 0; }
+/* the cards are visible on their own and only fade in: "backwards" keeps them hidden just until their turn, so a
+   fade that does not run (reduced motion, a busy page) no longer leaves them invisible */
+#mundi-root .mu-recap-p { display: grid; grid-template-columns: 56px 1fr; gap: 12px; align-items: start; padding: 12px; border-radius: 16px; background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .1); animation: mu-recap-in .5s ease backwards; animation-delay: var(--d); }
 #mundi-root .mu-recap-p > img { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; object-position: top; }
 #mundi-root .mu-recap-p p { margin: 2px 0 6px; font-size: 13px; color: var(--hud-muted); }
 @keyframes mu-recap-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
@@ -2536,7 +2542,10 @@ body.mundi-open #toast-container { display: none !important; }
 #mundi-root .mu-spin { width: 34px; height: 34px; border-radius: 50%; border: 3px solid color-mix(in srgb, var(--text) 18%, transparent); border-top-color: var(--accent); animation: mu-spin .9s linear infinite; }
 @keyframes mu-spin { to { transform: rotate(360deg); } }
 #mundi-root .mu-recap-diary { display: grid; gap: 6px; }
-#mundi-root .mu-recap-diary blockquote { margin: 0; padding: 8px 12px; border-left: 3px solid var(--accent); font-style: italic; max-height: 30vh; overflow: auto; }
+#mundi-root .mu-recap-diary blockquote { margin: 0; padding: 8px 12px; border-left: 3px solid var(--accent); font-style: italic; max-height: 34vh; min-height: 3.2em; overflow: auto; line-height: 1.5; }
+#mundi-root .mu-recap-diary blockquote p { margin: 0 0 .6em; }
+#mundi-root .mu-recap-diary blockquote p:last-child { margin-bottom: 0; }
+#mundi-root .mu-recap-diary blockquote b { font-style: normal; }
 #mundi-root .mu-tts-diary { justify-self: start; display: inline-flex; align-items: center; gap: 6px; }
 #mundi-root .mu-wc-row.is-you { border: 1px dashed var(--accent); cursor: default; }
 #mundi-root .mu-hh-row.is-mine { border-color: var(--accent2, var(--accent)); }
@@ -2626,6 +2635,29 @@ body.mundi-open #toast-container { display: none !important; }
 #mundi-root .mu-ps-end-btns { flex-wrap: wrap; justify-content: center; gap: 8px; }
 #mundi-root .mu-ps-over { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 14px; color: var(--hud-muted, #aab); }
 #mundi-root .mu-ps-over button { border-radius: 10px; padding: 6px 14px; }
+/* People in your story (the roster) and Save…, from the game menu; save cards on the Load screen. */
+/* "How the day went" is for reading: the stronger glass of the dialogue box, so the map does not show through the diary */
+#mundi-root .mu-recap.mh-glass { background: linear-gradient(180deg, rgba(255, 255, 255, .08), rgba(255, 255, 255, 0) 30%), var(--glass-strong) !important; }
+#mundi-root .mu-recap-veil { background: rgba(4, 6, 14, .72); }
+#mundi-root .mu-story { width: min(620px, calc(100vw - 32px)); max-height: min(80vh, 760px); display: grid; grid-template-rows: auto auto 1fr auto; gap: 10px; }
+#mundi-root .mu-story-top { display: flex; align-items: center; justify-content: space-between; }
+#mundi-root .mu-story-list { list-style: none; margin: 0; padding: 0; overflow-y: auto; display: grid; gap: 8px; min-height: 0; }
+#mundi-root .mu-story-p { display: grid; grid-template-columns: 48px 1fr; gap: 10px; padding: 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg2); }
+#mundi-root .mu-story-p > img, #mundi-root .mu-story-nopic { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; object-position: top; display: grid; place-items: center; background: rgba(255, 255, 255, .1); color: var(--muted); }
+#mundi-root .mu-story-p.is-dead > img { filter: grayscale(1) brightness(.7); }
+#mundi-root .mu-story-p p { margin: 4px 0; font-size: 13px; line-height: 1.45; }
+#mundi-root .mu-story-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+#mundi-root .mu-story-chip { font-size: 11px; font-weight: 800; letter-spacing: .5px; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; background: rgba(255, 255, 255, .1); }
+#mundi-root .mu-story-chip.is-ok { color: #6fd34a; }
+#mundi-root .mu-story-chip.is-warn { color: #f0ad13; }
+#mundi-root .mu-story-chip.is-bad { color: #ff6b70; background: rgba(226, 59, 65, .15); }
+#mundi-root .mu-story-chip.is-muted { color: var(--muted); }
+#mundi-root .mu-story .mu-check small, #mundi-root .mu-story-save .mu-check small { display: block; color: var(--muted); font-size: 12px; }
+#mundi-root .mu-story-save { width: min(440px, calc(100vw - 32px)); }
+#mundi-root .mu-story-save .mu-row button { display: inline-flex; align-items: center; gap: 6px; }
+#mundi-root .mh-menu-save small { display: block; font-size: 11px; color: var(--hud-muted); font-weight: 500; }
+#mundi-root .mu-save-kind.is-slot { background: var(--accent2, var(--accent)); color: #fff; }
+#mundi-root .mu-save-snap { color: var(--text, inherit) !important; opacity: .85; }
 /* ---------- the tour (Stella): the step's element lit, the rest dimmed ---------- */
 #mundi-root .mu-tut { position: fixed; inset: 0; z-index: 200; pointer-events: none; --x: 50vw; --y: 50vh; --w: 0px; --h: 0px; }
 #mundi-root .mu-tut-shade { position: fixed; background: rgba(4, 8, 18, .62); pointer-events: auto; transition: all .25s ease; }

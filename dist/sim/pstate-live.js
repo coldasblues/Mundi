@@ -7,6 +7,7 @@ import { visitStart } from './visits.js';
 import { presentAt } from './people.js';
 import { placeOf } from './places.js';
 import { hm, weekday } from './time.js';
+import { nameGone } from './roster.js';
 import { parseBlock, stripBlock, hasBlock, fold, freshState, instructionText, checkPrompt, gateFor, GATE_DEFAULTS } from './pstate.js';
 export const PS_KEY = 'mundi_pstate';
 export const ESCAPE_KEY = 'mundi_escape';
@@ -78,7 +79,7 @@ export function outcomeLine(g) {
     return visitLines(g)[s.outcomeAt]?.i ?? -1;
 }
 /** People the story put in the scene who are not in the world's cast (a police officer, a waiter…). */
-export function walkOns(g, w, s = currentState(g)) {
+export function walkOns(g, w, s = currentState(g), withGone = false) {
     const known = Object.values(g.cast).flatMap(r => { const n = r.name.toLowerCase(); return [n, n.split(/\s+/)[0]]; });
     const me = personaName().toLowerCase();
     void w;
@@ -86,7 +87,7 @@ export function walkOns(g, w, s = currentState(g)) {
         const n = p.toLowerCase().replace(/^(the|a|an)\s+/, '');
         if (n === me || n === me.split(/\s+/)[0])
             return false;
-        return !known.some(k => k && (n === k || n.split(/\s+/)[0] === k));
+        return !known.some(k => k && (n === k || n.split(/\s+/)[0] === k)) && (withGone || !nameGone(g, p));
     });
 }
 /** Everyone the story brought in during this visit (for the recap), even the ones who left again. */
@@ -96,7 +97,7 @@ export function seenWalkOns(g, w) {
         for (const n of (line.kind === 'ai' && line.rep?.present) || [])
             if (!seen.some(x => x.toLowerCase() === n.toLowerCase()))
                 seen.push(n);
-    return walkOns(g, w, { ...freshState(), present: seen });
+    return walkOns(g, w, { ...freshState(), present: seen }, true); // the ones who died or left too
 }
 /* ---------- what the model is told ---------- */
 let directive = ''; // a one-shot order for the next reply (how a roll to get away went)
@@ -155,6 +156,8 @@ export function onReply(id) {
         catch { /* not on screen */ }
         checks.delete(id);
         saveChat();
+        if (keptOf(m)?.rep?.changes?.length)
+            afterChanges();
     }
     else if (!keptOf(m) && !isNarrator(m)) {
         keep(m, null, 'block');
@@ -255,7 +258,12 @@ export function keepNarration(id, rep) {
     keep(m, rep, 'block');
     saveChat();
     refreshPState();
+    if (rep?.changes?.length)
+        afterChanges();
 }
+// Someone died, left, was taken…: who is in the scene changes now (muted in the group, gone from the picture,
+// and the scene's prompt says so).
+function afterChanges() { void import('./game.js').then(x => x.syncScene()).catch(() => { }); }
 /** The user line that follows a roll: the engine's result goes with it. */
 export function markEscape(id, esc) {
     const m = chat()[id];

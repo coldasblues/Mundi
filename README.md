@@ -28,6 +28,8 @@ Two worlds come with it: **Porto Alto** (a modern coastal city) and **Valdoria**
 - **You can't teleport out of trouble.** Each reply ends with a small hidden block that says how free you are. Leaving a conversation is rude and costs you some friendship. Getting away when someone holds or restrains you takes a d20 roll, and the story tells how it went. Unable to move means you stay.
 - **People the story brings in are real.** A police officer who knocks on your door shows up in the "Here" row and on your map pin, stays in the scene prompt, and is remembered in the visit's recap.
 - **Stories can end.** Dying, failing or being captured opens an ending card. Have the narrator write an epilogue, take it back ("That's not what happened"), or load a save.
+- **Save when you want, and the dead stay dead.** **Save…** in the ☰ menu keeps a named save; loading it plays a copy, so the save stays. When someone dies in the story they're gone for good, right away: off the map, out of routines, and listed as dead in the prompt.
+- **People in your story.** Everyone you've met, including the people the story brought in, with their status (around, injured, captured, missing, dead), where you last saw them, and short notes the AI keeps up to date each time you leave a place. The story keeps those notes in mind.
 - **Sprite packs from one picture.** Library → a character → Expressions → **Make a sprite pack**: your ComfyUI makes every expression (with a transparent background) from one portrait, and you keep the ones you like. See [Sprite packs](#sprite-packs).
 - **Macros** such as `{{mundi_place}}`, `{{mundi_here}}`, `{{mundi_mobility}}` and `{{mundi_can_leave}}`, for your own cards and lorebooks.
 - Turn it on or off in **Settings → Game → Player state**. The full list is in the [CHANGELOG](CHANGELOG.md).
@@ -49,7 +51,7 @@ What your ComfyUI needs for the built-in workflow:
   | `qwen_image_vae.safetensors` | `models/vae` | [Comfy-Org/Qwen-Image_ComfyUI](https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI/tree/main/split_files/vae) |
   | `Qwen-Image-Edit-2511-Lightning-4steps-V1.0-bf16.safetensors` (optional, much faster) | `models/loras` | [lightx2v/Qwen-Image-Edit-2511-Lightning](https://huggingface.co/lightx2v/Qwen-Image-Edit-2511-Lightning) |
 
-The fp8 diffusion model is large. If it's slow or runs out of video memory on your card, a GGUF version (Q4/Q5) works too, through [ComfyUI-GGUF](https://github.com/city96/ComfyUI-GGUF). Pick it under **Model files**. You can also use one of your own ComfyUI workflows from SillyTavern: it gets the picture as `%char_avatar%` and the edit as `%prompt%`.
+The fp8 diffusion model is large. If it's slow or runs out of video memory on your card, a GGUF version (Q4/Q5) works too, through [ComfyUI-GGUF](https://github.com/city96/ComfyUI-GGUF). Pick it under **Model files** (the panel picks a Qwen Image Edit file your ComfyUI has on its own, if the default one isn't there). You can also use one of your own ComfyUI workflows from SillyTavern: it gets the picture as `%char_avatar%` and the edit as `%prompt%`.
 
 For a transparent background, the default asks for a plain green background and keys it out in the browser. Pick magenta if the character wears green, or use ComfyUI's Remove Background node instead.
 

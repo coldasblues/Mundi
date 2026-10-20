@@ -206,14 +206,15 @@ export async function startNewGame(o: NewGame) {
 export const gameEntry = (groupId: string | null) => settings().games.find(e => e.groupId === groupId) ?? null;
 export const currentEntry = () => gameEntry(selectedGroup());
 
-export async function enterGame(groupId: string, chatId?: string) {
+// `quiet`: no note about the save's size (a save slot opens on the way to its copy, which then gets the note)
+export async function enterGame(groupId: string, chatId?: string, quiet = false) {
     const entry = gameEntry(groupId);
     if (!entry || !groupOf(groupId)) { toast('This game no longer exists in SillyTavern.', 'error'); return; }
     await loadWorld(entry.world);
     await openGame(groupId, chatId);
     if (!game()) { toast('This chat has no Mundi save.', 'error'); return; }
     entry.last = Date.now();
-    tokenNote();
+    if (!quiet) tokenNote();
     settings().lastGame = groupId;
     settings().last = { kind: 'world', group: groupId, chatId: currentChatId() };
     saveSettings();

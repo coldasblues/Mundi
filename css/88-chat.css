@@ -398,7 +398,13 @@
 #mundi-root .mu-recap header small { color: var(--hud-muted); font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; font-size: 12px; }
 #mundi-root .mu-recap header h3 { margin: 2px 0 0; font-size: 22px; }
 #mundi-root .mu-recap-list { display: grid; gap: 12px; overflow: auto; }
-#mundi-root .mu-recap-p { display: grid; grid-template-columns: 56px 1fr; gap: 12px; align-items: start; padding: 12px; border-radius: 16px; background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .1); opacity: 0; animation: mu-recap-in .5s ease forwards; animation-delay: var(--d); }
+/* the diary has a row of its own (it used to land in the row that may shrink to nothing, and showed one line);
+   the list of people is what scrolls when it all does not fit */
+#mundi-root .mu-recap:has(> .mu-recap-diary) { grid-template-rows: auto auto minmax(0, 1fr) auto; }
+#mundi-root .mu-recap-list { min-height: 0; }
+/* the cards are visible on their own and only fade in: "backwards" keeps them hidden just until their turn, so a
+   fade that does not run (reduced motion, a busy page) no longer leaves them invisible */
+#mundi-root .mu-recap-p { display: grid; grid-template-columns: 56px 1fr; gap: 12px; align-items: start; padding: 12px; border-radius: 16px; background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .1); animation: mu-recap-in .5s ease backwards; animation-delay: var(--d); }
 #mundi-root .mu-recap-p > img { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; object-position: top; }
 #mundi-root .mu-recap-p p { margin: 2px 0 6px; font-size: 13px; color: var(--hud-muted); }
 @keyframes mu-recap-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
@@ -533,7 +539,10 @@
 #mundi-root .mu-spin { width: 34px; height: 34px; border-radius: 50%; border: 3px solid color-mix(in srgb, var(--text) 18%, transparent); border-top-color: var(--accent); animation: mu-spin .9s linear infinite; }
 @keyframes mu-spin { to { transform: rotate(360deg); } }
 #mundi-root .mu-recap-diary { display: grid; gap: 6px; }
-#mundi-root .mu-recap-diary blockquote { margin: 0; padding: 8px 12px; border-left: 3px solid var(--accent); font-style: italic; max-height: 30vh; overflow: auto; }
+#mundi-root .mu-recap-diary blockquote { margin: 0; padding: 8px 12px; border-left: 3px solid var(--accent); font-style: italic; max-height: 34vh; min-height: 3.2em; overflow: auto; line-height: 1.5; }
+#mundi-root .mu-recap-diary blockquote p { margin: 0 0 .6em; }
+#mundi-root .mu-recap-diary blockquote p:last-child { margin-bottom: 0; }
+#mundi-root .mu-recap-diary blockquote b { font-style: normal; }
 #mundi-root .mu-tts-diary { justify-self: start; display: inline-flex; align-items: center; gap: 6px; }
 #mundi-root .mu-wc-row.is-you { border: 1px dashed var(--accent); cursor: default; }
 #mundi-root .mu-hh-row.is-mine { border-color: var(--accent2, var(--accent)); }

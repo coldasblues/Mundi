@@ -2,6 +2,35 @@
 
 This is a fork of [tjalis/Mundi](https://github.com/tjalis/Mundi) (AGPL-3.0). Changes made in this fork are listed here, with their dates, as the license asks.
 
+## 0.1.0-ps.3 — 2026-10-20
+
+Saves you make yourself, a record of everyone in your story, and a fix for the end-of-day recap.
+
+### Added
+
+- **A Save button** (the ☰ menu in a game → **Save…**). Mundi already writes your game as you play. Save… keeps a named copy of it as it is now ("Before the heist"). Under the button you see when the game was last written.
+  - **Load** (main menu) shows your saves with a **Save** badge and a one-line card: day, place, how many people you know, and who is dead.
+  - **Loading a save plays a copy of it**, "(from Before the heist)", so the save is still there the next time things go wrong.
+- **People in your story** (☰ menu). Everyone you've met: the cast, and the people the story brought in (the officer at your door). For each one:
+  - their status: around, left, injured, captured, missing or dead;
+  - where and when you first and last saw them;
+  - a few lines of notes about who they are to you and what happened between you. When you leave a place, one short AI call brings the notes of everyone who was there up to date. You can turn it off on the same screen.
+  - The story keeps the notes of the people in the scene in mind, under "People in your story" in the scene prompt.
+- **Deaths are final, right away.** The state block has a new line, `changes:` (for example `changes: police officer = dead`). When someone dies, they leave the scene at once, they never come back on the map or in a routine, and the prompt lists them as dead for good. The death goes into the Journal ("police officer died at home"). There is no confirm and no undo, except loading a save. Swiping or editing the reply that said it takes it back, the same way it does for the player state.
+  - Also: `left`, `injured`, `captured`, `missing` and `around`. A cast member who left the scene goes back to their routine once you leave; someone captured or missing stays off the map until the story brings them back.
+- **Freed when the person holding you is gone.** If the one holding you dies, leaves or is captured in the same reply, you're free at once (or "held" if you were restrained), instead of waiting for two calm replies.
+- Walk-ons with a role for a name are told apart: after the first police officer died, the next one who knocks is someone else, and the prompt says "police officer (died at home, day 1)".
+- Sprite packs: the panel picks a Qwen Image Edit diffusion model and VAE that your ComfyUI actually has (2511 or 2509, safetensors or GGUF) when the default file isn't there.
+
+### Fixed
+
+- **"How the day went" could squeeze the diary to one line**, and on some setups the cards stayed invisible. The diary now gets the room it needs (and scrolls past a third of the screen), the cards show even with animations turned off, `**bold**` and `*italics*` in the diary render, and the card behind the text is darker so it reads over any background.
+
+### Files
+
+- New: `src/sim/roster.ts` (the roster: statuses, this visit's changes, notes, the prompt lines), `src/sim/saves.ts` (save slots and their cards), `src/ui/storyui.ts` (the People screen and the Save dialog), `css/89-story.css`.
+- Touched: `src/sim/pstate.ts` and `pstate-live.ts` (the `changes:` line), `src/sim/people.ts` (the dead aren't anywhere), `src/sim/visits.ts` (leaving writes the visit into the roster), `src/sim/prompt.ts` (the People block), `src/core/store.ts` (a hook when the game is written), `src/sim/game.ts`, `src/ui/hud.ts`, `src/ui/menu.ts`, `src/ui/relui.ts`, `src/ui/spritepack.ts`, `css/88-chat.css`, `manifest.json`, `README.md`.
+
 ## 0.1.0-ps.2 — 2026-10-20
 
 Sprite packs.

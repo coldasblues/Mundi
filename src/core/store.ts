@@ -108,7 +108,14 @@ export function game(): Save | null {
     return m?.mundi?.v === 1 ? (m.mundi as Save) : null;
 }
 export function setGame(s: Save) { ctx().chatMetadata.mundi = s; }
-export const saveGame = () => { if (!TUT.save) ctx().saveMetadataDebounced(); };
+// Things that follow every save of the game (the Load screen's card of this save).
+const savedHooks: (() => void)[] = [];
+export const onSaved = (fn: () => void) => { savedHooks.push(fn); };
+export const saveGame = () => {
+    if (TUT.save) return;
+    ctx().saveMetadataDebounced();
+    for (const f of savedHooks) { try { f(); } catch (e) { console.warn('[Mundi] after save', e); } }
+};
 export const nowAbs = (g: Save) => g.day * 1440 + g.minutes;
 
 /* ---------- session ---------- */

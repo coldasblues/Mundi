@@ -6,6 +6,7 @@ import { tutorialTarget } from './tutorial.js';
 import { worlds, worldFile, loadAllWorlds, getWorld } from '../core/world.js';
 import { groupOf, charOf, thumb, openChat, openChatRef, personaThumb } from '../st/bridge.js';
 import { enterGame, listSaves, deleteSave, gameEntry } from '../sim/game.js';
+import { cardFor, playFromSlot } from '../sim/saves.js';
 import { startWizard } from './newgame.js';
 import { openLibrary } from './library.js';
 import { openGallery } from './gallery.js';
@@ -58,10 +59,12 @@ function saveRow(r, i) {
     const persona = r.kind === 'world' ? gameEntry(r.groupId)?.persona : '';
     const img = r.kind === 'chat' ? (r.avatar ? thumb(r.avatar) : groupOf(r.groupId)?.avatar_url || '') : persona ? personaThumb(persona) : '';
     const sel = LOAD.sel.has(i);
+    const card = r.kind === 'world' ? cardFor(r.chatId) : undefined; // day, place, who is dead… (saves.ts)
     return `<li class="mu-save ${r.current ? 'is-current' : ''} ${sel ? 'is-sel' : ''}" data-act="save-pick" data-i="${i}">
         <label class="mu-save-check" title="Select (or Ctrl + click the row)"><input type="checkbox" data-input="save-sel" data-i="${i}" ${sel ? 'checked' : ''}></label>
         ${img ? `<span class="mu-save-imgw"><img class="mu-save-img" src="${esc(img)}" alt="">${r.kind === 'world' ? `<i class="mu-save-badge">${icon('globe')}</i>` : ''}</span>` : r.kind === 'chat' ? `<i class="mu-save-img">${icon('users')}</i>` : `<i class="mu-save-img is-world">${icon('globe')}</i>`}
-        <div class="mu-save-txt"><b><span class="mu-save-kind">${r.kind === 'chat' ? 'Scenario' : 'World'}</span> <span data-notr>${esc(r.title)}</span></b>
+        <div class="mu-save-txt"><b><span class="mu-save-kind ${card?.slot ? 'is-slot' : ''}">${r.kind === 'chat' ? 'Scenario' : card?.slot ? 'Save' : 'World'}</span> <span data-notr>${esc(card?.slot && card.name ? card.name : r.title)}</span>${card?.slot ? `<small class="mu-muted" data-notr> · ${esc(r.title)}</small>` : ''}</b>
+            ${card?.line ? `<small class="mu-save-snap" data-notr>${esc(card.line)}</small>` : ''}
             <small><span data-notr>${esc(r.chatId)}</span> · ${r.count} messages · ${esc(when(r.last))}</small>
             ${r.preview ? `<small class="mu-save-prev" data-notr>${esc(r.preview.slice(0, 140))}</small>` : ''}</div>
         ${confirm
@@ -177,7 +180,10 @@ Object.assign(ACT, {
         const r = state.saves[Number(el.dataset.i)];
         if (!r)
             return;
-        if (r.kind === 'world')
+        // a named save (a slot) is played as a copy, so it stays as it was
+        if (r.kind === 'world' && cardFor(r.chatId)?.slot)
+            await busy('Opening the save', () => playFromSlot(r.groupId, r.chatId));
+        else if (r.kind === 'world')
             await busy('Opening the save', () => enterGame(r.groupId, r.chatId));
         else
             await busy('Opening the chat', async () => { await openChat({ avatar: r.avatar, group: r.groupId || undefined, chatId: r.chatId }); state.view = 'chat'; });

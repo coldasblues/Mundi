@@ -38,6 +38,8 @@ import { relBar } from './relui.js';
 import { weatherOf } from '../sim/weather.js';
 import { chanceOf } from '../sim/dice.js';
 import { pstateOverlays, walkOnChips } from './pstateui.js';
+import { storyOverlays, autosaveLine } from './storyui.js';
+import { psOn } from '../sim/pstate-live.js';
 
 /* ---------- you ---------- */
 
@@ -100,6 +102,8 @@ function corner(g: Save, w: WorldDef) {
             <button data-act="skip">${icon('skip')}<span>${clockMode(g) === 'live' ? 'Skip to the next part of the day' : 'Let time pass'}</span></button>
             ${clockMode(g) === 'live' ? `<button data-act="speed">${icon('pause')}<span>Clock speed: ${g.speed ? `×${g.speed / 60}` : 'paused'}</span></button>` : ''}
             ${g.player.loc !== playerHomeId ? `<button data-act="go-home">${icon('home')}<span>Go home</span></button>` : ''}
+            <button data-act="story-save" class="mh-menu-save">${icon('save')}<span>Save…<small>${esc(autosaveLine())}</small></span></button>
+            ${psOn() ? `<button data-act="story-open">${icon('users')}<span>People in your story</span></button>` : ''}
             <button data-act="open-world">${icon('globe')}<span>This world</span></button>
             <button data-act="hud-look">${icon('palette')}<span>Chat look</span></button>
             <button data-act="open-settings">${icon('gear')}<span>Settings</span></button>
@@ -179,7 +183,7 @@ function phoneButton(w: WorldDef) {
 export function hudHtml() {
     const g = game(); const w = g && getWorld(g.world);
     if (!g || !w) return '';
-    return `${personaCard(g, w)}${houseBar(g, w)}${clockCard(g, w)}${corner(g, w)}${eventPanelHtml(g, w)}${hereBar(g, w)}${peopleColumn(g, w)}${actsColumn(g, w)}${phoneButton(w)}${bumpHtml()}${apptReminderHtml(g, w)}${conflictHtml(g, w)}${facePlanHtml()}${customModalHtml()}${doingHtml()}${lifeOverlays()}${pstateOverlays(g, w)}`;
+    return `${personaCard(g, w)}${houseBar(g, w)}${clockCard(g, w)}${corner(g, w)}${eventPanelHtml(g, w)}${hereBar(g, w)}${peopleColumn(g, w)}${actsColumn(g, w)}${phoneButton(w)}${bumpHtml()}${apptReminderHtml(g, w)}${conflictHtml(g, w)}${facePlanHtml()}${customModalHtml()}${doingHtml()}${lifeOverlays()}${pstateOverlays(g, w)}${storyOverlays(g, w)}`;
 }
 
 Object.assign(ACT, {

@@ -1,6 +1,7 @@
 // The people of the world: where each one is right now, following their routine (unless she is with you,
 // or has plans with you).
 import { lockedHere } from './life.js';
+import { castGone } from './roster.js';
 import { nowAbs } from '../core/store.js';
 import { isWeekend } from './time.js';
 import { appointmentNow, isWith } from './social.js';
@@ -65,4 +66,5 @@ export function whereNow(g, w, r) {
 export const residents = (g) => Object.values(g.cast);
 // (someone you are playing as is not "here": you are them)
 const selfOf = (g) => { const s = g.swap; return s ? (s.avatar || s.origCard || '') : ''; };
-export const presentAt = (g, w, loc) => residents(g).filter(r => r.avatar !== selfOf(g) && whereNow(g, w, r) === loc);
+// (the roster: someone dead, captured or missing is nowhere; someone who just walked out of your scene is not in it)
+export const presentAt = (g, w, loc) => residents(g).filter(r => r.avatar !== selfOf(g) && whereNow(g, w, r) === loc && !castGone(g, r.avatar, loc === g.player.loc));
