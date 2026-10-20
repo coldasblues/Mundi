@@ -1,0 +1,65 @@
+/* Sprite packs (Library → a character → Expressions → Make a sprite pack). */
+#mundi-root .mu-spk-cta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 4px 0 14px; }
+#mundi-root .mu-spk-cta button { display: inline-flex; align-items: center; gap: 8px; border-radius: 10px; padding: 8px 16px; }
+#mundi-root .mu-spk { display: grid; gap: 14px; }
+#mundi-root .mu-spk h4 { margin: 0 0 8px; display: flex; align-items: baseline; gap: 8px; }
+#mundi-root .mu-spk section { display: grid; gap: 10px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg2); }
+#mundi-root .mu-spk .mu-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+#mundi-root .mu-spk .mu-row button, #mundi-root .mu-spk-url button, #mundi-root .mu-spk-more { display: inline-flex; align-items: center; gap: 6px; border-radius: 10px; padding: 7px 14px; }
+#mundi-root .mu-spk .mu-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
+#mundi-root .mu-spk .mu-check small { display: block; color: var(--muted); font-size: 12px; }
+
+/* a checkerboard behind pictures, so transparency shows */
+#mundi-root .is-checker { background-color: #2a2f3a; background-image: linear-gradient(45deg, #3a404c 25%, transparent 25%), linear-gradient(-45deg, #3a404c 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #3a404c 75%), linear-gradient(-45deg, transparent 75%, #3a404c 75%); background-size: 18px 18px; background-position: 0 0, 0 9px, 9px -9px, -9px 0; }
+#mundi-root .mu-spk-pic { aspect-ratio: 2 / 3; border-radius: 12px; overflow: hidden; display: grid; place-items: center; color: var(--muted); position: relative; }
+#mundi-root .mu-spk-pic img { width: 100%; height: 100%; object-fit: contain; display: block; }
+
+#mundi-root .mu-spk-setup { display: grid; grid-template-columns: minmax(180px, 260px) 1fr; gap: 18px; align-items: start; }
+#mundi-root .mu-spk-src { display: grid; gap: 8px; position: sticky; top: 0; }
+#mundi-root .mu-spk-form { display: grid; gap: 12px; min-width: 0; }
+#mundi-root .mu-spk-url { display: flex; align-items: end; gap: 8px; }
+#mundi-root .mu-spk-url .mu-field { flex: 1; }
+#mundi-root .mu-spk-ok { color: #43b51b; display: inline-flex; gap: 6px; align-items: center; font-size: 13px; font-weight: 700; }
+#mundi-root .mu-spk-bad { color: #ff6b70; display: inline-flex; gap: 6px; align-items: center; font-size: 13px; }
+#mundi-root p.mu-spk-bad { display: block; white-space: pre-wrap; }
+#mundi-root .mu-spk-mode { margin-top: 2px; }
+#mundi-root .mu-spk-more { justify-self: start; background: none !important; padding-left: 0 !important; }
+#mundi-root .mu-spk-models { display: grid; gap: 10px; }
+#mundi-root .mu-spk-models a { color: var(--accent); word-break: break-all; }
+#mundi-root .mu-spk-swatch { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; box-shadow: 0 0 0 1px rgba(0, 0, 0, .4); }
+#mundi-root .mu-spk-labels .mu-chip { text-transform: capitalize; }
+#mundi-root .mu-spk-labels .mu-chip.is-have:not(.is-on) { opacity: .55; }
+#mundi-root .mu-spk-go { justify-content: flex-start; }
+#mundi-root .mu-spk-go .mu-big { display: inline-flex; align-items: center; gap: 8px; }
+
+#mundi-root .mu-spk-base { display: grid; gap: 12px; }
+#mundi-root .mu-spk-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 260px)); gap: 16px; }
+#mundi-root .mu-spk-pair figure { margin: 0; display: grid; gap: 6px; }
+#mundi-root .mu-spk-pair figcaption { font-size: 13px; color: var(--muted); }
+#mundi-root .mu-spk-spin { width: 28px; height: 28px; border-radius: 50%; border: 3px solid rgba(255, 255, 255, .2); border-top-color: var(--accent, #1e88e5); animation: mu-spk-spin 0.9s linear infinite; }
+@keyframes mu-spk-spin { to { transform: rotate(360deg); } }
+
+#mundi-root .mu-spk-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+#mundi-root .mu-spk-bar button { display: inline-flex; align-items: center; gap: 6px; border-radius: 10px; padding: 6px 14px; }
+#mundi-root .mu-spk-progress { flex: 1; min-width: 120px; height: 8px; border-radius: 999px; background: var(--bg2); overflow: hidden; }
+#mundi-root .mu-spk-progress i { display: block; height: 100%; background: var(--accent, #1e88e5); transition: width .3s; }
+#mundi-root .mu-spk-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+#mundi-root .mu-spk-tile { display: grid; gap: 6px; padding: 8px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg2); }
+#mundi-root .mu-spk-tile.is-run { box-shadow: inset 0 0 0 2px var(--accent, #1e88e5); }
+#mundi-root .mu-spk-tile.is-error { box-shadow: inset 0 0 0 2px rgba(226, 59, 65, .7); }
+#mundi-root .mu-spk-tile.is-done.is-dropped .mu-spk-pic { opacity: .35; }
+#mundi-root .mu-spk-tile .mu-spk-pic img { cursor: zoom-in; }
+#mundi-root .mu-spk-tilehead { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+#mundi-root .mu-spk-tilehead b { font-size: 12px; text-transform: capitalize; }
+#mundi-root .mu-spk-tilebtns { justify-content: center; }
+#mundi-root .mu-spk-tilebtns .mu-ibtn { width: 30px; height: 30px; padding: 0 !important; justify-content: center; }
+#mundi-root .mu-spk-look { font-size: 12px; padding: 4px 6px; }
+#mundi-root .mu-spk-zoom { position: fixed; z-index: 61; left: 50%; top: 50%; transform: translate(-50%, -50%); height: min(86vh, 900px); aspect-ratio: 2 / 3; border-radius: 14px; overflow: hidden; display: grid; cursor: zoom-out; }
+#mundi-root .mu-spk-zoom img { width: 100%; height: 100%; object-fit: contain; }
+#mundi-root .mu-spk-zoom b { position: absolute; left: 12px; bottom: 10px; padding: 3px 10px; border-radius: 8px; background: rgba(0, 0, 0, .7); color: #fff; text-transform: capitalize; }
+
+@media (max-width: 860px) {
+    #mundi-root .mu-spk-setup { grid-template-columns: 1fr; }
+    #mundi-root .mu-spk-src { position: static; max-width: 260px; }
+    #mundi-root .mu-spk .mu-row2 { grid-template-columns: 1fr; }
+}

@@ -23,6 +23,7 @@ import { toggleTrait } from './traits.js';
 import { nativeHost } from './native.js';
 
 const L = state.lib;
+import { spritePackHtml, spritePackOpen } from './spritepack.js';
 type Tab = 'characters' | 'personas' | 'lorebooks' | 'backgrounds' | 'save' | 'world' | 'st-characters' | 'st-personas' | 'st-worldinfo';
 type ListTab = 'characters' | 'personas' | 'lorebooks' | 'backgrounds';
 const TABS: [Tab, string][] = [['characters', 'Characters'], ['personas', 'Personas'], ['lorebooks', 'Lorebooks'], ['backgrounds', 'Backgrounds']];   // the save's and the world's settings live in the game (the globe button)
@@ -236,6 +237,7 @@ async function saveChar(avatar: string) {
 /* ---------- expressions: one picture per emotion, in the character's sprite folder ---------- */
 
 function exprHtml(avatar: string) {
+    if (spritePackOpen(avatar)) return spritePackHtml();   // making a sprite pack (spritepack.ts)
     const c = charOf(avatar);
     const back = `<div class="mu-gal-albumhead">${btn('lib-expr-close', 'back', 'Back to the card', 'mu-ghost')}<div><h3>Expressions</h3><small data-notr>${esc(c?.name ?? avatar)}</small></div></div>`;
     if (L.sprites === null) {
@@ -247,6 +249,7 @@ function exprHtml(avatar: string) {
     const labels = [...new Set([...expressionLabels(), ...byLabel.keys()])];
     const done = labels.filter(l => byLabel.has(l)).length;
     return `${back}<p class="mu-muted">${done} / ${labels.length} expressions have a picture. The character shows the picture of the emotion of each line; “neutral” is used when there is none.</p>
+        <div class="mu-spk-cta"><button class="mu-primary" data-act="spk-open" data-avatar="${esc(avatar)}">${icon('sparkles')}<span>Make a sprite pack</span></button><small class="mu-muted">From one picture: your ComfyUI makes every expression, you keep the ones you like.</small></div>
         <div class="mu-expr-grid">${labels.map(l => {
             const files = byLabel.get(l) ?? [];
             const f = files[0];

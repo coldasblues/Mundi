@@ -2,6 +2,28 @@
 
 This is a fork of [tjalis/Mundi](https://github.com/tjalis/Mundi) (AGPL-3.0). Changes made in this fork are listed here, with their dates, as the license asks.
 
+## 0.1.0-ps.2 — 2026-10-20
+
+Sprite packs.
+
+### Added
+
+- **Make a sprite pack** (Library → a character → Expressions). Give it one picture (the card's own, or any other) and your ComfyUI makes every expression from it. You keep or redo each one, and the ones you keep go straight into the character's sprite folder, where SillyTavern's Character Expressions and Mundi's scene use them.
+  - **Through SillyTavern's own ComfyUI connection** (the address from Image Generation, which you can change in the panel). Nothing extra runs in the browser, and SillyTavern stops ComfyUI when you press Stop.
+  - **Built-in workflow**: Qwen Image Edit 2511 or 2509, the same graph as ComfyUI's own templates. It uses ComfyUI's own nodes, plus `ETN_LoadImageBase64` from comfyui-tooling-nodes (the node SillyTavern's own avatar workflow uses). The Lightning LoRA (4 steps) is optional, a GGUF diffusion model works through ComfyUI-GGUF, and the diffusion model and VAE are picked from what your ComfyUI has.
+  - **Or your own workflow** from SillyTavern's ComfyUI workflows. It receives the picture as `%char_avatar%` and the edit as `%prompt%`, plus `%negative_prompt%` and `%seed%`.
+  - **Transparent backgrounds**:
+    - The default asks the model for a plain green, magenta or blue background, which is then keyed out in the browser. Only the background is taken out, starting from the picture's edges and from spots of the pure color (so green eyes stay), and the color is cleaned off the edges.
+    - Or use ComfyUI's own Remove Background node.
+    - Or keep the background.
+  - **Steps**: choose the expressions (by default, the ones without a picture). When the background is keyed out, you first check the plain-background version. Then a grid of results: keep, redo, describe an expression differently, or see one bigger.
+  - Clear messages for the usual problems: ComfyUI not running, a model file missing (with the download link), the base64 node missing, or running out of video memory.
+
+### Files
+
+- New: `src/sim/spritegraph.ts` (prompts, the workflow graph and the chroma key, unit-testable), `src/ui/spritepack.ts` (the panel), `css/90-spritepack.css`.
+- Touched: `src/ui/library.ts` (the button on the Expressions screen), `manifest.json`, `README.md`.
+
 ## 0.1.0-ps.1 — 2026-10-20
 
 Player state, on top of Mundi 0.1.0 (upstream commit `33837e1`, 2026-10-19).
