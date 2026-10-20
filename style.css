@@ -625,7 +625,10 @@ body.mundi-open { overflow: hidden; }
     position: absolute; z-index: 20; width: 300px; max-height: min(62vh, 520px); overflow: auto; padding: 14px 16px; display: none; gap: 8px;
     background: var(--panel); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); backdrop-filter: blur(8px);
 }
-#mundi-root .mu-pop.is-open { display: grid; animation: mu-pop-in .14s ease; }
+#mundi-root .mu-pop.is-open { display: flex; flex-direction: column; overflow: hidden; animation: mu-pop-in .14s ease; }
+#mundi-root .mu-pop-body { display: flex; flex-direction: column; gap: 8px; flex: 1 1 auto; min-height: 0; overflow: auto; }
+#mundi-root .mu-pop-body > * { flex-shrink: 0; }
+#mundi-root .mu-pop-body > .mu-badge { align-self: flex-start; }
 @keyframes mu-pop-in { from { opacity: 0; transform: translateY(6px); } }
 #mundi-root .mu-pop.is-below { animation-name: mu-pop-in-b; }
 @keyframes mu-pop-in-b { from { opacity: 0; transform: translateY(-6px); } }
@@ -634,6 +637,15 @@ body.mundi-open { overflow: hidden; }
 #mundi-root .mu-pop p { font-size: 13px; line-height: 1.45; }
 #mundi-root .mu-pop .mu-card { padding: 10px 0 0; border: 0; border-top: 1px solid var(--line); background: none; box-shadow: none; border-radius: 0; display: grid; gap: 6px; }
 #mundi-root .mu-pop-people { display: flex; flex-wrap: wrap; gap: 6px; }
+/* a busy place: the people scroll inside the card, and the way in stays at the bottom */
+#mundi-root .mu-pop-people.is-many { max-height: 132px; overflow: auto; padding-right: 2px; }
+#mundi-root .mu-pop-count { margin-bottom: -2px; }
+#mundi-root .mu-pop-go { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
+#mundi-root .mu-pop-go .mu-primary { flex: 0 0 auto; }
+#mundi-root .mu-pop-go .mu-badge { justify-self: auto; }
+/* the map shows through less: labels behind the card made it hard to read */
+#mundi-root .mu-pop.is-open { background: linear-gradient(160deg, rgba(255, 255, 255, .1), rgba(255, 255, 255, .02) 45%), linear-gradient(var(--glass-strong), var(--glass-strong)), rgba(8, 10, 16, .6) !important; }
+#mundi-root .mu-pop-go { flex: 0 0 auto; }
 #mundi-root .mu-pop-person { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px 3px 3px; border-radius: 999px; background: var(--bg2); border: 1px solid var(--line); font-size: 12px; }
 #mundi-root .mu-pop-person img { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; }
 #mundi-root .mu-pop .mu-acts { display: grid; gap: 6px; }

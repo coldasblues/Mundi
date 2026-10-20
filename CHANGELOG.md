@@ -2,6 +2,21 @@
 
 This is a fork of [tjalis/Mundi](https://github.com/tjalis/Mundi) (AGPL-3.0). Changes made in this fork are listed here, with their dates, as the license asks.
 
+## 0.1.0-ps.4 — 2026-10-20
+
+### Fixed
+
+- **A busy place on the map could not be clicked.** Its card (the one that opens when you hover a pin) got so tall that it covered its own pin. Now:
+  - the card always ends with a button: **Join** when people are there ("Join Samantha", "Join them"), **Go here** when it's empty, **Enter the scene** where you are. It's on the card with a mouse too, not only on touch screens;
+  - a card too tall to fit above or below its pin opens beside it, so the pin stays clickable;
+  - a long list of people scrolls inside the card ("12 people here"), and the button stays at the bottom;
+  - the card no longer slides under the clock or the other top panels;
+  - the card is darker, so the map's labels don't show through the text.
+
+### Files
+
+- Touched: `src/ui/map.ts` (the card and where it opens), `css/50-phone.css`, `manifest.json`.
+
 ## 0.1.0-ps.3 — 2026-10-20
 
 Saves you make yourself, a record of everyone in your story, and a fix for the end-of-day recap.

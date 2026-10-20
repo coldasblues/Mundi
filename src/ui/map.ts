@@ -83,14 +83,22 @@ function popHtml(g: Save, w: WorldDef, loc: string, touch: boolean) {
     const you = loc === g.player.loc;
     const here = presentAt(g, w, loc);
     const extras = walkOnsHere(g, w, loc);   // people the story brought in (not in the cast)
-    const people = here.length || extras.length ? `<div class="mu-pop-people">${here.map(r => `<span class="mu-pop-person"><img src="${esc(thumb(r.avatar))}" alt=""><b>${esc(r.met ? r.name : 'Someone')}</b></span>`).join('')}${extras.map(n => `<span class="mu-pop-person is-walkon"><i class="mh-walkon-pic">${icon('user')}</i><b data-notr>${esc(n)}</b></span>`).join('')}</div>`
+    const count = here.length + extras.length;
+    const people = count ? `<div class="mu-pop-people${count > 6 ? ' is-many' : ''}">${here.map(r => `<span class="mu-pop-person"><img src="${esc(thumb(r.avatar))}" alt=""><b>${esc(r.met ? r.name : 'Someone')}</b></span>`).join('')}${extras.map(n => `<span class="mu-pop-person is-walkon"><i class="mh-walkon-pic">${icon('user')}</i><b data-notr>${esc(n)}</b></span>`).join('')}</div>`
         : '<small class="mu-muted">Nobody here right now.</small>';
-    return `<h3>${esc(p.name)}</h3>
+    const mins = you ? 0 : travelMinutes(g, w, g.player.loc, loc);
+    // the way in is always on the card, at the bottom: a busy place's card can cover its own pin
+    const one = count === 1 ? (here[0] ? (here[0].met ? here[0].name.split(' ')[0] : '') : extras[0]) : '';
+    const go = you ? 'Enter the scene' : count ? `Join ${one || 'them'}` : 'Go here';
+    return `<div class="mu-pop-body"><h3>${esc(p.name)}</h3>
         ${p.desc ? `<p>${esc(p.desc)}</p>` : ''}${p.event ? `<p class="mu-muted">${esc(p.event)}</p>` : ''}
+        ${count > 1 ? `<small class="mu-muted mu-pop-count">${count} people here</small>` : ''}
         ${people}
-        ${you ? `<span class="mu-badge">You are here</span>` : `<small class="mu-muted">${travelMinutes(g, w, g.player.loc, loc)} min away · click to go</small>`}
-        ${touch || you ? `<button class="mu-primary" data-act="go" data-loc="${esc(loc)}" data-sfx="open">${you ? 'Enter the scene' : 'Go here'}</button>` : ''}
-        ${you ? '' : jobCard(g, w, loc, false)}`;
+        ${you ? '' : jobCard(g, w, loc, false)}</div>
+        <div class="mu-pop-go">
+            ${you ? `<span class="mu-badge">You are here</span>` : `<small class="mu-muted">${mins} min away</small>`}
+            <button class="mu-primary" data-act="go" data-loc="${esc(loc)}" data-sfx="open">${go}</button>
+        </div>`;
 }
 
 // Shows the card above the pin (or below, when there is no room), kept inside the screen.
@@ -110,14 +118,30 @@ function showPop(pin: HTMLElement, touch: boolean) {
     const cx = (r.left + r.width / 2 - b0.left) / zz, top = (r.top - b0.top) / zz, bottom = (whole.bottom - b0.top) / zz;   // below: under the label
     pop.style.visibility = 'hidden'; pop.style.left = '0'; pop.style.top = '0';
     pop.classList.add('is-open');
-    const pw = pop.offsetWidth, ph = pop.offsetHeight, gap = 14, topBar = 70;
-    const above = top - gap - ph >= topBar;
-    const below = bottom + gap + ph <= box.height - 8;
-    const y = above || !below ? Math.max(topBar, top - gap - ph) : bottom + gap;
-    const x = Math.max(8, Math.min(box.width - pw - 8, cx - pw / 2));
-    pop.style.left = `${x}px`; pop.style.top = `${Math.min(y, box.height - ph - 8)}px`;
-    pop.style.setProperty('--ax', `${Math.max(16, Math.min(pw - 16, cx - x))}px`);
-    pop.classList.toggle('is-below', !(above || !below));
+    const pw = pop.offsetWidth, gap = 14;
+    // the top panels (you, the clock, the menu) stay above the card: it starts under whichever it would run into
+    const hud = [...(mapEl.closest(`#${ROOT_ID}`) ?? document).querySelectorAll<HTMLElement>('.mh-persona, .mh-clock, .mh-where, .mh-corner, .mu-mapnav')]
+        .filter(el => el.offsetParent).map(el => el.getBoundingClientRect())
+        .map(rc => ({ l: (rc.left - b0.left) / zz, r: (rc.right - b0.left) / zz, b: (rc.bottom - b0.top) / zz }));
+    const topFor = (x: number) => Math.max(8, ...hud.filter(h => h.b < box.height / 2 && h.l < x + pw && h.r > x).map(h => h.b + 8));
+    const bottomEdge = box.height - 8;
+    // a card taller than the room there scrolls inside (its way in stays at the bottom)
+    const fit = (x: number) => { const t = topFor(x); pop!.style.maxHeight = `${Math.min(520, Math.max(160, bottomEdge - t))}px`; return { t, ph: pop!.offsetHeight }; };
+    let x = Math.max(8, Math.min(box.width - pw - 8, cx - pw / 2));
+    let { t, ph } = fit(x);
+    const above = top - gap - ph >= t;
+    const below = bottom + gap + ph <= bottomEdge;
+    let y: number;
+    if (above || below) y = above ? top - gap - ph : bottom + gap;
+    else {
+        // a tall card (a busy place) fits neither above nor below: beside the pin, so the pin stays clickable
+        const left = (whole.left - b0.left) / zz, right = (whole.right - b0.left) / zz, mid = (top + bottom) / 2;
+        x = right + gap + pw <= box.width - 8 ? right + gap : Math.max(8, left - gap - pw);
+        ({ t, ph } = fit(x));
+        y = Math.max(t, Math.min(bottomEdge - ph, mid - ph / 2));
+    }
+    pop.style.left = `${x}px`; pop.style.top = `${Math.max(t, Math.min(y, bottomEdge - ph))}px`;
+    pop.classList.toggle('is-below', !above && below);
     pop.style.visibility = '';
 }
 function hidePop(delay = 160) {
