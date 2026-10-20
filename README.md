@@ -56,10 +56,10 @@ On a phone:
 2. Paste `https://github.com/coldasblues/Mundi` and install. To update later, use the update button next to Mundi under **Extensions → Manage extensions**.
 3. Reload SillyTavern (Ctrl+F5). Open Mundi from the **Extensions menu** (the magic wand next to the chat box). The tour starts the first time you open it.
 
-**Without GitHub (a zip):**
+**Without Git (a zip):**
 
-1. Get `Mundi-player-state.zip` (from this fork's Releases, or from whoever gave it to you).
-2. Unzip it so you end up with `SillyTavern/data/default-user/extensions/Mundi/manifest.json`. That's for one user; use your own user folder instead of `default-user` if you have several. To install it for every user, use `SillyTavern/public/scripts/extensions/third-party/Mundi/` instead.
+1. Get a zip of Mundi: on this page use **Code → Download ZIP**, or take **Source code (zip)** from a release under [Releases](https://github.com/coldasblues/Mundi/releases), or use a zip someone gave you.
+2. Unzip it into `SillyTavern/data/default-user/extensions/`, so the folder with `manifest.json` in it sits right inside `extensions` (for example `extensions/Mundi-main/manifest.json`). The folder's name doesn't matter. That's for one user; use your own user folder instead of `default-user` if you have several. To install for every user, unzip into `SillyTavern/public/scripts/extensions/third-party/` instead.
 3. Reload SillyTavern (Ctrl+F5).
 
 Keep only one copy of Mundi: remove or move any other Mundi folder first, or both will load. To update from a zip, replace the folder with the new one. Your saves live in your chats, not in this folder, so they stay.
