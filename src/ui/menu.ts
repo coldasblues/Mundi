@@ -101,7 +101,7 @@ export function menuHtml() {
         <div class="mu-menu-body">${tab === 'load' ? loadView() : mainView()}</div>
         <div class="mu-menu-corner">
         </div>
-        <footer class="mu-menu-foot">Mundi 0.1 · Sounds by Kenney (CC0)</footer>
+        <footer class="mu-menu-foot">Mundi 0.1 · player state fork · Sounds by Kenney (CC0)</footer>
     </div>`;
 }
 
