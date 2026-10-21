@@ -3,7 +3,6 @@
 // editing and deleting all use SillyTavern's own functions.
 import { nativeHost } from './native.js';
 import { lockScene } from '../sim/life.js';
-import { soloOf } from './lifeui.js';
 import { judgeLine, judgeReaction } from '../sim/mood.js';
 import { state, notify, esc, game, toast, ROOT_ID, saveGame } from '../core/store.js';
 import { getWorld, worldFile, type WorldDef } from '../core/world.js';
@@ -25,7 +24,7 @@ import { icon } from './icons.js';
 import { ACT, INPUT } from './reg.js';
 import { sceneCard } from './plans.js';
 import { micButton, sdButton, ttsButton } from './addons.js';
-import { isWith } from '../sim/social.js';
+import { isWith, inTalk } from '../sim/social.js';
 import { sceneText } from '../sim/prompt.js';
 import { aiLangNote } from '../core/i18n.js';
 import { tr } from '../core/tr.js';
@@ -160,8 +159,7 @@ function logHtml() {
 export function sceneHtml() {
     const g = game()!; const w = getWorld(g.world)!;
     // talking alone with someone: only their picture stays in the scene
-    const solo = soloOf(g);
-    const here = presentAt(g, w, g.player.loc).filter(r => !solo || r.avatar === solo);
+    const here = presentAt(g, w, g.player.loc).filter(r => inTalk(g, r.avatar));
     const ex = expressions();
     const nobody = !here.length;
     const sprites = here.map((r, k) => {
@@ -370,7 +368,7 @@ Object.assign(ACT, {
         // talking to people brings you closer (a little each line, capped per day)
         const g = game(); const w = g && getWorld(g.world);
         if (g && w) {
-            const hearers = presentAt(g, w, g.player.loc).filter(r => !soloOf(g) || r.avatar === soloOf(g));
+            const hearers = presentAt(g, w, g.player.loc).filter(r => inTalk(g, r.avatar));
             const hurt = judgeLine(g, w, raw, hearers);
             hurt.forEach(m => toast(m, 'warn'));
             if (!hurt.length) for (const r of hearers) if (r.met) addBond(g, r.avatar, 3);

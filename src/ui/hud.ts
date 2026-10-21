@@ -41,6 +41,7 @@ import { pstateOverlays, walkOnChips } from './pstateui.js';
 import { storyOverlays, autosaveLine } from './storyui.js';
 import { psOn } from '../sim/pstate-live.js';
 import { hostileButton, hostileOverlays, hxBadge } from './hostileui.js';
+import { inSmallTalk } from './matchui.js';
 
 /* ---------- you ---------- */
 
@@ -138,7 +139,7 @@ function hereBar(g: Save, w: WorldDef) {
     const list = presentAt(g, w, g.player.loc);   // everyone in the place, the people who came with you too
     const extras = walkOnChips(g, w);             // and the people the story brought in
     if (!list.length && !extras) return '';
-    return `<nav class="mh-here mh-glass" aria-label="Who is here"><small>Here</small>${extras}${list.map(r => `<button class="mh-here-p ${PL.card === r.avatar ? 'is-on' : ''} ${soloOf(g) === r.avatar ? 'is-solo' : ''} ${isWith(g, r.avatar) ? 'is-with' : ''}" data-act="pc-open" data-who="${esc(r.avatar)}" title="${esc(r.met ? r.name : 'Someone')}"><img src="${esc(thumb(r.avatar))}" alt=""><b data-notr>${esc(r.met ? r.name : '?')}</b>${hxBadge(g, `cast:${r.avatar}`)}</button>`).join('')}</nav>`;
+    return `<nav class="mh-here mh-glass" aria-label="Who is here"><small>Here</small>${extras}${list.map(r => `<button class="mh-here-p ${PL.card === r.avatar ? 'is-on' : ''} ${inSmallTalk(g, r.avatar) ? 'is-solo' : ''} ${isWith(g, r.avatar) ? 'is-with' : ''}" data-act="pc-open" data-who="${esc(r.avatar)}" title="${esc(r.met ? r.name : 'Someone')}"><img src="${esc(thumb(r.avatar))}" alt=""><b data-notr>${esc(r.met ? r.name : '?')}</b>${hxBadge(g, `cast:${r.avatar}`)}</button>`).join('')}</nav>`;
 }
 
 /* ---------- things to do (inside a scene) ---------- */

@@ -202,8 +202,8 @@ Object.assign(ACT, {
         notify();
     },
     // 47: talk only with one person in the scene (the others stay, quietly)
-    'solo-on': async (el) => { const g = game(); if (!g) return; (social(g) as any).solo = el.dataset.who; saveGame(); await syncScene(); notify(); },
-    'solo-off': async () => { const g = game(); if (!g) return; (social(g) as any).solo = ''; saveGame(); await syncScene(); notify(); },
+    'solo-on': async (el) => { const g = game(); if (!g) return; (social(g) as any).solo = el.dataset.who; (social(g) as any).focus = []; saveGame(); await syncScene(); notify(); },
+    'solo-off': async () => { const g = game(); if (!g) return; (social(g) as any).solo = ''; (social(g) as any).focus = []; saveGame(); await syncScene(); notify(); },
     'swap-to': async (el) => { await goPlay(el.dataset.who ?? ''); },
     'swap-back': async () => { await goPlay(''); },
     'pa-go': async (el) => { if (el.getAttribute('aria-disabled')) return; PA.open = false; await goPlay(el.dataset.who ?? ''); },

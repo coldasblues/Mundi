@@ -1,0 +1,14 @@
+/* Matchmaking in the person card: their love life, asking, introducing; and who you talk with. */
+#mundi-root .mu-pcard { max-height: calc(100vh - 200px); overflow: auto; }
+#mundi-root .mu-mm { display: grid; gap: 8px; padding-top: 8px; border-top: 1px solid rgba(255, 255, 255, .12); }
+#mundi-root .mu-mm > button { display: flex; align-items: center; justify-content: center; gap: 8px; }
+#mundi-root .mu-mm-known { margin: 0; display: flex; align-items: center; gap: 6px; font-size: 13px; color: #ffc1d8; }
+#mundi-root .mu-mm-known .mu-ic { width: 14px; height: 14px; color: #ff7aa8; }
+#mundi-root .mu-mm-pick { display: grid; gap: 4px; }
+#mundi-root .mu-mm-who { display: grid; grid-template-columns: 30px 1fr auto; grid-template-rows: auto auto; column-gap: 8px; align-items: center; padding: 5px 10px 5px 5px !important; border-radius: 14px !important; text-align: left; }
+#mundi-root .mu-mm-who img { grid-row: span 2; width: 30px; height: 30px; border-radius: 50%; object-fit: cover; object-position: top; }
+#mundi-root .mu-mm-who b { font-size: 13px; }
+#mundi-root .mu-mm-who em { grid-row: span 2; font-style: normal; color: #ff7aa8; }
+#mundi-root .mu-mm-who small { grid-column: 2; color: var(--hud-muted, var(--muted)); font-size: 11px; }
+/* the card reads over a busy scene (the chat showed through it) */
+#mundi-root .mu-pcard.mh-glass, #mundi-root .mu-pcard { background: linear-gradient(160deg, rgba(255, 255, 255, .1), rgba(255, 255, 255, .02) 45%), linear-gradient(var(--glass-strong), var(--glass-strong)), rgba(8, 10, 16, .6) !important; }

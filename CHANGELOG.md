@@ -2,6 +2,31 @@
 
 This is a fork of [tjalis/Mundi](https://github.com/tjalis/Mundi) (AGPL-3.0). Changes made in this fork are listed here, with their dates, as the license asks.
 
+## 0.1.0-ps.6 — 2026-10-21
+
+Love between the characters, with you as the matchmaker, and conversations with just a few of the people here.
+
+### Added
+
+- **Crushes between characters.** Each adult may carry a secret crush on someone else in the cast, and feelings go one way: A can like B while B barely notices A. It is fixed per save (people with the same hangouts are likelier), and the couples the world already has like each other. Never anyone underage, and never two people of the same family.
+- **Ask about their love life** (a person's card, once you are friends). Only they answer, privately. They tell you who they like (or who they are seeing, or that there is nobody), and the card remembers it: "Has a crush on Seraphina".
+- **Introduce to…** (a person's card): pick anyone else here. Each name shows your hunch, when you know them well enough: "a good feeling", "could go either way", "a long shot". A ❤ marks their known crush.
+  - **The engine decides** how it goes: does B like A back, is B seeing someone, are you charming or outgoing, does B trust you, is it a good night out. There are three results: they **hit it off**, B is **polite, not interested**, or it is **awkward** (A won't thank you).
+  - The two of them (and you) talk; the others here stay in the background. The AI plays the meeting with both of them speaking.
+  - A pair who hit it off may **start dating** over the next days, "thanks to you". Both think better of you, and word gets around (it is gossip).
+  - On a great night out (a bar or a café, late), a strong match may **leave together**: they spend the night at one of their homes, back to their lives in the morning.
+- **Talk with a chosen few.** "Talk only with them" was one person. Now a person's card also has **Bring them into the conversation** and **Leave them out of it**, so in a crowd you can talk with two or three people while the others give you space. They are highlighted in the Here row, only their pictures stay in the scene, the others keep quiet, and the story is told so.
+- **The scene prompt** has a new block, **Love between them**: the crushes of the people here (the secret ones too, so the story can play them: blushing, glances, jealousy), whether the other one is drawn to them, and the pairs who hit it off.
+
+### Changed
+
+- The person card is darker, so it reads over a busy scene.
+
+### Files
+
+- New: `src/sim/match.ts` (feelings, asking, introductions, dating, leaving together, the prompt lines), `src/ui/matchui.ts` (the card's buttons, talking with a few), `css/92-match.css`.
+- Touched: `src/sim/social.ts` (who you talk with: everyone, one, or a few), `src/sim/game.ts`, `src/sim/prompt.ts`, `src/ui/plans.ts`, `src/ui/lifeui.ts`, `src/ui/scene.ts`, `src/ui/hud.ts`, `src/index.ts`, `manifest.json`, `README.md`.
+
 ## 0.1.0-ps.5 — 2026-10-21
 
 Rough stuff: hostile actions for any genre, with consequences that come from the world. Being taken somewhere: as a prisoner, or because someone asked you to come along.

@@ -17,13 +17,14 @@ import { tiesLine } from './living.js';
 import { romanceLine } from './romance.js';
 import { familyLine } from './family.js';
 import { weatherOf } from './weather.js';
-import { social, livePlan } from './social.js';
+import { social, livePlan, talkSet } from './social.js';
 import { personaName } from '../st/bridge.js';
 import { nowAbs, type Save, type Resident } from '../core/store.js';
 import type { WorldDef } from '../core/world.js';
 import { walkOns, psOn, refreshPState, clearPState } from './pstate-live.js';
 import { rosterLines } from './roster.js';
 import { hostileLines } from './hostile.js';
+import { loveLines } from './match.js';
 
 export const PROMPT_KEY = 'mundi_scene';
 
@@ -48,6 +49,7 @@ export const BLOCKS: Block[] = [
     { id: 'you', name: 'About you', desc: 'How fit you look and your life goal.', cut: 3 },
     { id: 'approval', name: 'Approval', desc: 'What people here think of how you behave.', cut: 2 },
     { id: 'couples', name: 'Their relationships', desc: 'Who is dating whom among the people here.', cut: 2 },
+    { id: 'love', name: 'Love between them', desc: 'Crushes and sparks between the people here (the secret ones too, so the story can play them).', cut: 3 },
     { id: 'rumors', name: 'Rumors', desc: 'Gossip the people here have heard.', cut: 1 },
 ];
 export interface PromptCfg { off: string[]; budget: number }
@@ -84,6 +86,7 @@ export function sceneBlocks(): Built[] {
         solo: [soloLine(g, present)],
         approval: [approvalLine(g, met)],
         couples: [couplesLine(g, present)],
+        love: loveLines(g, present),
         ties: [tiesLine(g, present)],
         romance: [romanceLine(g, met)],
         family: [familyLine(g, present)],
@@ -142,8 +145,9 @@ function focusLine(g: Save, w: WorldDef, present: Resident[]): string {
 }
 
 function soloLine(g: Save, present: Resident[]) {
-    const solo = String((g as any).social?.solo ?? '');
-    const r = present.find(x => x.avatar === solo);
-    if (!r || present.length < 2) return '';
-    return `{{user}} is talking only with ${r.name}; the others here (${present.filter(x => x !== r).map(x => x.name).join(', ')}) give them space and stay out of the conversation.`;
+    const set = talkSet(g);
+    const them = present.filter(x => set.includes(x.avatar));
+    if (!them.length || present.length < 2 || them.length === present.length) return '';
+    const rest = present.filter(x => !set.includes(x.avatar)).map(x => x.name).join(', ');
+    return `{{user}} is talking only with ${them.map(r => r.name).join(' and ')}; the others here (${rest}) give them space and stay out of the conversation.`;
 }

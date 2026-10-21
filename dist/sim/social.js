@@ -67,6 +67,22 @@ export function appointmentNow(g, avatar) {
     return social(g).appts.find(a => a.avatar === avatar && livePlan(a) && a.from <= now && now < a.to) ?? null;
 }
 export const isWith = (g, avatar) => social(g).with.some(c => c.avatar === avatar);
+/** Who you are talking with, when not with everyone here: one person ("talk only with them") or a few. [] = everyone. */
+export function talkSet(g) {
+    const s = social(g);
+    const f = (s.focus ?? []);
+    if (f.length >= 2)
+        return f;
+    return s.solo ? [String(s.solo)] : [];
+}
+export const inTalk = (g, avatar) => { const t = talkSet(g); return !t.length || t.includes(avatar); };
+/** Sets who you talk with: [] everyone, [a] only them, [a, b, …] these few. */
+export function setTalk(g, list) {
+    const s = social(g);
+    const uniq = [...new Set(list)];
+    s.focus = uniq.length >= 2 ? uniq : [];
+    s.solo = uniq.length === 1 ? uniq[0] : '';
+}
 export const companions = (g) => social(g).with.map(c => c.avatar).filter(a => g.cast[a]);
 /* ---------- text messages ---------- */
 // A text reply: the chat so far as a transcript that ends with her name, so the model writes her next message.

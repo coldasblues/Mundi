@@ -10,6 +10,7 @@ import { refreshPrompt, clearPrompt } from './sim/prompt.js';
 import { applyGameLore } from './sim/lore.js';
 import { onReply, onEdited, runChecks, refreshPState, absorbVisit, registerMacros } from './sim/pstate-live.js';
 import { initHostile } from './sim/hostile.js';
+import { initMatch } from './sim/match.js';
 import { onSent, onAnswered } from './ui/pstateui.js';
 // A reply that came back empty (the prompt did not fit the model's context, or the reply ran out of tokens while the
 // model was still thinking) is removed, so it does not pile up in the story, and Mundi says why.
@@ -170,6 +171,7 @@ function follow() {
 async function init() {
     settings();
     initHostile();
+    initMatch();
     await loadAllWorlds();
     mount();
     installSfx();

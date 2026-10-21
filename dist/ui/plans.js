@@ -18,6 +18,7 @@ import { dating } from '../sim/feed.js';
 import { icon } from './icons.js';
 import { featureOn } from '../sim/creator.js';
 import { ACT, INPUT } from './reg.js';
+import { talkButtons, loveButtons } from './matchui.js';
 export const PL = { card: '', kind: 'hangout', place: '', day: 0, time: 0, busy: '', face: '', title: '' };
 // A sentence in the interface language, with its variable parts filled in afterwards (they are already translated).
 const fmt = (t, ...a) => tr(t).replace(/\{(\d)\}/g, (_, n) => a[Number(n)] ?? '');
@@ -57,10 +58,10 @@ export function sceneCard(g, w) {
         : `<button class="mu-primary" data-act="pc-along" data-who="${esc(r.avatar)}" ${b >= ALONG_BOND || isPartner(g, r.avatar) ? '' : 'aria-disabled="true"'}>${icon('users')}<span>Come with me</span></button>
             <small class="mu-muted">${b >= ALONG_BOND || isPartner(g, r.avatar) ? (working ? 'They are working now.' : 'They go with you from place to place for a few hours.') : esc(fmt('Get closer first ({0}/{1}).', String(b), String(ALONG_BOND)))}</small>`}
         <button data-act="pc-plan" data-who="${esc(r.avatar)}">${icon('pin')}<span>Make plans</span></button>
-        ${String(social(g).solo ?? '') === r.avatar ? `<button data-act="solo-off">${icon('users')}<span>Talk with everyone again</span></button>`
-        : `<button data-act="solo-on" data-who="${esc(r.avatar)}">${icon('chat')}<span>Talk only with them</span></button>`}
+        ${talkButtons(g, r.avatar)}
         ${stayButton(r.avatar)}
         ${romanceButtons(r.avatar)}
+        ${loveButtons(g, w, r.avatar)}
         ${along || isPartner(g, r.avatar) || b >= 60 ? `<button class="mu-ghost" data-act="swap-to" data-who="${esc(r.avatar)}">${icon('user')}<span>Play as them</span></button>` : ''}
     </div>`;
 }

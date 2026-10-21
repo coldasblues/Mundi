@@ -275,10 +275,12 @@ export function syncScene(): Promise<void> {
         if (!w) return;
         const here = presentAt(g, w, g.player.loc);
         // talking with only one person: the others stay in the scene but keep quiet
-        let solo = String((g as any).social?.solo ?? '');
-        // the one you were talking to alone left: everyone talks again
-        if (solo && !here.some(r => r.avatar === solo)) { (g as any).social.solo = ''; solo = ''; }
-        const talking = solo ? [solo] : here.map(r => r.avatar);
+        // the people you talk with who left: the conversation goes on without them (everyone again, when nobody is left)
+        const { talkSet, setTalk } = await import('./social.js');
+        const was = talkSet(g);
+        const still = was.filter(a => here.some(r => r.avatar === a));
+        if (still.length !== was.length) setTalk(g, still);
+        const talking = still.length ? still : here.map(r => r.avatar);
         await setPresent(gid, Object.keys(g.cast), talking);
         followBackground(g, w);
         refreshPrompt();
