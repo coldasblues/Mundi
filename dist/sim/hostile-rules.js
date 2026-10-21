@@ -23,6 +23,10 @@ export const DEFAULT_ACTS = [
         hit: { text: '{t} is tied up and can\'t move', captive: 'restrained' }, miss: { text: '{t} struggles too much to be tied up' } },
     { id: 'knockout', line: "*tries to knock {t} out*", name: 'Knock out', verb: 'knock {t} out', icon: '💤', desc: 'Out cold for a while. Then you can tie them up, take them, or worse.', target: true, dc: 14, traits: ['Strong', 'Athletic'], noise: 2, crime: 'assault', minutes: 1,
         hit: { text: '{t} is knocked out cold', change: 'injured', down: 'out', downMins: 45, free: true }, miss: { text: '{t} staggers but stays up and fights back', fight: true } },
+    { id: 'take', line: "*takes {item}*", name: 'Take something', verb: 'take {item}', icon: '🫳', desc: 'Take something from here (name it below). Theft at a business; nothing at your own place.', target: false, dc: 12, traits: ['Smart', 'Calm', 'Handy'], noise: 0, crime: 'theft', minutes: 2,
+        hit: { text: '{item} is taken without anyone stopping it', take: true }, miss: { text: '{t} notices {item} being taken', caught: true, alarm: true } },
+    { id: 'feed', line: "*leans in close to {t}*", name: 'Feed', verb: 'feed on {t}', icon: '🩸', desc: 'Drink from them: your hunger is sated; they are left dazed and remember little. Quiet, but no mortal may see.', target: true, dc: 10, traits: ['Charming', 'Calm'], noise: 0, crime: 'assault', minutes: 6, role: 'kindred',
+        hit: { text: 'the feeding is done: {t} is left dazed and remembers little', down: 'out', downMins: 15, feed: 40 }, miss: { text: '{t} pulls away before the bite', alarm: true } },
     { id: 'kill', line: "*goes to kill {t}*", name: 'Kill', verb: 'kill {t}', icon: '💀', desc: 'Only someone down or held. It is final.', target: true, needs: ['down', 'held'], dc: 6, traits: [], noise: 2, crime: 'murder', minutes: 2,
         hit: { text: '{t} is killed', change: 'dead', free: true }, miss: { text: '{t} survives it, badly hurt, and screams', change: 'injured', alarm: true } },
 ];
@@ -116,7 +120,7 @@ export function decide(def, d20, bonus, dc, target, t, you = 'free', holderIsTar
     const ok = grade === 'success' || grade === 'critical-success';
     if (ok) {
         const h = def.hit;
-        const out = { ok, grade, text: fillIn(h.text, target), change: h.change, down: h.down, downMins: h.downMins, captive: h.captive, money: h.money, scare: h.scare };
+        const out = { ok, grade, text: fillIn(h.text, target), change: h.change, down: h.down, downMins: h.downMins, captive: h.captive, money: h.money, scare: h.scare, feed: h.feed, take: h.take };
         // a great punch puts them down too
         if (grade === 'critical-success' && def.id === 'punch') {
             out.down = 'down';

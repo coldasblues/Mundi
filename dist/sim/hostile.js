@@ -19,6 +19,8 @@ import { onStep, onHour, onDay } from './hooks.js';
 import { keyFor, applyNow, rosterHooks, statusOf, pendingChanges } from './roster.js';
 import { currentState, walkOns, psOn, psHooks, visitLines, keepNarration, refreshPState, seenWalkOns } from './pstate-live.js';
 import { payOf } from './bills.js';
+import { judge, isNotPerson, ATTACK_WORDS, ROLES, CODES, outsiders, enforcerOf } from './judge.js';
+import { addStatus } from './needs.js';
 import { DEFAULT_ACTS, SEVERITY, CRIME_WORD, worst, blockedFor, dcFor, chanceFor, crowdLevel, crowdSees, noticeChance, reportChance, responseMinutes, LAW_ROLES_MODERN, LAW_ROLES_MEDIEVAL, LAW_JOBS, isLawName, decide, fillIn, } from './hostile-rules.js';
 export function hs(g) {
     const x = (g.hostile ??= {});
@@ -33,6 +35,9 @@ export function hs(g) {
     x.queue ??= [];
     x.captor ??= null;
     x.followers ??= [];
+    x.roles ??= [];
+    x.roleText ??= '';
+    x.breaches ??= [];
     return x;
 }
 export function hxPrefs() { const s = settings(); s.hostile ??= {}; s.hostile.on ??= true; return s.hostile; }
@@ -105,13 +110,68 @@ export function crowdHere(g, w, loc = g.player.loc) {
 }
 export const CROWD_WORD = ['nobody else around', 'a few people around', 'busy', 'packed'];
 /* ---------- the menu: what you can do, and the odds ---------- */
-export const actsOf = (w) => {
+export const actsOf = (w, g = game()) => {
     const own = w.hostileActions; // a world (or a genre pack) adds or replaces some
-    if (!own?.length)
-        return DEFAULT_ACTS;
-    const list = DEFAULT_ACTS.filter(d => !own.some(o => o.id === d.id));
-    return [...list, ...own];
+    const all = own?.length ? [...DEFAULT_ACTS.filter(d => !own.some(o => o.id === d.id)), ...own] : DEFAULT_ACTS;
+    const roles = g ? rolesOf(g, w) : [];
+    return all.filter(d => !d.role || roles.includes(d.role)); // Feed only for a vampire
 };
+/* ---------- the decision engine's facts: who you are, who they are ---------- */
+/** Your roles: what you chose for this story, and the law when your job is police or guard work. */
+export function rolesOf(g, w) {
+    const own = hs(g).roles.filter(r => ROLES.some(x => x.id === r));
+    const job = g.player.job?.id;
+    if (job && lawOf(g, w, true).occupations.includes(job) && !own.includes('law'))
+        own.push('law');
+    return own.length ? own : ['civilian'];
+}
+/** What they are wanted for, if anything: a crime the story reported in this visit, or one still open. */
+/** "the mugger", "a mugger" and "Mugger" are the same person. */
+const bareName = (n) => String(n ?? '').toLowerCase().replace(/^(the|a|an)\s+/, '').replace(/\s+/g, ' ').trim();
+export function wantedFor(g, name) {
+    const n = bareName(name);
+    let worstC = 'none';
+    for (const { line } of visitLines(g))
+        if (line.kind === 'ai' && !line.dismissed)
+            for (const c of line.rep?.crimes ?? [])
+                if (bareName(c.name) === n && SEVERITY[c.crime] > SEVERITY[worstC])
+                    worstC = c.crime;
+    for (const i of hs(g).incidents)
+        if (i.by !== 'you' && bareName(i.by) === n && i.state !== 'closed' && SEVERITY[i.crime] > SEVERITY[worstC])
+            worstC = i.crime;
+    return worstC === 'none' ? '' : worstC;
+}
+/** Are they attacking you (or holding you) right now? From your situation, and from the story's crimes against you. */
+export function isAttacker(g, name) {
+    const s = currentState(g);
+    const first = bareName(name).split(' ')[0];
+    if (s.captor && s.captor.toLowerCase().includes(first))
+        return true;
+    if (s.mobility !== 'free' && s.reason.toLowerCase().includes(first) && ATTACK_WORDS.test(s.reason))
+        return true;
+    for (const { line } of visitLines(g))
+        if (line.kind === 'ai' && !line.dismissed)
+            for (const c of line.rep?.crimes ?? [])
+                if (c.name.toLowerCase().includes(first) && c.target === '{{user}}' && c.crime !== 'theft')
+                    return true;
+    return false;
+}
+export function whoIs(g, w, p) {
+    const grp = groupOf(g, p.key);
+    return {
+        law: p.law, wanted: wantedFor(g, p.name), attacker: isAttacker(g, p.name),
+        notPerson: isNotPerson(p.name, (w.notPeople ?? [])),
+        insider: [grp?.name ?? '', p.name].filter(Boolean),
+        willing: !!p.avatar && (bondOf(g, p.avatar) >= 55 || isPartner(g, p.avatar)),
+    };
+}
+/** The verdict for doing this to them, here. */
+export function verdictFor(g, w, def, p) {
+    const atHome = g.player.loc === playerHomeId;
+    const base = def.id === 'take' && atHome ? 'none' : def.crime;
+    const s = currentState(g);
+    return judge(def, base, rolesOf(g, w), p ? whoIs(g, w, p) : null, s.mobility === 'held' || s.mobility === 'restrained');
+}
 export function bonusOf(g, def) {
     const mine = traitsOf(g);
     let b = def.traits.filter(t => mine.includes(t)).length * 2;
@@ -124,11 +184,11 @@ export function bonusOf(g, def) {
 export function optionsFor(g, w, targetKey) {
     const p = peopleHere(g, w).find(x => x.key === targetKey);
     const you = currentState(g).mobility;
-    return actsOf(w).map(def => {
+    return actsOf(w, g).map(def => {
         const t = def.target ? targetState(p) : null;
         const blocked = def.target && !p ? 'Pick someone first.' : blockedFor(def, t);
         const dc = dcFor(def, t, you);
-        return { def, dc, blocked, chance: chanceFor(dc, bonusOf(g, def)) };
+        return { def, dc, blocked, chance: chanceFor(dc, bonusOf(g, def)), verdict: verdictFor(g, w, def, def.target ? p : undefined) };
     });
 }
 /** Why no hostile action is possible right now ('' when it is). */
@@ -148,8 +208,13 @@ const money = (g, w) => {
     const base = costs.length ? costs[Math.floor(costs.length / 2)] : 10;
     return payOf(g, Math.max(1, Math.round(base * (1.5 + rnd() * 4.5))));
 };
-export function resolveAct(g, w, id, targetKey) {
-    const def = actsOf(w).find(d => d.id === id);
+export function resolveAct(g, w, id, targetKey, item = 'something') {
+    const def0 = actsOf(w, g).find(d => d.id === id);
+    if (!def0)
+        return 'That action does not exist here.';
+    // "take {item}": the thing you named
+    const what = String(item ?? '').trim() || 'something';
+    const def = def0.id === 'take' ? JSON.parse(JSON.stringify(def0).replace(/\{item\}/g, what.replace(/["\\]/g, ''))) : def0;
     if (!def)
         return 'That action does not exist here.';
     const why = cannotAct(g);
@@ -164,7 +229,9 @@ export function resolveAct(g, w, id, targetKey) {
     if (blocked)
         return blocked;
     const s = currentState(g);
-    const tName = target ? display(target) : '';
+    const staff = (placeOf(g, w, g.player.loc)?.tags ?? []).some(x => ['work', 'shop', 'service', 'food'].includes(x)) ? 'the staff' : 'someone';
+    const tName = target ? display(target) : def.id === 'take' ? staff : '';
+    const verdict = verdictFor(g, w, def, target);
     const holderIsTarget = !!target && (!s.reason || s.reason.toLowerCase().includes(target.name.toLowerCase().replace(/^(the|a|an)\s+/, '')) || here.filter(x => x.key !== target.key && !x.captive && !x.down).length === 0);
     const dc = dcFor(def, t, s.mobility);
     const bonus = bonusOf(g, def);
@@ -193,20 +260,29 @@ export function resolveAct(g, w, id, targetKey) {
             cash = money(g, w);
             g.player.money += cash;
         }
-        if (target.avatar && def.crime !== 'none') {
+        if (decided.captive && verdict.kind === 'arrest')
+            st.captives[target.key].custody = true; // under arrest
+        if (target.avatar && verdict.kind === 'crime') {
             loseBond(g, target.avatar, SEVERITY[def.crime] * (decided.ok ? 6 : 3));
             feel(g, target.avatar, decided.change === 'dead' ? '' : `afraid of and angry at you: you tried to ${fillIn(def.verb, 'them', 'you')}`, 3 + SEVERITY[def.crime]);
         }
     }
-    // a theft nobody noticed is no crime anyone knows about; the rest is
-    const crime = def.crime === 'theft' && decided.ok ? 'theft' : def.crime;
+    // feeding, or taking blood as a vampire: your hunger is sated
+    const roles = rolesOf(g, w);
+    if (decided.feed)
+        addStatus(g, w, 'hunger', decided.feed);
+    if (decided.take && roles.includes('kindred') && /blood/i.test(what))
+        addStatus(g, w, 'hunger', 30);
+    // the verdict decides what the law sees: an arrest, self-defense or a walker is no crime
+    const crime = verdict.crime;
     // who saw it: the people right here (a quiet action may go unnoticed), and the crowd
     const others = here.filter(x => x.key !== target?.key && !x.captive && x.down !== 'out');
     const seenBy = others.filter(() => rnd() < noticeChance(def.noise));
     const crowd = crowdHere(g, w);
     const crowdSaw = rnd() < crowdSees(crowd, def.noise);
     const victimSaw = !!target && decided.change !== 'dead' && target.down !== 'out' && (def.id !== 'steal' || !decided.ok);
-    const lawP = seenBy.find(x => x.law) ?? (target?.law && victimSaw && !decided.down && !decided.captive ? target : undefined);
+    // an officer steps in on a crime only (not on an arrest, or self-defense)
+    const lawP = crime === 'none' ? undefined : seenBy.find(x => x.law) ?? (target?.law && victimSaw && !decided.down && !decided.captive ? target : undefined);
     const known = seenBy.length > 0 || crowdSaw || victimSaw;
     // the law: steps in at once, or someone calls it
     let reported = false, eta;
@@ -226,8 +302,8 @@ export function resolveAct(g, w, id, targetKey) {
         const who = [...seenBy.filter(x => x.avatar).map(x => x.avatar), ...(target?.avatar && victimSaw ? [target.avatar] : [])];
         note(g, decided.ok ? `{u} managed to ${verbPast.replace(/^\{u\} /, '')} at {0}.` : `{u} tried to ${verbPast.replace(/^\{u\} /, '')} at {0}.`, [where], who, g.player.loc, 'life');
         for (const x of seenBy)
-            if (x.avatar && def.crime !== 'none') {
-                loseBond(g, x.avatar, SEVERITY[def.crime]);
+            if (x.avatar && crime !== 'none') {
+                loseBond(g, x.avatar, SEVERITY[crime]);
                 feel(g, x.avatar, `shaken: saw you ${fillIn(def.verb, x.name === target?.name ? 'them' : (target?.name ?? ''), 'you').replace(/^you /, '')}`, 2);
             }
     }
@@ -235,6 +311,22 @@ export function resolveAct(g, w, id, targetKey) {
     const grp = target ? groupOf(g, target.key) : undefined;
     if (grp && crime !== 'none' && (victimSaw || seenBy.some(x => grp.members.includes(x.key)) || decided.change === 'dead'))
         st.grudge[grp.id] = (st.grudge[grp.id] ?? 0) + SEVERITY[crime];
+    // codes besides the law (the Masquerade): broken if someone outside it saw
+    const broke = [];
+    for (const code of verdict.codes) {
+        const witnesses = [...seenBy.map(x => ({ name: display(x), insider: whoIs(g, w, x).insider })), ...(crowdSaw ? [{ name: 'people nearby', insider: [] }] : []), ...(target && victimSaw && def.id !== 'feed' ? [{ name: display(target), insider: whoIs(g, w, target).insider }] : [])];
+        const out = outsiders(code, witnesses);
+        if (!out.length)
+            continue;
+        const c = CODES.find(x => x.id === code);
+        broke.push(`${c.name} (${out.join(', ')} saw)`);
+        st.breaches.push({ code, at: now, place: g.player.loc, seen: out });
+        st.breaches = st.breaches.slice(-20);
+        const enf = enforcerOf(code, Object.values(st.groups));
+        if (enf)
+            st.grudge[enf.id] = (st.grudge[enf.id] ?? 0) + c.severity;
+        note(g, '{u} broke {1} at {0}.', [where, c.name], seenBy.filter(x => x.avatar).map(x => x.avatar), g.player.loc, 'life');
+    }
     // what it means for you
     const act = { ...(decided.you ?? {}) };
     if (lawP && law.exists && crime !== 'none') {
@@ -257,13 +349,15 @@ export function resolveAct(g, w, id, targetKey) {
         seenBy.length ? `${seenBy.map(display).join(', ')} saw it.` : 'Nobody in the scene noticed.',
         crowdSaw ? 'People nearby saw it too.' : '',
         lawP && law.exists && crime !== 'none' ? `${display(lawP)} saw it and moves in to arrest {{user}} right away.` : reported ? `Someone is calling ${law.name}.` : '',
+        verdict.why ? `How it stands: ${verdict.why}.` : '',
+        broke.length ? `This breaks ${broke.join('; ')}.` : '',
         `Write exactly this outcome and how the people here react; do not change it.`,
         `In the state block: mobility: ${act.free ? 'free' : act.mobility ?? (s.mobility === 'free' ? 'free (or engaged)' : s.mobility)}${decided.change === 'dead' ? `; changes: ${tw} = dead` : ''}.]`,
     ];
     const directive = parts.filter(Boolean).join(' ');
-    const line = fillIn(def.line, tw, '');
+    const line = fillIn(def.line, def.id === 'take' ? '' : tw, '');
     const told = cap(decided.text.replace(/\{\{user\}\}('s)?/g, (_, s) => (s ? 'your' : 'you')));
-    const summary = `🎲 ${dc ? `${d20}${bonus ? ` ${bonus > 0 ? '+' : '−'} ${Math.abs(bonus)}` : ''} vs ${dc} · ` : ''}${def.name}: ${told}.${seenBy.length ? ` Seen by ${seenBy.map(display).join(', ')}.` : crowdSaw ? ' People nearby saw it.' : ' Nobody saw it.'}${lawP && law.exists && crime !== 'none' ? ` ${cap(display(lawP))} is arresting you!` : reported ? ` Someone called ${law.name}.` : ''}`;
+    const summary = `🎲 ${dc ? `${d20}${bonus ? ` ${bonus > 0 ? '+' : '−'} ${Math.abs(bonus)}` : ''} vs ${dc} · ` : ''}${def.name}: ${told}.${seenBy.length ? ` Seen by ${seenBy.map(display).join(', ')}.` : crowdSaw ? ' People nearby saw it.' : ' Nobody saw it.'}${lawP && law.exists && crime !== 'none' ? ` ${cap(display(lawP))} is arresting you!` : reported ? ` Someone called ${law.name}.` : ''}${verdict.kind === 'arrest' || verdict.kind === 'self-defense' ? ` (${verdict.label}: no crime)` : verdict.kind === 'nothing' ? ' (not a person: no crime)' : ''}${broke.length ? ` You broke ${broke.join('; ')}!` : ''}`;
     return { def, target, d20, bonus, dc, decided, seen: seenBy.map(display), crowdSaw, lawHere: lawP ? display(lawP) : '', reported, noLaw: !law.exists, cash, act, directive, line, summary };
 }
 /* ---------- captives ---------- */
@@ -287,6 +381,34 @@ function victimReports(g, w, name, key, crime, p) {
         return;
     const now = nowAbs(g);
     hs(g).incidents.push({ id: `i${now}_v${hs(g).incidents.length}`, at: now, place: g.player.loc, by: 'you', act: 'report', crime, target: name, targetKey: key, seen: [name], crowd: false, lawSaw: false, reported: true, eta: now + 60 + Math.round(rnd() * 120), state: 'open' });
+}
+/* ---------- the law's side: taking someone in ---------- */
+const closeCrimesOf = (g, name) => { for (const i of hs(g).incidents)
+    if (i.by !== 'you' && bareName(i.by) === bareName(name))
+        i.state = 'closed'; };
+/** You are the law and hold them (under arrest, wanted, or attacking you): can you take them in? */
+export function canTakeIn(g, w, key) {
+    const c = hs(g).captives[key];
+    if (!c || !rolesOf(g, w).includes('law'))
+        return false;
+    return !!c.custody || !!wantedFor(g, c.name) || isAttacker(g, c.name);
+}
+/** To the station (or the cells): they are jailed for a while, their crimes closed. */
+export function takeIn(g, w, key) {
+    if (!canTakeIn(g, w, key))
+        return null;
+    const st = hs(g);
+    const c = st.captives[key];
+    const crime = wantedFor(g, c.name);
+    const days = { '': 1, none: 1, minor: 1, theft: 2, assault: 3, kidnapping: 30, murder: 9999 }[crime] ?? 1;
+    delete st.captives[key];
+    st.jail[key] = { name: c.name, until: nowAbs(g) + days * 1440 };
+    applyNow(g, w, c.name, 'captured');
+    closeCrimesOf(g, c.name);
+    note(g, crime ? '{u} arrested {0} for {1}.' : '{u} arrested {0}.', [c.name, CRIME_WORD[crime || 'none']], c.avatar ? [c.avatar] : [], g.player.loc, 'life');
+    saveGame();
+    const law = lawOf(g, w);
+    return { name: c.name, days, directive: `[{{user}} hands ${c.name} over to ${law.name}${crime ? ` for ${CRIME_WORD[crime]}` : ''}: ${c.name} is taken away to a cell and is gone from the scene. In the state block: changes: ${c.name} = captured.]` };
 }
 export const openCrimes = (g) => hs(g).incidents.filter(i => i.by === 'you' && i.state !== 'closed');
 /** The ones the law knows about (reported, seen by an officer, or looking for you): what giving up is about. */
@@ -377,6 +499,7 @@ function step(g, w) {
         if (j.at !== undefined && j.at <= now) {
             delete j.at;
             applyNow(g, w, j.name, 'captured');
+            closeCrimesOf(g, j.name);
             note(g, '{0} was arrested.', [j.name], [], g.player.loc, 'life');
             out.push(`${j.name} was arrested.`);
         }
@@ -535,7 +658,7 @@ export function endVisitHostile(g, w) {
             const k = keyFor(g, c.name);
             if (statusOf(g, k.key) === 'dead' || st.jail[k.key])
                 continue;
-            st.incidents.push({ id: `i${now}_n${st.incidents.length}`, at: now, place: g.player.loc, by: c.name, act: 'story', crime: c.crime, target: c.target, seen: [personaName()], crowd: false, lawSaw: lawWasHere, reported: false, state: 'closed' });
+            st.incidents.push({ id: `i${now}_n${st.incidents.length}`, at: now, place: g.player.loc, by: c.name, act: 'story', crime: c.crime, target: c.target, seen: [personaName()], crowd: false, lawSaw: lawWasHere, reported: false, state: lawWasHere && law.exists ? 'closed' : 'open' });
             note(g, '{0} committed {1} at {2}.', [c.name, CRIME_WORD[c.crime], placeName(g, w, g.player.loc)], k.avatar ? [k.avatar] : [], g.player.loc, 'life');
             if (!law.exists)
                 continue;
@@ -727,7 +850,12 @@ export function hostileLines(g, w) {
     const hereNow = peopleHere(g, w);
     const grudges = Object.values(st.groups).filter(x => (st.grudge[x.id] ?? 0) >= 3 && hereNow.some(p => x.members.includes(p.key)));
     const lawNames = hereNow.filter(x => x.law).map(display);
+    const roles = rolesOf(g, w).filter(r => r !== 'civilian').map(r => ROLES.find(x => x.id === r));
+    const codeNames = [...new Set(roles.flatMap(r => r.codes ?? []))].map(id => CODES.find(c => c.id === id).name);
+    const recent = st.breaches.filter(b => now - b.at < 7 * 1440);
     return [
+        roles.length || st.roleText.trim() ? `Who {{user}} is: ${[...roles.map(r => r.name.toLowerCase()), st.roleText.trim()].filter(Boolean).join('; ')}.${roles.some(r => r.authority) ? ' {{user}} may lawfully arrest people who are wanted or who attack them.' : ''}${codeNames.length ? ` {{user}} lives under ${codeNames.join(' and ')}.` : ''}` : '',
+        recent.length ? `{{user}} broke ${[...new Set(recent.map(b => CODES.find(c => c.id === b.code)?.name ?? b.code))].join(', ')} recently (seen by ${[...new Set(recent.flatMap(b => b.seen))].slice(0, 4).join(', ')}).` : '',
         law.exists ? `The law here: ${law.name}. A crime people see can be reported, and ${law.name} come${law.name.startsWith('the') ? '' : 's'} for whoever did it.${lawNames.length ? ` Here right now: ${lawNames.join(', ')}.` : ''}` : 'There is no law here: no police, nobody comes to stop or arrest anyone. People deal with trouble themselves.',
         caps.length ? `With {{user}}, held against their will: ${caps.map(c => `${c.name} (${c.how === 'restrained' ? 'tied up' : 'in {{user}}\'s grip'})`).join(', ')}. They stay with {{user}} until the game says they get away.` : '',
         down.length ? `On the ground here: ${down.map(d => `${d.name} (${d.how === 'out' ? 'unconscious' : 'knocked down'})`).join(', ')}.` : '',

@@ -21,6 +21,8 @@ export interface HitEffect {
     scare?: boolean;                           // they back off and leave the scene
     free?: boolean;                            // it gets you out of a fight or someone's grip
     fight?: boolean;                           // they are still up and it turns into a fight
+    feed?: number;                             // you drink: your hunger goes up by this much
+    take?: boolean;                            // you take the thing you named
 }
 export interface MissEffect { text: string; fight?: boolean; caught?: boolean; alarm?: boolean; change?: 'injured' }
 export interface HostileDef {
@@ -33,6 +35,8 @@ export interface HostileDef {
     noise: 0 | 1 | 2 | 3;
     crime: Crime; minutes: number;
     hit: HitEffect; miss: MissEffect;
+    /** Only for this role (Feed: a vampire). */
+    role?: string;
 }
 
 // {t}: the target; {u}: you. The texts are what the AI is told happened (and the toast).
@@ -55,6 +59,10 @@ export const DEFAULT_ACTS: HostileDef[] = [
         hit: { text: '{t} is tied up and can\'t move', captive: 'restrained' }, miss: { text: '{t} struggles too much to be tied up' } },
     { id: 'knockout', line: "*tries to knock {t} out*", name: 'Knock out', verb: 'knock {t} out', icon: '💤', desc: 'Out cold for a while. Then you can tie them up, take them, or worse.', target: true, dc: 14, traits: ['Strong', 'Athletic'], noise: 2, crime: 'assault', minutes: 1,
         hit: { text: '{t} is knocked out cold', change: 'injured', down: 'out', downMins: 45, free: true }, miss: { text: '{t} staggers but stays up and fights back', fight: true } },
+    { id: 'take', line: "*takes {item}*", name: 'Take something', verb: 'take {item}', icon: '🫳', desc: 'Take something from here (name it below). Theft at a business; nothing at your own place.', target: false, dc: 12, traits: ['Smart', 'Calm', 'Handy'], noise: 0, crime: 'theft', minutes: 2,
+        hit: { text: '{item} is taken without anyone stopping it', take: true }, miss: { text: '{t} notices {item} being taken', caught: true, alarm: true } },
+    { id: 'feed', line: "*leans in close to {t}*", name: 'Feed', verb: 'feed on {t}', icon: '🩸', desc: 'Drink from them: your hunger is sated; they are left dazed and remember little. Quiet, but no mortal may see.', target: true, dc: 10, traits: ['Charming', 'Calm'], noise: 0, crime: 'assault', minutes: 6, role: 'kindred',
+        hit: { text: 'the feeding is done: {t} is left dazed and remembers little', down: 'out', downMins: 15, feed: 40 }, miss: { text: '{t} pulls away before the bite', alarm: true } },
     { id: 'kill', line: "*goes to kill {t}*", name: 'Kill', verb: 'kill {t}', icon: '💀', desc: 'Only someone down or held. It is final.', target: true, needs: ['down', 'held'], dc: 6, traits: [], noise: 2, crime: 'murder', minutes: 2,
         hit: { text: '{t} is killed', change: 'dead', free: true }, miss: { text: '{t} survives it, badly hurt, and screams', change: 'injured', alarm: true } },
 ];
@@ -140,7 +148,7 @@ export type Grade = 'critical-fail' | 'fail' | 'success' | 'critical-success';
 export interface Decided {
     ok: boolean; grade: Grade; text: string;
     change?: 'injured' | 'dead'; down?: 'down' | 'out'; downMins?: number; captive?: 'held' | 'restrained';
-    money?: boolean; scare?: boolean; alarm?: boolean;
+    money?: boolean; scare?: boolean; alarm?: boolean; feed?: number; take?: boolean;
     /** what it means for you: a fight holds you here, being caught holds you, or it frees you */
     you?: { mobility?: Mobility; free?: boolean; reason?: string };
 }
@@ -151,7 +159,7 @@ export function decide(def: HostileDef, d20: number, bonus: number, dc: number, 
     const ok = grade === 'success' || grade === 'critical-success';
     if (ok) {
         const h = def.hit;
-        const out: Decided = { ok, grade, text: fillIn(h.text, target), change: h.change, down: h.down, downMins: h.downMins, captive: h.captive, money: h.money, scare: h.scare };
+        const out: Decided = { ok, grade, text: fillIn(h.text, target), change: h.change, down: h.down, downMins: h.downMins, captive: h.captive, money: h.money, scare: h.scare, feed: h.feed, take: h.take };
         // a great punch puts them down too
         if (grade === 'critical-success' && def.id === 'punch') { out.down = 'down'; out.downMins = 6; out.text += ', and down'; }
         const helpless = !!(out.down || out.captive || out.change === 'dead' || out.scare || t?.down || t?.captive?.length);

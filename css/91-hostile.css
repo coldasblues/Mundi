@@ -77,3 +77,12 @@
 #mundi-root .mh-hx-lead > div:first-of-type { display: grid; gap: 2px; font-size: 14px; }
 #mundi-root .mh-hx-lead .mu-row { grid-column: 1 / -1; justify-content: flex-end; }
 @media (max-width: 760px) { #mundi-root .mh-hx-lead { top: 150px; } }
+
+/* the decision engine: verdict tags, who you are, take what */
+#mundi-root .mu-hx-crime.is-ok { background: color-mix(in srgb, var(--good) 26%, transparent); color: #d9ffe0; }
+#mundi-root .mu-hx-crime.is-code { background: rgba(150, 90, 255, .3); color: #eadcff; }
+#mundi-root .mu-hx-roles { display: grid; gap: 6px; }
+#mundi-root .mu-hx-roles > span { font-size: 12px; color: var(--hud-muted, var(--muted)); }
+#mundi-root .mu-hx-item { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+#mundi-root .mu-hx-item input { flex: 1; min-width: 0; }
+#mundi-root .mu-hx-caps li .mu-row { grid-row: span 2; grid-column: 2; display: flex; gap: 6px; }

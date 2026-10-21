@@ -7,17 +7,20 @@ import { thumb, personaName } from '../st/bridge.js';
 import {
     hxOn, hxPrefs, hs, lawOf, peopleHere, optionsFor, cannotAct, resolveAct, captives, letGo, surrender, lawHolding,
     openCrimes, knownCrimes, crowdHere, CROWD_WORD, pushDirective, armAct, hardCapture, arrivedCaptive, flushEvents, groupOf,
-    newLead, takePrisoner, followLeader, type HerePerson, type Lead,
+    newLead, takePrisoner, followLeader, rolesOf, canTakeIn, takeIn, type HerePerson, type Lead, type Option,
 } from '../sim/hostile.js';
-import { CRIME_WORD, CRIME_TAG, SEVERITY, worst } from '../sim/hostile-rules.js';
+import { CRIME_WORD, SEVERITY, worst } from '../sim/hostile-rules.js';
+import { ROLES, CODES } from '../sim/judge.js';
 import { currentState, psHooks } from '../sim/pstate-live.js';
 import { placeOf, playerHomeId, travelMinutes } from '../sim/places.js';
 import { keyFor, type Person } from '../sim/roster.js';
 import { icon } from './icons.js';
 import { ACT, INPUT } from './reg.js';
 
-export const HX = { open: false, target: '', surrender: false, lawOpen: false, newGroup: '', lead: null as Lead | null };
+export const HX = { open: false, target: '', surrender: false, lawOpen: false, newGroup: '', lead: null as Lead | null, item: '' };
 const ctxW = () => { const g = game(); const w = g && getWorld(g.world); return g && w ? { g, w } : null; };
+// the engine's reasons, said to you ("{{user}} is the law" → "You are the law")
+const youSay = (t: string) => { const x = t.replace(/\{\{user\}\} is/g, 'you are').replace(/\{\{user\}\}/g, 'you'); return x.charAt(0).toUpperCase() + x.slice(1); };
 const who = (p: HerePerson) => (p.kind === 'cast' && !p.met ? 'Someone' : p.name);
 
 /* ---------- the button (in "Things to do") ---------- */
@@ -66,7 +69,13 @@ function menuHtml(g: Save, w: WorldDef): string {
     const no = cannotAct(g);
     const opts = optionsFor(g, w, HX.target);
     const law = lawOf(g, w);
-    const crimeTag = (c: string) => (c === 'none' ? '' : `<em class="mu-hx-crime ${SEVERITY[c as keyof typeof SEVERITY] >= SEVERITY.kidnapping ? 'is-felony' : ''}">${esc(CRIME_TAG[c as keyof typeof CRIME_TAG])}</em>`);
+    // the verdict, before you choose: an arrest, self-defense, a crime (and how bad), a code at risk
+    const verdictTag = (o: Option) => {
+        const v = o.verdict;
+        const main = v.kind === 'crime' ? `<em class="mu-hx-crime ${SEVERITY[v.crime] >= SEVERITY.kidnapping ? 'is-felony' : ''}">${esc(v.label)}</em>` : v.label ? `<em class="mu-hx-crime is-ok">${esc(v.label)}</em>` : '';
+        const codes = v.codes.map(id => `<em class="mu-hx-crime is-code" title="Breaks ${esc(CODES.find(c => c.id === id)?.name ?? id)} if someone outside it sees">${esc((CODES.find(c => c.id === id)?.name ?? id).replace(/^the /, ''))}</em>`).join('');
+        return main + codes;
+    };
     const caps = captives(g);
     return `<div class="mu-dlg-veil is-fixed" data-act="hx-close"></div><div class="mu-panel mu-confirm mu-hx" role="dialog" aria-label="Rough stuff">
         <header class="mu-hx-top"><h3>${icon('flame')}<span>Rough stuff</span></h3><button class="mu-ibtn mu-ghost" data-act="hx-close" aria-label="Close">${icon('x')}</button></header>
@@ -78,11 +87,14 @@ function menuHtml(g: Save, w: WorldDef): string {
         <div class="mu-hx-acts">${opts.map(o => {
             const off = !!no || !!o.blocked || state.generating;
             return `<button class="mu-hx-act" data-act="hx-do" data-v="${esc(o.def.id)}" ${off ? 'aria-disabled="true"' : ''} title="${esc(o.blocked || o.def.desc)}">
-                <i>${o.def.icon}</i><b>${esc(o.def.name)}</b><small>${o.def.dc ? `🎲 ${o.chance}%` : 'no roll'}${crimeTag(o.def.crime)}</small></button>`;
+                <i>${o.def.icon}</i><b>${esc(o.def.name)}</b><small>${o.def.dc ? `🎲 ${o.chance}%` : 'no roll'}${verdictTag(o)}</small></button>`;
         }).join('')}</div>
-        ${HX.target ? `<p class="mu-muted mu-hx-desc">${esc(opts.find(o => !o.blocked)?.def ? 'Hover an action to see what it does.' : '')}</p>` : ''}
-        ${caps.length ? `<h4>With you</h4><ul class="mu-hx-caps">${caps.map(c => `<li><b data-notr>${esc(c.name)}</b><small>${c.how === 'restrained' ? 'tied up' : 'in your grip: they may slip away'}</small><button data-act="hx-letgo" data-v="${esc(c.key)}">Let go</button></li>`).join('')}</ul>` : ''}
-        <details class="mu-hx-law" ${HX.lawOpen ? 'open' : ''}><summary data-act="hx-law-toggle">Law in this story: <b>${law.exists ? esc(law.name) : 'none'}</b></summary>
+        ${opts.some(o => o.def.id === 'take') ? `<label class="mu-hx-item"><span>Take what?</span><input type="text" data-input="hx-item" maxlength="60" placeholder="something (a blood bag, a bottle, the cash box…)" value="${esc(HX.item)}"></label>` : ''}
+        ${opts.find(o => o.verdict.why && o.verdict.kind !== 'crime') ? `<p class="mu-muted mu-hx-desc">${esc(youSay(opts.find(o => o.verdict.why && o.verdict.kind !== 'crime')!.verdict.why))}.</p>` : HX.target ? '<p class="mu-muted mu-hx-desc">Hover an action to see what it does.</p>' : ''}
+        ${caps.length ? `<h4>With you</h4><ul class="mu-hx-caps">${caps.map(c => `<li><b data-notr>${esc(c.name)}</b><small>${c.custody ? 'under arrest' : c.how === 'restrained' ? 'tied up' : 'in your grip: they may slip away'}</small><span class="mu-row">${canTakeIn(g, w, c.key) ? `<button class="mu-primary" data-act="hx-takein" data-v="${esc(c.key)}">Take them in</button>` : ''}<button data-act="hx-letgo" data-v="${esc(c.key)}">Let go</button></span></li>`).join('')}</ul>` : ''}
+        <details class="mu-hx-law" ${HX.lawOpen ? 'open' : ''}><summary data-act="hx-law-toggle">You: <b>${esc(rolesOf(g, w).map(r => ROLES.find(x => x.id === r)?.name ?? r).join(', '))}</b> · Law in this story: <b>${law.exists ? esc(law.name) : 'none'}</b></summary>
+            <div class="mu-hx-roles"><span>Who you are</span>${ROLES.map(r => `<label class="mu-check"><input type="checkbox" data-input="hx-role" data-v="${r.id}" ${rolesOf(g, w).includes(r.id) ? 'checked' : ''}><span>${esc(r.name)}<small>${esc(r.desc)}</small></span></label>`).join('')}</div>
+            <label class="mu-field"><span>In your own words (for the story)</span><input type="text" data-input="hx-roletext" maxlength="120" placeholder="a detective of the 9th precinct, a Toreador of the Camarilla…" value="${esc(hs(g).roleText)}"></label>
             <label class="mu-field"><span>Is there law?</span><select data-input="hx-law-mode">${([['auto', `As the world says (${lawOf(g, w, true).exists ? 'yes' : 'no'})`], ['on', 'Yes: crimes get reported, and they come'], ['off', 'No law (a zombie apocalypse, the wilderness…)']] as const).map(([v, l]) => `<option value="${v}" ${hs(g).law.mode === v ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select></label>
             <label class="mu-field"><span>Called</span><input type="text" data-input="hx-law-name" maxlength="40" placeholder="${esc(lawOf(g, w, true).name)}" value="${esc(hs(g).law.name ?? '')}"></label>
             <small class="mu-muted">Who belongs to which group (a gang, a faction, the law) is set in ☰ → People in your story. A group you wrong holds a grudge and comes for you, law or no law.</small>
@@ -120,7 +132,7 @@ async function runAct(id: string) {
     const c = ctxW(); if (!c) return;
     const { g, w } = c;
     if (state.generating) { toast('Wait until they finish.', 'info'); return; }
-    const r = resolveAct(g, w, id, HX.target);
+    const r = resolveAct(g, w, id, HX.target, HX.item);
     if (typeof r === 'string') { toast(r, 'warn'); return; }
     HX.open = false;
     pushDirective(r.directive);
@@ -265,6 +277,7 @@ Object.assign(ACT, {
     'hx-close': () => { HX.open = false; notify(); },
     'hx-target': (el) => { HX.target = el.dataset.v ?? ''; notify(); },
     'hx-do': (el) => { if (el.getAttribute('aria-disabled') === 'true') { const t = el.getAttribute('title'); if (t) toast(t, 'info'); return; } void runAct(el.dataset.v!); },
+    'hx-takein': (el) => { const c = ctxW(); if (!c) return; const r = takeIn(c.g, c.w, el.dataset.v!); if (r) { toast(`You take ${r.name} in.${r.days < 9999 ? ` They'll be held for ${r.days} day${r.days === 1 ? '' : 's'}.` : ' They won\'t be out again.'}`, 'success'); pushDirective(r.directive); void import('../sim/game.js').then(m => m.syncScene()); } notify(); },
     'hx-letgo': (el) => { const c = ctxW(); if (!c) return; const n = letGo(c.g, c.w, el.dataset.v!); if (n) { toast(`You let ${n} go.`, 'info'); pushDirective(`[{{user}} has just let ${n} go: ${n} is free and can leave.]`); } notify(); },
     'hx-surrender': () => { HX.surrender = true; notify(); },
     'hx-lead-go': () => { const l = HX.lead; HX.lead = null; if (l) void goAlong(l, false); notify(); },
@@ -297,6 +310,15 @@ Object.assign(INPUT, {
         saveGame(); notify();
     },
     'hx-newgroup': (el) => { HX.newGroup = el.value; },
+    'hx-item': (el) => { HX.item = el.value; },
+    'hx-role': (el) => {
+        const g = game(); if (!g) return; const st = hs(g); const v = el.dataset.v!;
+        st.roles = st.roles.filter(r => r !== v && r !== 'civilian');
+        if (el.checked) st.roles.push(v);
+        if (v === 'civilian' && el.checked) st.roles = ['civilian'];
+        saveGame(); void import('../sim/prompt.js').then(m => m.refreshPrompt()); notify();
+    },
+    'hx-roletext': (el) => { const g = game(); if (!g) return; hs(g).roleText = el.value; saveGame(); void import('../sim/prompt.js').then(m => m.refreshPrompt()); },
     'hx-base': (el) => { const g = game(); if (!g) return; const x = hs(g).groups[el.dataset.id!]; if (x) { x.base = el.value || undefined; saveGame(); } },
 });
 void personaName; void keyFor;

@@ -2,6 +2,41 @@
 
 This is a fork of [tjalis/Mundi](https://github.com/tjalis/Mundi) (AGPL-3.0). Changes made in this fork are listed here, with their dates, as the license asks.
 
+## 0.1.0-ps.9 — 2026-10-21
+
+A decision engine for rough stuff: who you are, who they are and the setting's own codes decide what an act is.
+
+### Added
+
+- **Who you are** (Rough stuff menu → You · Law in this story):
+  - **an ordinary person**;
+  - **the law** (police, a guard). Picked for you when your job is police or guard work;
+  - **Kindred** (a vampire).
+  - A line in your own words for the story ("a detective of the 9th precinct", "a Toreador of the Camarilla"). The AI is told all of it.
+- **Who they are:** wanted (for a crime the story reported, still open), attacking or holding you right now, the law, or not a person at all (zombies, walkers, biters; a world can add more with `"notPeople"`).
+- **The verdict, before you choose.** Each action in the menu shows what it would be, with a line saying why:
+  - **arrest**: you are the law and they are wanted or attacking you. Grabbing, tying up, knocking down: no crime, nobody calls it in, and an officer who sees it does not arrest *you*. Grabbing an innocent person is still assault, and killing is still murder, badge or not;
+  - **self-defense**: they are attacking you, so hitting back is no crime. Killing them counts only when they had you held or tied up;
+  - **not a person**: a walker is nobody's business;
+  - otherwise the crime itself (assault, theft, kidnapping, murder).
+- **Take them in.** As the law, someone in your grip who is under arrest (or wanted, or was attacking you) can be taken in: they are jailed for a while (a day for a disturbance, up to never for murder), and their crimes are closed.
+- **Codes besides the law: the Masquerade.**
+  - As Kindred you get **Feed**: quiet, your hunger is sated, the vessel is left dazed and remembers little. Someone who trusts you (a close friend, your partner) is a willing vessel: no crime.
+  - If anyone outside the Kindred sees it (the people here, or people nearby), it is a **breach of the Masquerade**. The group that enforces it (any group of yours with Camarilla, Prince, Sheriff or Court in its name) holds a grudge. Kindred witnesses (in such a group, or named so) don't count.
+  - The police care separately, if what a mortal saw looked like an assault.
+  - The menu marks Feed with the Masquerade, and the story is told about recent breaches.
+- **Take something** (no target): name it ("a blood bag", "the cash box"). It is theft at a business (the staff may catch you), and nothing at your own home. As Kindred, taking blood feeds you.
+
+### Changed
+
+- The story's crimes stay open (the person is wanted) until they are arrested.
+- "The mugger", "a mugger" and "Mugger" are the same person.
+
+### Files
+
+- New: `src/sim/judge.ts` (roles, codes, who is not a person, the verdict; unit-testable).
+- Touched: `src/sim/hostile-rules.ts` (Feed, Take something), `src/sim/hostile.ts` (the verdict in every act, wanted, attacking, taking in, breaches, the prompt), `src/ui/hostileui.ts`, `css/91-hostile.css`, `manifest.json`, `README.md`.
+
 ## 0.1.0-ps.8 — 2026-10-21
 
 Talking with one or a few people: the scene says so, and the people on the side cut in only when the engine says.
