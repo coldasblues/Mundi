@@ -4,8 +4,11 @@ import { game, state, notify, toast, esc, saveGame, type Save } from '../core/st
 import { getWorld, type WorldDef } from '../core/world.js';
 import { thumb } from '../st/bridge.js';
 import { presentAt } from '../sim/people.js';
-import { talkSet, setTalk, bondOf } from '../sim/social.js';
-import { askLove, introduce, introChance, cannotMatch, knownLove, crushOf, leaveTogether, CONFIDE_BOND } from '../sim/match.js';
+import { talkSet, setTalk, bondOf, guestOf, setGuest } from '../sim/social.js';
+import { askLove, introduce, introChance, cannotMatch, knownLove, crushOf, leaveTogether, cutIn, CONFIDE_BOND } from '../sim/match.js';
+import { talkNotice } from '../sim/presence.js';
+import { hs } from '../sim/hostile.js';
+import { personaName, narratorLine } from '../st/bridge.js';
 import { isMinor } from '../sim/family.js';
 import { pushDirective } from '../sim/hostile.js';
 import { psHooks } from '../sim/pstate-live.js';
@@ -23,6 +26,38 @@ export function talkButtons(g: Save, avatar: string): string {
     if (!t.length) return `<button data-act="solo-on" data-who="${esc(avatar)}">${icon('chat')}<span>Talk only with them</span></button>`;
     if (!t.includes(avatar)) return `<button data-act="talk-add" data-who="${esc(avatar)}">${icon('users')}<span>Bring them into the conversation</span></button>`;
     return `${t.length > 1 ? `<button data-act="talk-drop" data-who="${esc(avatar)}">${icon('x')}<span>Leave them out of it</span></button>` : ''}<button data-act="solo-off">${icon('users')}<span>Talk with everyone again</span></button>`;
+}
+/** Changes who you talk with, and the narrator says so ("Zack turns to talk with Mona alone"). */
+export async function talkWith(list: string[]) {
+    const g = game(); if (!g) return;
+    const before = talkSet(g);
+    setTalk(g, list);
+    const said = talkNotice(g, before, talkSet(g), personaName());
+    if (said) hs(g).queue.push({ text: said, present: [], directive: '' });
+    saveGame();
+    const { syncScene } = await import('../sim/game.js');
+    await syncScene(); notify();
+}
+/**
+ * Before your line goes out, while you talk with only some of the people here: may one of the others cut in? The
+ * engine decides (see cutIn). If so, the narrator says they are listening in, they may speak this once, and then
+ * they are on the side again.
+ */
+export async function maybeCutIn(line: string) {
+    const c = ctxW(); if (!c) return;
+    const { g, w } = c;
+    const t = talkSet(g); if (!t.length) return;
+    const side = presentAt(g, w, g.player.loc).filter(r => !t.includes(r.avatar) && r.met);
+    const who = cutIn(g, t, side, line);
+    if (!who) return;
+    const r = g.cast[who];
+    setGuest(g, who); saveGame();
+    const talkers = t.map(a => g.cast[a]?.name ?? '').filter(Boolean).join(' and ');
+    await narratorLine(`${r.name}, nearby, is listening in.`);
+    pushDirective(`[${r.name} has been listening from nearby and cuts in on {{user}}'s conversation with ${talkers}: ${r.name} speaks up this once. Then the conversation is between {{user}} and ${talkers} again.]`);
+    toast(`${r.name} cuts in.`, 'info');
+    const { syncScene } = await import('../sim/game.js');
+    await syncScene();
 }
 /** In the Here row: is this person in your conversation (when it is not everyone)? */
 export const inSmallTalk = (g: Save, avatar: string) => { const t = talkSet(g); return t.length > 0 && t.includes(avatar); };
@@ -81,6 +116,17 @@ async function intro(a: string, b: string) {
     await syncScene(); notify();
     await sendLine(r.line);
 }
+// the one who cut in goes back to the side once everyone has spoken
+psHooks.replied.push(() => {
+    const g = game(); if (!g || !guestOf(g)) return;
+    void (async () => {
+        for (let i = 0; i < 120 && state.generating; i++) await new Promise(r => setTimeout(r, 500));
+        if (!guestOf(g)) return;
+        setGuest(g, ''); saveGame();
+        const { syncScene } = await import('../sim/game.js');
+        await syncScene(); notify();
+    })();
+});
 // after the reply that tells it, the pair who leave together are gone from the scene
 psHooks.replied.push(() => {
     const c = ctxW(); const t = together; if (!c || !t) return;
@@ -95,8 +141,8 @@ psHooks.replied.push(() => {
 });
 
 Object.assign(ACT, {
-    'talk-add': async (el) => { const g = game(); if (!g) return; setTalk(g, [...talkSet(g), el.dataset.who!]); saveGame(); const { syncScene } = await import('../sim/game.js'); await syncScene(); notify(); },
-    'talk-drop': async (el) => { const g = game(); if (!g) return; setTalk(g, talkSet(g).filter(a => a !== el.dataset.who)); saveGame(); const { syncScene } = await import('../sim/game.js'); await syncScene(); notify(); },
+    'talk-add': async (el) => { const g = game(); if (!g) return; await talkWith([...talkSet(g), el.dataset.who!]); },
+    'talk-drop': async (el) => { const g = game(); if (!g) return; await talkWith(talkSet(g).filter(a => a !== el.dataset.who)); },
     'mm-ask': (el) => { void ask(el.dataset.who!); },
     'mm-intro-open': (el) => { MU.introFor = MU.introFor === el.dataset.who ? '' : el.dataset.who!; notify(); },
     'mm-intro': (el) => { void intro(el.dataset.a!, el.dataset.b!); },

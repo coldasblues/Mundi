@@ -179,6 +179,37 @@ export function leaveTogether(g: Save, a: string, b: string) {
     saveGame();
 }
 
+/* ---------- cutting in ---------- */
+
+/**
+ * You are talking with a few people (or one); the others are on the side. After your line, may one of them cut in?
+ * The engine decides, from who they are to the people talking (a crush on one of them, dating one of them), how close
+ * they are to you, and above all whether your line names them ("Dev, what do you think?" nearly always does it).
+ * Returns the one who cuts in, or ''.
+ */
+export function cutIn(g: Save, talking: string[], side: Resident[], line: string, rnd = Math.random): string {
+    if (!talking.length || !side.length) return '';
+    const text = ` ${String(line ?? '').toLowerCase().replace(/[^a-z0-9' ]/g, ' ')} `;
+    let best = '', top = 0;
+    for (const r of side) {
+        if (isMinor(g, r.avatar) && !r.met) continue;
+        const first = r.name.toLowerCase().split(' ')[0];
+        let p = 0.04;
+        if (first.length > 1 && text.includes(` ${first} `)) {
+            // spoken to ("Dev, …", "…, Dev?", "Dev?"): nearly sure; just named: likely
+            const f = first.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const direct = new RegExp(`(^|["“*\\s])${f}\\s*[,!?]|,\\s*${f}\\b[^.!]*\\?`, 'i').test(String(line ?? ''));
+            p = direct ? 0.9 : 0.5;
+        }
+        if (talking.some(a => feeling(g, r.avatar, a).romance >= 40)) p += 0.15;          // they like one of them
+        if (talking.some(a => datingOf(g, r.avatar) === a)) p += 0.2;                     // their partner is the one you're with
+        if (bondOf(g, r.avatar) >= 55) p += 0.06;                                          // close to you, and curious
+        const roll = rnd();
+        if (roll < Math.min(0.95, p) && p > top) { top = p; best = r.avatar; }
+    }
+    return best;
+}
+
 /* ---------- days go by ---------- */
 
 function daily(g: Save): string[] {

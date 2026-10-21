@@ -2,6 +2,23 @@
 
 This is a fork of [tjalis/Mundi](https://github.com/tjalis/Mundi) (AGPL-3.0). Changes made in this fork are listed here, with their dates, as the license asks.
 
+## 0.1.0-ps.8 — 2026-10-21
+
+Talking with one or a few people: the scene says so, and the people on the side cut in only when the engine says.
+
+### Added
+
+- **The narrator says who you turn to.** Choosing "Talk only with them", bringing someone into the conversation, leaving someone out, or going back to everyone posts one line in the scene: "Zack turns to talk with Mona alone; the others give them some space.", "Zack brings Dev into the conversation.", "Zack turns back to everyone." The narrator's line is part of the chat the AI reads, so it knows who the conversation is with.
+- **Cutting in, as a mechanic.** While you talk with some of the people here, the others stay quiet, but after each of your lines the engine may let one of them cut in:
+  - nearly always when your line speaks to them ("Dev, what do you think?"), and often when it names them;
+  - more likely when they have a crush on, or are dating, someone you are talking with, or when they are close to you;
+  - otherwise, now and then.
+  - When someone cuts in, the narrator says so first ("Dev, nearby, is listening in."). They speak this once, then they are on the side again. To keep them in the conversation, use "Bring them into the conversation".
+
+### Files
+
+- Touched: `src/sim/presence.ts` (the line when who you talk with changes), `src/sim/match.ts` (who cuts in), `src/sim/social.ts` (the one who cuts in), `src/sim/game.ts`, `src/ui/matchui.ts`, `src/ui/lifeui.ts`, `src/ui/scene.ts`, `manifest.json`.
+
 ## 0.1.0-ps.7 — 2026-10-21
 
 Characters out of lorebooks and ensemble cards, and the narrator says who leaves or walks in.

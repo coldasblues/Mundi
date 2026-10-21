@@ -414,9 +414,14 @@ Object.assign(ACT, {
             await addUserLine(men.text);
             void replyAs(men.who.avatar);
         }
-        else if (!sendText(text)) {
-            toast('SillyTavern\'s message box was not found.', 'error');
-            return;
+        else {
+            // talking with only some of the people here: one of the others may cut in (the engine decides)
+            const { maybeCutIn } = await import('./matchui.js');
+            await maybeCutIn(raw);
+            if (!sendText(text)) {
+                toast('SillyTavern\'s message box was not found.', 'error');
+                return;
+            }
         }
         // talking to people brings you closer (a little each line, capped per day)
         const g = game();

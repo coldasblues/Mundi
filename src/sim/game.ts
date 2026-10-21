@@ -280,7 +280,10 @@ export function syncScene(): Promise<void> {
         const was = talkSet(g);
         const still = was.filter(a => here.some(r => r.avatar === a));
         if (still.length !== was.length) setTalk(g, still);
-        const talking = still.length ? still : here.map(r => r.avatar);
+        // someone on the side who cuts in speaks this once
+        const { guestOf } = await import('./social.js');
+        const guest = guestOf(g);
+        const talking = still.length ? [...still, ...(guest && here.some(r => r.avatar === guest) && !still.includes(guest) ? [guest] : [])] : here.map(r => r.avatar);
         // someone left or walked in while you were here: the narrator says so (the story then knows who is here)
         const { presenceLine } = await import('./presence.js');
         const said = presenceLine(g, w, here);

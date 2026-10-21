@@ -46,3 +46,19 @@ export function presenceLine(g, w, here) {
         parts.push(`${list(came.map(name))} ${came.length > 1 ? 'walk' : 'walks'} in.`);
     return parts.join(' ');
 }
+/* ---------- who you talk with: the narrator says when it changes ---------- */
+/** "Zack turns to talk with Mona alone", "…brings Dev into the conversation", "…turns back to everyone". */
+export function talkNotice(g, before, after, me) {
+    const n = (a) => g.cast[a]?.met ? g.cast[a].name : 'someone';
+    if (!after.length)
+        return before.length ? `${me} turns back to everyone.` : '';
+    const added = after.filter(a => !before.includes(a)), dropped = before.filter(a => !after.includes(a));
+    if (!before.length)
+        return `${me} turns to talk with ${list(after.map(n))}${after.length === 1 ? ' alone' : ''}; the others give them some space.`;
+    const parts = [];
+    if (added.length)
+        parts.push(`${me} brings ${list(added.map(n))} into the conversation.`);
+    if (dropped.length)
+        parts.push(`${me} turns away from ${list(dropped.map(n))}${after.length === 1 ? `, to talk with ${n(after[0])} alone` : ''}.`);
+    return parts.join(' ');
+}

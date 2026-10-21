@@ -83,6 +83,9 @@ export function talkSet(g: Save): string[] {
     return s.solo ? [String(s.solo)] : [];
 }
 export const inTalk = (g: Save, avatar: string) => { const t = talkSet(g); return !t.length || t.includes(avatar); };
+/** Someone on the side who cuts in for one reply (the engine decides: see match.ts). */
+export const guestOf = (g: Save) => String((social(g) as any).guest ?? '');
+export function setGuest(g: Save, avatar: string) { (social(g) as any).guest = avatar; }
 /** Sets who you talk with: [] everyone, [a] only them, [a, b, …] these few. */
 export function setTalk(g: Save, list: string[]) {
     const s = social(g) as any;
