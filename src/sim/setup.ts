@@ -21,6 +21,8 @@ export interface Plan {
      * `stopped`: where Stop was pressed (`unread`: what was left); `gaveUp`: the first pieces all came back empty.
      */
     issues: { failed: number; total: number; error: string; skipped: Piece[]; unread: Piece[]; stopped?: string; gaveUp?: boolean; think?: Think; stepped?: boolean };
+    /** When it comes from a template: its name, and the people in it who are not in this game. */
+    from?: string; unmatched?: string[];
 }
 
 const clean = (t: unknown) => String(t ?? '').replace(/\r/g, '').trim();

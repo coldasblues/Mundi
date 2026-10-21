@@ -2,6 +2,23 @@
 
 This is a fork of [tjalis/Mundi](https://github.com/tjalis/Mundi) (AGPL-3.0). Changes made in this fork are listed here, with their dates, as the license asks.
 
+## 0.1.0-ps.15 — 2026-10-21
+
+Templates: start a new game of a world the way an earlier one started, without the AI reading the lore again.
+
+### Added
+
+- **Game templates.** A template has two halves; either can be saved first, and saving under the same name fills in the other.
+  - **The start:** the people living in the world, which characters' lorebooks are on, the households and the difficulty. Your own character is not kept.
+  - **The setup:** the law, the world's laws, the groups and their bases, what each person is, who is the law, and what is not a person.
+- **Save the start** at the bottom of a new game's Start step, where the characters' lorebooks are chosen.
+- **Save the setup** from a game:
+  - right after applying Set up from the lore;
+  - at any time from Rough stuff → Templates…, which includes changes you made by hand.
+- **Start from a template** at a new game's first step. It sets the world, the people, the lorebooks, the households and the difficulty, then goes to Your character. If someone in it is no longer in your SillyTavern, it says who.
+- **Use its setup:** a game started from a template with a setup opens that setup for review, the same review as Set up from the lore, with no AI calls. People are matched to the game's cast by card, then by name. Anyone who isn't in the game is listed and left out. A template's setup can also be used in a game that is already running.
+- **Templates…** (in Rough stuff, next to Set up from the lore) lists the templates of this world and of others. Each can be exported to a `.mundi-template.json` file, imported, or deleted.
+
 ## 0.1.0-ps.14 — 2026-10-21
 
 GLM 5.3 on OpenRouter refused "no thinking"; now Mundi steps the thinking up for models like that.

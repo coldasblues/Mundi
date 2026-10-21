@@ -1,6 +1,7 @@
 // New game: first a scenario (one character card, straight into a chat) or a world;
 // a world goes: style and world → who lives in it → your character (the world's own sheet) → start.
-import { state, notify, esc, toast } from '../core/store.js';
+import { state, notify, esc, toast, game, saveGame } from '../core/store.js';
+import { templates, templateById, saveInto, isEmptySetup, setupSummary, startSummary, type StartChoices } from '../sim/templates.js';
 import { DIFFICULTIES } from '../sim/bills.js';
 import { worlds, getWorld, worldFile, isCustom, exampleTag, styleOf, gameMode, GAME_MODES, worldLocked, type WorldDef } from '../core/world.js';
 import { openCreatorNew, openCreatorEdit, importWorldFile } from './creator.js';
@@ -43,7 +44,7 @@ function stepWorld() {
     // Medieval and RPG worlds wait for the next update: shown, but locked
     const open = list.filter(w => !worldLocked(w)), locked = list.filter(w => worldLocked(w));
     if (worldLocked(getWorld(wz.world))) wz.world = open[0]?.id ?? wz.world;
-    return `<h3>World</h3><div class="mu-cards">${[...open, ...locked].map(w => `
+    return `${templatePickHtml()}<h3>World</h3><div class="mu-cards">${[...open, ...locked].map(w => `
             <div class="mu-worldcard-wrap ${worldLocked(w) ? 'is-locked' : ''}"><button class="mu-worldcard ${wz.world === w.id ? 'is-on' : ''}" data-act="ng-world" data-id="${esc(w.id)}" ${worldLocked(w) ? `aria-disabled="true" title="${esc(LOCKED_NOTE)}"` : ''}>
                 <span class="mu-worldart" style="${w.cover ? `background-image:url('${worldFile(w, w.cover)}')` : ''}"><em class="mu-style-tag is-${esc(styleOf(w))}">${esc(styleName(styleOf(w)))}</em>${worldLocked(w) ? `<span class="mu-lockbadge">${icon('pin')}<b>Next update</b><small>with the new RPG mode</small></span>` : ''}</span>
                 <b data-notr>${esc(inWorld(w, w.name))}</b><small>${GAME_MODES.find(m => m.id === gameMode(w))!.name}${isCustom(w.id) ? ' · Made by you' : ''}</small><p data-notr>${esc(inWorld(w, w.description))}</p>
@@ -125,8 +126,46 @@ function stepReview() {
         <p class="mu-muted">Mundi will create in your SillyTavern:</p>
         ${charLoreHtml()}
         <ul class="mu-muted mu-review-list">${wz.examples ? '<li>the example characters\' cards</li>' : ''}${wz.heroMode === 'existing' ? '' : '<li>your persona</li>'}<li>the lorebook “Mundi - ${esc(w.name)}”</li><li>a group chat for this game (each save is a chat of that group)</li></ul>
-        <label class="mu-check"><input type="checkbox" data-input="ng-setup" ${wz.setup ? 'checked' : ''}><span>Set up from the lore<small>Once the game starts, the AI reads its lorebooks and the characters' cards and proposes what each person is, who is the law, the groups and their bases, and the world's own laws. You review it before anything is applied. A few AI calls.</small></span></label>
+        ${tplSetupHtml()}
+        <label class="mu-check"><input type="checkbox" data-input="ng-setup" ${wz.setup && !usingTplSetup() ? 'checked' : ''}><span>Set up from the lore<small>Once the game starts, the AI reads its lorebooks and the characters' cards and proposes what each person is, who is the law, the groups and their bases, and the world's own laws. You review it before anything is applied. A few AI calls.</small></span></label>
+        ${tplSaveHtml()}
     </div>`;
+}
+
+/* ---------- templates: start the way an earlier game started ---------- */
+const startOf = (): StartChoices => {
+    const wz = state.wizard;
+    return {
+        cast: [...wz.cast], names: Object.fromEntries(wz.cast.map((a: string) => [a, String(charOf(a)?.name ?? '')])), examples: !!wz.examples,
+        loreOff: [...(wz.loreOff ?? [])], difficulty: wz.difficulty ?? 'normal',
+        households: (wz.hh ?? []).filter((h: any) => h.members.length).map((h: any) => ({ members: [...h.members], ties: (h.ties ?? []).map((t: any) => ({ ...t })) })),
+        family: (wz.family ?? []).map((f: any) => ({ ...f })),
+    };
+};
+const usingTplSetup = () => { const t = state.wizard.tpl && templateById(state.wizard.tpl); return !!t && t.world === W().id && !isEmptySetup(t.setup) && state.wizard.tplSetup !== false; };
+/** At the first step: the templates that hold a start, to load. */
+function templatePickHtml(): string {
+    const list = templates().filter(t => t.start && getWorld(t.world));
+    if (!list.length) return '';
+    return `<section class="mu-tpl-pick"><h3>Start from a template</h3><div class="mu-chips">${list.map(t => `<button class="mu-chip ${state.wizard.tpl === t.id ? 'is-on' : ''}" data-act="ng-tpl-load" data-id="${esc(t.id)}" title="${esc(`${getWorld(t.world)?.name ?? ''} · ${startSummary(t.start)}${!isEmptySetup(t.setup) ? ` · with a setup (${setupSummary(t.setup)})` : ''}`)}">${icon('save')}<span>${esc(t.name)}</span><small>${esc(getWorld(t.world)?.name ?? '')}</small></button>`).join('')}</div>
+        <p class="mu-muted">It sets the world, the people, their lorebooks, the households and the difficulty; you choose your character. Go back to change anything.</p></section>`;
+}
+/** At the last step: use the template's setup (no AI reading). */
+function tplSetupHtml(): string {
+    const t = state.wizard.tpl && templateById(state.wizard.tpl);
+    if (!t || t.world !== W().id || isEmptySetup(t.setup)) return '';
+    return `<label class="mu-check"><input type="checkbox" data-input="ng-tpl-setup" ${usingTplSetup() ? 'checked' : ''}><span>Use the setup of “${esc(t.name)}”<small>${esc(setupSummary(t.setup))}. You review it once the game starts; no AI calls.</small></span></label>`;
+}
+/** At the last step: save these choices. */
+function tplSaveHtml(): string {
+    const w = W(), wz = state.wizard;
+    const names = templates().filter(t => t.world === w.id).map(t => t.name);
+    const loaded = wz.tpl && templateById(wz.tpl);
+    const value = wz.tplName ?? (loaded && loaded.world === w.id ? loaded.name : `${w.name} start`);
+    return `<section class="mu-tpl-save"><h4>Save as a template</h4>
+        <p class="mu-muted">Keeps these choices: the people, their lorebooks, the households and the difficulty, to start another game of ${esc(w.name)} the same way. Your character is not saved. Once the game is set up, save its setup into the same template (Rough stuff → Templates).</p>
+        <div class="mu-row"><input type="text" list="mu-ng-tpl-names" data-input="ng-tpl-name" value="${esc(value)}" maxlength="60" aria-label="Template name"><datalist id="mu-ng-tpl-names">${names.map(n => `<option value="${esc(n)}"></option>`).join('')}</datalist>
+            <button data-act="ng-tpl-save">${icon('save')}<span>Save</span></button></div></section>`;
 }
 
 // Characters of this game with lorebooks of their own: keep each lorebook always on in this world, or not.
@@ -219,6 +258,40 @@ Object.assign(ACT, {
     'ng-world-edit': (el) => openCreatorEdit(el.dataset.id!),
     'ng-world-import': async () => { const w = await importWorldFile(); if (w) { state.wizard.world = w.id; state.wizard.hero = freshHero(w); notify(); } },
     'ng-diff': (el) => { state.wizard.difficulty = el.dataset.v; notify(); },
+    'ng-tpl-load': (el) => {
+        const wz = state.wizard, t = templateById(el.dataset.id!); if (!t?.start) return;
+        const w = getWorld(t.world);
+        if (!w) { toast(`Its world (“${t.worldName}”) is not installed.`, 'error'); return; }
+        if (worldLocked(w)) { toast(LOCKED_NOTE, 'info'); return; }
+        if (wz.world !== w.id) { wz.world = w.id; wz.hero = freshHero(w); setWorldDicts(w.id, w.i18n ?? {}); }
+        // the people, by card (or, for a card made again, by name)
+        const chars = characters();
+        const find = (a: string) => chars.find(c => c.avatar === a)?.avatar ?? chars.find(c => String(c.name ?? '').toLowerCase() === (t.start!.names[a] ?? '').toLowerCase())?.avatar ?? '';
+        const map = new Map(t.start.cast.map(a => [a, find(a)]));
+        const missing = t.start.cast.filter(a => !map.get(a)).map(a => t.start!.names[a] || a);
+        const has = (a: string) => map.get(a) || chars.find(c => c.avatar === a)?.avatar || '';
+        Object.assign(wz, {
+            tpl: t.id, tplName: undefined, tplSetup: undefined,
+            cast: t.start.cast.map(a => map.get(a)).filter(Boolean), examples: t.start.examples,
+            loreOff: [...t.start.loreOff], difficulty: t.start.difficulty,
+            hh: t.start.households.map(h => ({ members: h.members.map(has).filter(Boolean), ties: h.ties.map(x => ({ ...x, a: has(x.a) || x.a, b: has(x.b) || x.b })) })).filter(h => h.members.length),
+            family: t.start.family.map(f => ({ ...f, avatar: has(f.avatar) })).filter(f => f.avatar),
+            setup: isEmptySetup(t.setup) ? wz.setup : false,
+            step: 'hero',
+        });
+        toast(`Loaded “${t.name}”: the world, the people, their lorebooks, the households and the difficulty are set.${missing.length ? ` Not in your SillyTavern any more: ${missing.join(', ')}.` : ''} Choose your character.`, missing.length ? 'warn' : 'success', { ms: 8000 });
+        notify();
+    },
+    'ng-tpl-save': () => {
+        const wz = state.wizard, w = W();
+        const loaded = wz.tpl && templateById(wz.tpl);
+        const name = (wz.tplName ?? (loaded && loaded.world === w.id ? loaded.name : `${w.name} start`)).trim();
+        if (!name) { toast('Give the template a name.', 'info'); return; }
+        const { t, isNew } = saveInto(w, name, { start: startOf() });
+        wz.tpl = t.id; wz.tplName = undefined;
+        toast(isNew ? `Saved as the template “${t.name}”. Start another game of ${w.name} from it at the first step.` : `The template “${t.name}” is updated${isEmptySetup(t.setup) ? '' : ' (its setup is kept)'}.`, 'success', { ms: 7000 });
+        notify();
+    },
     'ng-heromode': (el) => { state.wizard.heroMode = el.dataset.v || null; notify(); },
     'ng-persona': (el) => { state.wizard.persona = el.dataset.file; notify(); },
     'ng-world': (el) => { if (worldLocked(getWorld(el.dataset.id!))) { toast(LOCKED_NOTE, 'info'); return; } state.wizard.world = el.dataset.id; state.wizard.hero = freshHero(W()); setWorldDicts(W().id, W().i18n ?? {}); notify(); },
@@ -270,9 +343,12 @@ Object.assign(ACT, {
         try {
             await startNewGame({ world: W(), cast: wz.cast, examples: wz.examples, hero: { ...wz.hero, name: wz.hero.name.trim() }, persona: wz.heroMode === 'existing' ? wz.persona : undefined, lore: chosenLore(),
                 households: (wz.hh ?? []).filter((h: any) => h.members.length), family: wz.family ?? [], home: wz.home ?? undefined, difficulty: wz.difficulty ?? 'normal' });
-            const setup = !!wz.setup;
+            const setup = !!wz.setup, tplSetup = usingTplSetup() ? wz.tpl as string : '';
+            const tplName = wz.tpl && templateById(wz.tpl)?.world === W().id ? templateById(wz.tpl)!.name : '';
             state.wizard = null;
-            if (setup) { const { runSetup } = await import('./setupui.js'); state.busy = ''; notify(); void runSetup(); }
+            const g = game(); if (g && tplName) { (g as any).template = tplName; saveGame(); }
+            if (tplSetup) { const { openTemplateSetup } = await import('./setupui.js'); state.busy = ''; notify(); openTemplateSetup(tplSetup); }
+            else if (setup) { const { runSetup } = await import('./setupui.js'); state.busy = ''; notify(); void runSetup(); }
         } catch (e: any) {
             console.error('[Mundi] new game', e);
             toast(e?.message ?? 'Could not start the game.', 'error');
@@ -282,7 +358,9 @@ Object.assign(ACT, {
 
 Object.assign(INPUT, {
     'ng-examples': (el) => { state.wizard.examples = el.checked; notify(); },
-    'ng-setup': (el) => { state.wizard.setup = el.checked; },
+    'ng-setup': (el) => { state.wizard.setup = el.checked; if (el.checked && usingTplSetup()) { state.wizard.tplSetup = false; notify(); } },
+    'ng-tpl-setup': (el) => { state.wizard.tplSetup = el.checked; if (el.checked) state.wizard.setup = false; notify(); },
+    'ng-tpl-name': (el) => { state.wizard.tplName = el.value; },
     'ng-q': (el) => { state.wizard.q = el.value; notify(); },
     'ng-pq': (el) => { state.wizard.pq = el.value; notify(); },
     'ng-sq': (el) => { state.wizard.sq = el.value; notify(); },

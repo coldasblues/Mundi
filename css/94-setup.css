@@ -23,3 +23,16 @@
 #mundi-root .mu-su-skipped { margin: -2px 0 0; padding: 0 12px; font-size: 13px; }
 #mundi-root .mu-su-skipped summary { cursor: pointer; color: var(--warn); }
 #mundi-root .mu-su-skipped ul { margin: 6px 0 0; padding-left: 18px; max-height: 140px; overflow: auto; columns: 2; column-gap: 18px; }
+/* templates */
+#mundi-root .mu-su-btns { display: inline-flex; flex-wrap: wrap; gap: 8px; }
+#mundi-root .mu-su-save { flex-wrap: wrap; }
+#mundi-root .mu-su-save input[type=text], #mundi-root .mu-tpl-save input[type=text] { flex: 1 1 220px; min-width: 0; }
+#mundi-root .mu-su-tpl { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 12px; background: color-mix(in srgb, var(--text) 6%, transparent); margin-top: 6px; }
+#mundi-root .mu-su-tpl-info { display: grid; gap: 2px; min-width: 0; flex: 1 1 260px; }
+#mundi-root .mu-su-tpl-info small { color: var(--muted, inherit); opacity: .85; }
+#mundi-root .mu-su-tpl .mu-row { flex-wrap: wrap; margin: 0; }
+#mundi-root .mu-tpl-pick { margin-bottom: 18px; }
+#mundi-root .mu-tpl-pick .mu-chip { display: inline-flex; align-items: center; gap: 6px; }
+#mundi-root .mu-tpl-pick .mu-chip small { opacity: .7; }
+#mundi-root .mu-tpl-save { margin-top: 14px; padding-top: 12px; border-top: 1px solid color-mix(in srgb, var(--text) 12%, transparent); }
+#mundi-root .mu-tpl-save .mu-row { flex-wrap: wrap; }

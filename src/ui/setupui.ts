@@ -1,17 +1,51 @@
 // "Set up from the lore", on screen: the AI reads, you review (untick what is wrong, fix what each person is, pick a
 // group's base), and only then is it applied.
-import { game, notify, toast, esc, type Save } from '../core/store.js';
+import { game, notify, toast, esc, saveGame, type Save } from '../core/store.js';
 import { getWorld, type WorldDef } from '../core/world.js';
 import { readLore, readAgain, applyPlan, type Plan } from '../sim/setup.js';
 import { emptyWhy, gaveUpText, thinkText, reading, stopReading, clock, limitText } from '../sim/reading.js';
 import { actsOf } from '../sim/hostile.js';
+import { templatesFor, templateById, setupOfGame, isEmptySetup, setupSummary, summary, saveInto, deleteTemplate, addTemplate, toPlan, exportText, importText } from '../sim/templates.js';
+import { slug } from '../sim/creator.js';
+import { pickFile } from './cropper.js';
 import { icon } from './icons.js';
 import { ACT, INPUT } from './reg.js';
 
-export const SU = { open: false, busy: '', plan: null as Plan | null, done: '' };
+export const SU = { open: false, busy: '', plan: null as Plan | null, done: '', view: 'read' as 'read' | 'tpl', tplName: '', confirmDel: '' };
 const ctxW = () => { const g = game(); const w = g && getWorld(g.world); return g && w ? { g, w } : null; };
 
-export const setupButton = (label = 'Set up from the lore…') => `<button class="mu-su-btn" data-act="su-open">${icon('book')}<span>${esc(label)}</span></button>`;
+export const setupButton = (label = 'Set up from the lore…') => `<span class="mu-su-btns"><button class="mu-su-btn" data-act="su-open">${icon('book')}<span>${esc(label)}</span></button><button class="mu-su-btn" data-act="su-tpls">${icon('save')}<span>Templates…</span></button></span>`;
+
+/** Opens a template's setup for review in this game (from a new game started with it, or the Templates screen). */
+export function openTemplateSetup(id: string) {
+    const c = ctxW(); const t = templateById(id); if (!c || !t) return;
+    Object.assign(SU, { open: true, view: 'read', plan: toPlan(c.g, c.w, t), done: '', busy: '' });
+    notify();
+}
+/** The name a save from this game goes under: the template it was started from, or a new one. */
+const defaultName = (g: Save, w: WorldDef) => SU.tplName || String((g as any).template ?? '') || `${w.name} setup`;
+function saveRow(g: Save, w: WorldDef): string {
+    const names = templatesFor(w.id).filter(t => t.world === w.id).map(t => t.name);
+    return `<div class="mu-row mu-su-save"><input type="text" list="mu-tpl-names" data-input="su-tpl-name" value="${esc(defaultName(g, w))}" maxlength="60" aria-label="Template name"><datalist id="mu-tpl-names">${names.map(n => `<option value="${esc(n)}"></option>`).join('')}</datalist>
+        <button class="mu-primary" data-act="su-tpl-save">${icon('save')}<span>Save as a template</span></button></div>
+        <small class="mu-muted">With the name of a template you already have, this setup is added to it (its people and lorebooks stay as they are).</small>`;
+}
+function tplRow(w: WorldDef, t: ReturnType<typeof templatesFor>[number]): string {
+    const date = new Date(t.created).toLocaleDateString();
+    return `<div class="mu-su-tpl"><div class="mu-su-tpl-info"><b>${esc(t.name)}</b><small>${esc(summary(t) || 'Empty')} · ${esc(date)}${t.world !== w.id ? ` · made in “${esc(t.worldName || t.world)}”, so its places may not match` : ''}</small></div>
+        <div class="mu-row">${!isEmptySetup(t.setup) ? `<button data-act="su-tpl-use" data-id="${esc(t.id)}">Use its setup…</button>` : ''}<button class="mu-ghost" data-act="su-tpl-export" data-id="${esc(t.id)}">${icon('download')}<span>Export</span></button>
+        ${SU.confirmDel === t.id ? `<button class="mu-danger" data-act="su-tpl-del-yes" data-id="${esc(t.id)}">Delete it</button><button data-act="su-tpl-del-no">Keep</button>` : `<button class="mu-ghost" data-act="su-tpl-del" data-id="${esc(t.id)}">${icon('trash')}<span>Delete</span></button>`}</div></div>`;
+}
+function templatesHtml(g: Save, w: WorldDef): string {
+    const mine = setupOfGame(g, w);
+    const list = templatesFor(w.id);
+    const here = list.filter(t => t.world === w.id), other = list.filter(t => t.world !== w.id);
+    return `<p class="mu-muted">A template is how a game of a world starts. It holds the people, their lorebooks, the households and the difficulty, saved at a new game's last step, and the setup: the law, the laws, the groups and what each person is, saved here. A new game can start from one without the AI reading the lore again.</p>
+        <section><h4>Save this game's setup</h4>${isEmptySetup(mine) ? '<p class="mu-muted">This game has no setup yet. Set it up from the lore first, or by hand (Rough stuff menu, ☰ → People in your story).</p>' : `<p class="mu-muted">${esc(setupSummary(mine))}</p>${saveRow(g, w)}`}</section>
+        <section><h4>Templates of ${esc(w.name)}</h4>${here.length ? here.map(t => tplRow(w, t)).join('') : '<p class="mu-muted">None yet.</p>'}</section>
+        ${other.length ? `<section><h4>Of other worlds</h4>${other.map(t => tplRow(w, t)).join('')}</section>` : ''}
+        <div class="mu-row"><button data-act="su-tpl-import">${icon('upload')}<span>Import a template file…</span></button><button data-act="su-close">Close</button></div>`;
+}
 
 /** The running clocks on a reading in progress (this part, in all), updated in place once a second. */
 let tick = 0;
@@ -29,7 +63,7 @@ export const readingHtml = (busy: string, stopAct: string, what: string) => `<p 
 
 export async function runSetup() {
     const c = ctxW(); if (!c || SU.busy) return;
-    SU.open = true; SU.plan = null; SU.done = ''; SU.busy = 'Starting…'; notify();
+    SU.open = true; SU.view = 'read'; SU.plan = null; SU.done = ''; SU.busy = 'Starting…'; notify();
     readingClock(true);
     try { SU.plan = await readLore(c.g, c.w, (t) => { SU.busy = t; notify(); }); }
     catch (e: any) { toast(`The AI could not read the lore: ${String(e?.message ?? e)}`, 'error'); SU.open = false; }
@@ -97,19 +131,46 @@ function planHtml(g: Save, w: WorldDef, p: Plan): string {
 export function setupHtml(): string {
     if (!SU.open) return '';
     const c = ctxW(); if (!c) return '';
-    const body = SU.busy ? readingHtml(SU.busy, 'su-stop', 'One AI call per part of the lore, and one for every eight characters.')
-        : SU.done ? `<p class="mu-su-done">${icon('check')}<span>Applied: ${esc(SU.done)}.</span></p><p class="mu-muted">Change anything later in the Rough stuff menu (laws, who you are) and in ☰ → People in your story (groups, what each person is).</p><div class="mu-row"><button class="mu-primary" data-act="su-close">Done</button></div>`
+    const body = SU.view === 'tpl' ? templatesHtml(c.g, c.w)
+        : SU.busy ? readingHtml(SU.busy, 'su-stop', 'One AI call per part of the lore, and one for every eight characters.')
+        : SU.done ? `<p class="mu-su-done">${icon('check')}<span>Applied: ${esc(SU.done)}.</span></p><p class="mu-muted">Change anything later in the Rough stuff menu (laws, who you are) and in ☰ → People in your story (groups, what each person is).</p>
+            <section><h4>Keep it for another game of ${esc(c.w.name)}</h4>${saveRow(c.g, c.w)}</section><div class="mu-row"><button data-act="su-close">Done</button></div>`
             : SU.plan ? planHtml(c.g, c.w, SU.plan) : '';
     return `<div class="mu-dlg-veil is-fixed" data-act="su-close"></div><div class="mu-panel mu-confirm mu-su" role="dialog" aria-label="Set up from the lore">
-        <header class="mu-su-top"><h3>${icon('book')}<span>Set up from the lore</span></h3><button class="mu-ibtn mu-ghost" data-act="su-close" aria-label="Close">${icon('x')}</button></header>
-        <p class="mu-muted">${SU.busy ? 'The AI is reading this game\'s lorebooks and its characters\' cards. Nothing is changed until you have looked at what it found and applied it.' : 'The AI read this game\'s lorebooks and its characters\' cards. Untick what is wrong; nothing is changed until you apply it.'}</p>
+        <header class="mu-su-top"><h3>${icon(SU.view === 'tpl' ? 'save' : 'book')}<span>${SU.view === 'tpl' ? 'Templates' : SU.plan?.from ? `The template “${esc(SU.plan.from)}”` : 'Set up from the lore'}</span></h3><button class="mu-ibtn mu-ghost" data-act="su-close" aria-label="Close">${icon('x')}</button></header>
+        ${SU.view === 'tpl' || SU.done ? '' : SU.plan?.from ? `<p class="mu-muted">Its setup, for this game. Untick what is wrong; nothing is changed until you apply it.${SU.plan.unmatched?.length ? ` Not in this game, so left out: ${esc(SU.plan.unmatched.join(', '))}.` : ''}</p>` : `<p class="mu-muted">${SU.busy ? 'The AI is reading this game\'s lorebooks and its characters\' cards. Nothing is changed until you have looked at what it found and applied it.' : 'The AI read this game\'s lorebooks and its characters\' cards. Untick what is wrong; nothing is changed until you apply it.'}</p>`}
         ${body}</div>`;
 }
 
 Object.assign(ACT, {
-    'su-open': (el, e) => { (ACT['hx-close'] as any)?.(el, e); void runSetup(); },   // over the Rough stuff menu: that one closes
+    'su-open': (el, e) => { (ACT['hx-close'] as any)?.(el, e); SU.view = 'read'; void runSetup(); },   // over the Rough stuff menu: that one closes
     'su-close': () => { if (SU.busy) return; SU.open = false; notify(); },
     'su-again': () => { void runAgain(); },
+    'su-tpls': (el, e) => { (ACT['hx-close'] as any)?.(el, e); Object.assign(SU, { open: true, view: 'tpl', plan: null, done: '', busy: '', confirmDel: '' }); notify(); },
+    'su-tpl-use': (el) => { openTemplateSetup(el.dataset.id!); },
+    'su-tpl-save': () => {
+        const c = ctxW(); if (!c) return;
+        const setup = setupOfGame(c.g, c.w);
+        if (isEmptySetup(setup)) { toast('This game has no setup to save yet.', 'info'); return; }
+        const { t, isNew } = saveInto(c.w, defaultName(c.g, c.w), { setup });
+        (c.g as any).template = t.name; saveGame();
+        toast(isNew ? `Saved as the template “${t.name}”. A new game of ${c.w.name} can start from it.` : `The setup is saved into the template “${t.name}”.`, 'success', { ms: 7000 });
+        SU.tplName = ''; notify();
+    },
+    'su-tpl-export': (el) => {
+        const t = templateById(el.dataset.id!); if (!t) return;
+        const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([exportText(t)], { type: 'application/json' })); a.download = `${slug(t.name)}.mundi-template.json`; a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    },
+    'su-tpl-import': async () => {
+        const f = await pickFile('.json,application/json'); if (!f) return;
+        try { const t = importText(await f.text()); const name = addTemplate(t); toast(`Imported the template “${name}”${ctxW() && t.world !== ctxW()!.w.id ? ` (made in “${t.worldName || t.world}”)` : ''}.`, 'success'); }
+        catch (e: any) { toast(String(e?.message ?? e), 'error'); }
+        notify();
+    },
+    'su-tpl-del': (el) => { SU.confirmDel = el.dataset.id!; notify(); },
+    'su-tpl-del-no': () => { SU.confirmDel = ''; notify(); },
+    'su-tpl-del-yes': (el) => { deleteTemplate(el.dataset.id!); SU.confirmDel = ''; toast('Template deleted.', 'info'); notify(); },
     'su-stop': () => { stopReading(); SU.busy = 'Stopping…'; notify(); },
     'su-apply': () => {
         const c = ctxW(); if (!c || !SU.plan) return;
@@ -119,6 +180,7 @@ Object.assign(ACT, {
     },
 });
 Object.assign(INPUT, {
+    'su-tpl-name': (el) => { SU.tplName = el.value; },
     'su-keep': (el) => {
         const p = SU.plan; if (!p) return; const i = Number(el.dataset.i);
         const k = el.dataset.k;
