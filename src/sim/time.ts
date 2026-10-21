@@ -3,7 +3,7 @@
 import type { Save } from '../core/store.js';
 import type { WorldDef } from '../core/world.js';
 import { applyTimedRules } from './needs.js';
-import { onHour, onDay } from './hooks.js';
+import { onHour, onDay, onStep } from './hooks.js';
 
 export const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 export const weekday = (day: number) => WEEKDAYS[(day - 1) % 7];
@@ -42,6 +42,7 @@ export function advance(g: Save, w: WorldDef, mins: number): string[] {
         while (g.minutes >= 1440) { g.minutes -= 1440; g.day += 1; }
         left -= step;
         out.push(...applyTimedRules(g, w));
+        for (const f of onStep) out.push(...f(g, w));
         if (Math.floor(g.minutes / 60) !== h0 || g.day !== d0) for (const f of onHour) out.push(...f(g, w));
         if (g.day !== d0) for (const f of onDay) out.push(...f(g, w));
     }

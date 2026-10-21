@@ -8,6 +8,7 @@ import { saveSlot, lastAutosave } from '../sim/saves.js';
 import { psOn } from '../sim/pstate-live.js';
 import { icon } from './icons.js';
 import { ACT, INPUT } from './reg.js';
+import { personGroupHtml, groupsHtml } from './hostileui.js';
 
 export const STORY = { people: false, save: false, name: '', saving: false, filter: 'all' as 'all' | 'gone' };
 
@@ -17,11 +18,11 @@ export const autosaveLine = () => (lastAutosave() ? `Saved automatically · ${ag
 
 const CHIP: Record<Status, string> = { around: 'is-ok', injured: 'is-warn', left: 'is-muted', captured: 'is-warn', missing: 'is-warn', dead: 'is-bad' };
 const when = (p: Person) => (p.first.day ? `Met on day ${p.first.day}${p.first.place ? ` at ${p.first.place}` : ''}` : '') + (p.last.day && (p.last.day !== p.first.day || p.last.place !== p.first.place) ? ` · last seen day ${p.last.day}${p.last.place ? ` at ${p.last.place}` : ''}` : '');
-function personRow(p: Person) {
+function personRow(g: Save, p: Person) {
     const pic = p.avatar ? `<img src="${esc(thumb(p.avatar))}" alt="">` : `<span class="mu-story-nopic">${icon('user')}</span>`;
     return `<li class="mu-story-p is-${p.status}">${pic}<div><div class="mu-story-head"><b data-notr>${esc(p.name)}</b><span class="mu-story-chip ${CHIP[p.status]}">${esc(STATUS_WORD[p.status])}</span>${p.kind === 'walkon' ? '<small class="mu-muted">from the story</small>' : ''}</div>
         <p>${p.summary ? esc(p.summary) : '<span class="mu-muted">No notes yet. They are written when you leave a place where you spent time with them.</span>'}</p>
-        <small class="mu-muted">${esc(when(p))}</small></div></li>`;
+        <small class="mu-muted">${esc(when(p))}</small>${personGroupHtml(g, p)}</div></li>`;
 }
 function peopleHtml(g: Save, w: WorldDef) {
     const all = everyone(g, w);
@@ -29,7 +30,8 @@ function peopleHtml(g: Save, w: WorldDef) {
     return `<div class="mu-dlg-veil is-fixed" data-act="story-close"></div><div class="mu-panel mu-confirm mu-story" role="dialog" aria-label="People in your story">
         <header class="mu-story-top"><h3>People in your story</h3><button class="mu-ibtn mu-ghost" data-act="story-close" aria-label="Close">${icon('x')}</button></header>
         <div class="mu-chips"><button class="mu-chip ${STORY.filter === 'all' ? 'is-on' : ''}" data-act="story-filter" data-v="all">Everyone · ${all.length}</button><button class="mu-chip ${STORY.filter === 'gone' ? 'is-on' : ''}" data-act="story-filter" data-v="gone">Dead or gone · ${all.length - all.filter(p => !['dead', 'captured', 'missing'].includes(p.status)).length}</button></div>
-        ${list.length ? `<ul class="mu-story-list" data-keep="story">${list.map(personRow).join('')}</ul>` : '<p class="mu-muted">Nobody yet. Everyone you meet, and everyone the story brings in, shows up here.</p>'}
+        ${list.length ? `<ul class="mu-story-list" data-keep="story">${list.map(p => personRow(g, p)).join('')}</ul>` : '<p class="mu-muted">Nobody yet. Everyone you meet, and everyone the story brings in, shows up here.</p>'}
+        ${groupsHtml(g, w)}
         <label class="mu-check"><input type="checkbox" data-input="story-sum" ${rosterPrefs().summaries ? 'checked' : ''}><span>Write notes about them<small>One short AI call each time you leave a place: everyone who was there gets their notes brought up to date. The story keeps them in mind when they are in a scene.</small></span></label>
     </div>`;
 }

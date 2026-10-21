@@ -17,7 +17,11 @@ export interface Person {
     key: string; name: string; kind: 'cast' | 'walkon'; avatar?: string;
     status: Status; first: Stamp; last: Stamp; summary: string;
     log: { at: Stamp; change: Change }[];
+    /** The visit they died in (its first chat line): until you leave, their name still means them. */
+    diedVisit?: number;
 }
+/** Other systems plug in here (the hostile actions engine: someone you hold captive is with you, not "captured"). */
+export const rosterHooks = { isCaptive: (_key: string) => false };
 export const STATUS_WORD: Record<Status, string> = { around: 'around', left: 'left', injured: 'injured', captured: 'captured', missing: 'missing', dead: 'dead' };
 export const roster = (g: Save): Record<string, Person> => (((g as any).roster ??= {}) as Record<string, Person>);
 export interface RosterPrefs { summaries: boolean }
@@ -53,7 +57,13 @@ export function keyFor(g: Save, name: string): { key: string; kind: 'cast' | 'wa
     }
     const ro = roster(g);
     // walk-ons often have a role for a name ("police officer"): one who died in an earlier visit is not the next one
-    for (const p of Object.values(ro)) if (p.kind === 'walkon' && p.status !== 'dead' && (norm(p.name) === n || (norm(p.name).split(' ')[0] === n && n.length > 2))) return { key: p.key, kind: 'walkon', name: p.name };
+    // (one who died in this very visit is still the one meant: "the clerk" lying there)
+    const vs = visitStart(g);
+    const alive = (p: Person) => p.status !== 'dead' || p.diedVisit === vs;
+    const named = (p: Person) => norm(p.name) === n || (norm(p.name).split(' ')[0] === n && n.length > 2);
+    const hits = Object.values(ro).filter(p => p.kind === 'walkon' && alive(p) && named(p));
+    const hit = hits.find(p => p.status === 'dead') ?? hits[0];
+    if (hit) return { key: hit.key, kind: 'walkon', name: hit.name };
     let key = `w:${n}`, k = 1;
     while (ro[key]?.status === 'dead') key = `w:${n}#${++k}`;
     return { key, kind: 'walkon', name: name.trim() };
@@ -87,12 +97,14 @@ export function statusOf(g: Save, key: string): Status {
 }
 /** A cast member who cannot be anywhere right now: dead, captured or missing (or who just left this scene). */
 export function castGone(g: Save, avatar: string, here = false): boolean {
+    if (rosterHooks.isCaptive(`cast:${avatar}`)) return false;   // your captive is with you
     const st = statusOf(g, `cast:${avatar}`);
     return gone(st) || (here && st === 'left' && pendingChanges(g).some(p => p.key === `cast:${avatar}` && p.change === 'left'));
 }
 /** A name from a "present" list that the roster says is not there (dead, gone, or left this scene). */
 export function nameGone(g: Save, name: string): boolean {
     const k = keyFor(g, name);
+    if (rosterHooks.isCaptive(k.key)) return false;
     const st = statusOf(g, k.key);
     // someone who left in an earlier visit may well be back: only leaving in this one counts
     return gone(st) || (st === 'left' && pendingChanges(g).some(p => p.key === k.key && p.change === 'left'));
@@ -124,7 +136,7 @@ export function commitVisit(g: Save, w: WorldDef, who: { name: string }[], walko
         p.log = [...p.log, { at, change: c.change }].slice(-12);
         touched.set(p.key, p);
         // a death is a fact the story remembers (the Journal, and what the people here know)
-        if (p.status === 'dead' && was !== 'dead') note(g, '{0} died at {1}.', [p.name, at.place], p.avatar ? [p.avatar] : [], g.player.loc, 'event');
+        if (p.status === 'dead' && was !== 'dead') { p.diedVisit = visitStart(g); note(g, '{0} died at {1}.', [p.name, at.place], p.avatar ? [p.avatar] : [], g.player.loc, 'event'); }
     }
     // the cast go back to their routines once you leave (walk-ons who left stay "left")
     for (const p of touched.values()) if (p.kind === 'cast' && p.status === 'left') p.status = 'around';
@@ -133,6 +145,23 @@ export function commitVisit(g: Save, w: WorldDef, who: { name: string }[], walko
     const list = chat().slice(visitStart(g));
     const transcript = list.filter((m: any) => !m.is_system || m.extra?.mundi_narrator).map((m: any) => `${m.is_user ? me : m.extra?.mundi_narrator ? 'Narrator' : m.name}: ${String(m.mes ?? '').replace(/<\s*state\s*>[\s\S]*$/i, '').replace(/\s+/g, ' ').trim().slice(0, 360)}`).filter(l => !/:\s*$/.test(l)).slice(-40).join('\n');
     return { people: [...touched.values()], transcript };
+}
+
+/**
+ * Something the engine decided (a roll: the clerk is knocked out, killed): written into the roster at once, not when
+ * you leave. The roll is final, the way getting away is; only loading a save takes it back.
+ */
+export function applyNow(g: Save, w: WorldDef, name: string, change: Change, why = ''): Person {
+    const k = keyFor(g, name);
+    const p = entry(g, w, k);
+    const was = p.status;
+    const at = stamp(g, w);
+    p.status = applyChange(p.status, change);
+    p.last = at;
+    p.log = [...p.log, { at, change }].slice(-12);
+    if (p.status === 'dead' && was !== 'dead') { p.diedVisit = visitStart(g); note(g, why ? '{0} died at {1} ({2}).' : '{0} died at {1}.', [p.name, at.place, why], p.avatar ? [p.avatar] : [], g.player.loc, 'event'); }
+    memo = { sig: '', list: [] };
+    return p;
 }
 
 /** One short AI call: everyone who was part of the visit gets their summary brought up to date. */

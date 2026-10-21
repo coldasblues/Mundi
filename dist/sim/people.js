@@ -49,7 +49,12 @@ export function routineAt(g, w, r, at) {
         return leisureSpot(g, w, r, day, start);
     return w.places.some(p => p.id === target) ? target : homeId;
 }
+/** Other systems plug in here without being imported (the hostile actions engine: your captive, someone knocked out). */
+export const peopleHooks = { at: (_g, _avatar) => '' };
 export function whereNow(g, w, r) {
+    const forced = peopleHooks.at(g, r.avatar); // held by you (with you), or lying where they were knocked out
+    if (forced)
+        return forced;
     if (isWith(g, r.avatar))
         return g.player.loc; // she came along with you
     const locked = lockedHere(g, r.avatar); // in the middle of a conversation with you

@@ -2807,6 +2807,85 @@ body.mundi-open #toast-container { display: none !important; }
     #mundi-root .mu-spk-src { position: static; max-width: 260px; }
     #mundi-root .mu-spk .mu-row2 { grid-template-columns: 1fr; }
 }
+/* Hostile actions: the red "Rough stuff" button and menu, giving yourself up, badges, groups. */
+#mundi-root { --hx: #ff4d5e; --hx-deep: #b3122a; }
+
+/* the button, under "Things to do" */
+#mundi-root .mh-hx-btn { margin-top: 8px; background: linear-gradient(160deg, rgba(255, 120, 130, .28), rgba(255, 60, 80, .12)), rgba(60, 8, 14, .55) !important; border-color: color-mix(in srgb, var(--hx) 70%, transparent) !important; color: #ffe8ea !important; }
+#mundi-root .mh-hx-btn:hover, #mundi-root .mh-hx-btn.is-on { background: linear-gradient(160deg, rgba(255, 120, 130, .42), rgba(255, 60, 80, .22)), rgba(80, 10, 18, .7) !important; }
+#mundi-root .mh-hx-btn .mu-ic { color: #ff9aa5; }
+
+/* the menu */
+#mundi-root .mu-hx { width: min(620px, calc(100% - 24px)); max-height: min(86vh, 760px); overflow: auto; display: grid; gap: 10px; border-color: color-mix(in srgb, var(--hx) 55%, transparent) !important; }
+#mundi-root .mu-hx-top { display: flex; align-items: center; justify-content: space-between; }
+#mundi-root .mu-hx-top h3 { display: inline-flex; align-items: center; gap: 8px; color: #ffd6da; }
+#mundi-root .mu-hx-top h3 .mu-ic { color: var(--hx); }
+#mundi-root .mu-hx h4 { margin: 4px 0 -2px; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: var(--hud-muted, var(--muted)); }
+#mundi-root .mu-hx-sits { display: flex; flex-wrap: wrap; gap: 6px; }
+#mundi-root .mu-hx-sit { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 12px; background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .14); }
+#mundi-root .mu-hx-sit .mu-ic { width: 14px; height: 14px; }
+#mundi-root .mu-hx-sit.is-bad { background: color-mix(in srgb, var(--hx) 22%, transparent); border-color: color-mix(in srgb, var(--hx) 60%, transparent); color: #ffe0e3; }
+#mundi-root .mu-hx-no { margin: 0; padding: 8px 12px; border-radius: 12px; background: color-mix(in srgb, var(--warn) 18%, transparent); }
+#mundi-root .mu-hx-whos { display: flex; flex-wrap: wrap; gap: 6px; }
+#mundi-root .mu-hx-who { display: inline-grid; grid-template-columns: 30px auto; grid-template-rows: auto auto; column-gap: 8px; align-items: center; padding: 4px 12px 4px 4px; border-radius: 999px; text-align: left; }
+#mundi-root .mu-hx-who > img, #mundi-root .mu-hx-who > .mh-walkon-pic { grid-row: span 2; width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
+#mundi-root .mu-hx-who b { font-size: 13px; }
+#mundi-root .mu-hx-who small { font-size: 11px; color: var(--hud-muted, var(--muted)); }
+#mundi-root .mu-hx-who:not(:has(small)) b { grid-row: span 2; }
+#mundi-root .mu-hx-who.is-on { outline: 2px solid var(--hx); outline-offset: 1px; background: color-mix(in srgb, var(--hx) 20%, transparent) !important; }
+#mundi-root .mu-hx-acts { display: grid; grid-template-columns: repeat(auto-fill, minmax(106px, 1fr)); gap: 6px; }
+#mundi-root .mu-hx-act { display: grid; justify-items: center; gap: 2px; padding: 8px 6px !important; border-radius: 14px !important; text-align: center; }
+#mundi-root .mu-hx-act > i { font-style: normal; font-size: 22px; line-height: 1.1; }
+#mundi-root .mu-hx-act b { font-size: 13px; }
+#mundi-root .mu-hx-act small { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; font-size: 11px; color: var(--hud-muted, var(--muted)); }
+#mundi-root .mu-hx-act[aria-disabled="true"] { opacity: .38; }
+#mundi-root .mu-hx-act:not([aria-disabled="true"]):hover { outline: 1px solid color-mix(in srgb, var(--hx) 70%, transparent); }
+#mundi-root .mu-hx-crime { font-style: normal; padding: 0 6px; border-radius: 999px; background: color-mix(in srgb, var(--warn) 25%, transparent); color: #ffe7b0; }
+#mundi-root .mu-hx-crime.is-felony { background: color-mix(in srgb, var(--hx) 32%, transparent); color: #ffd3d8; }
+#mundi-root .mu-hx-desc { margin: -2px 0 0; font-size: 12px; }
+#mundi-root .mu-hx-caps { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+#mundi-root .mu-hx-caps li { display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto auto; column-gap: 10px; align-items: center; padding: 6px 10px; border-radius: 12px; background: rgba(255, 255, 255, .06); }
+#mundi-root .mu-hx-caps li small { grid-row: 2; color: var(--hud-muted, var(--muted)); font-size: 12px; }
+#mundi-root .mu-hx-caps li button { grid-row: span 2; grid-column: 2; }
+#mundi-root .mu-hx-law { border-top: 1px solid rgba(255, 255, 255, .12); padding-top: 8px; display: grid; gap: 8px; }
+#mundi-root .mu-hx-law summary { cursor: pointer; font-size: 13px; }
+#mundi-root .mu-hx-law[open] { gap: 8px; }
+
+/* giving yourself up: under your situation, under the clock */
+#mundi-root .mh-hx-arrest { position: absolute; z-index: 21; top: 186px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; padding: 6px 8px 6px 14px; border-radius: 999px; font-size: 13px; border-color: color-mix(in srgb, var(--hx) 65%, transparent) !important; }
+#mundi-root:not(:has(.mh-here)) .mh-hx-arrest { top: 132px; }
+#mundi-root .mh-hx-arrest .mu-ic { color: var(--hx); }
+#mundi-root .mh-hx-arrest button { padding: 5px 12px !important; border-radius: 999px !important; font-size: 12px; background: color-mix(in srgb, var(--hx) 30%, rgba(0, 0, 0, .3)) !important; }
+@media (max-width: 1100px) { #mundi-root .mh-hx-arrest { top: 296px; } #mundi-root:not(:has(.mh-here)) .mh-hx-arrest { top: 242px; } }
+@media (max-width: 760px) { #mundi-root .mh-hx-arrest { top: 196px !important; } }
+#mundi-root[data-mobile] .mh-hx-arrest { top: calc(var(--m-gap, 10px) + 186px) !important; }
+
+/* a face in the Here row: tied up, in your grip, knocked out */
+#mundi-root .mh-here-p { position: relative; }
+#mundi-root .mh-hx-badge { position: absolute; top: -4px; right: -4px; width: 20px; height: 20px; display: grid; place-items: center; border-radius: 50%; font-style: normal; font-size: 11px; background: rgba(20, 8, 10, .85); border: 1px solid color-mix(in srgb, var(--hx) 70%, transparent); }
+
+/* the People screen: groups, and who is the law */
+#mundi-root .mu-hx-pg { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 6px; font-size: 12px; }
+#mundi-root .mu-hx-pg label { display: inline-flex; align-items: center; gap: 6px; }
+#mundi-root .mu-hx-pg select { padding: 3px 8px; font-size: 12px; }
+#mundi-root .mu-hx-groups { display: grid; gap: 6px; padding: 8px 0; border-top: 1px solid rgba(255, 255, 255, .12); }
+#mundi-root .mu-hx-groups h4 { margin: 0; }
+#mundi-root .mu-hx-groups p { margin: 0; font-size: 12px; }
+#mundi-root .mu-hx-group { display: grid; grid-template-columns: 1fr auto auto; grid-template-rows: auto auto; column-gap: 10px; align-items: center; padding: 6px 10px; border-radius: 12px; background: rgba(255, 255, 255, .06); }
+#mundi-root .mu-hx-group small { grid-row: 2; color: var(--hud-muted, var(--muted)); }
+#mundi-root .mu-hx-group small em { color: var(--hx); font-style: normal; }
+#mundi-root .mu-hx-group label { grid-row: span 2; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; }
+#mundi-root .mu-hx-group button { grid-row: span 2; }
+#mundi-root .mu-hx-newgroup { display: flex; gap: 6px; }
+#mundi-root .mu-hx-newgroup input { flex: 1; min-width: 0; }
+@media (max-width: 600px) { #mundi-root .mu-hx-group { grid-template-columns: 1fr auto; } #mundi-root .mu-hx-group label { grid-column: 1 / -1; grid-row: auto; } }
+
+/* "Bianca wants you to come along to the Waterfront" */
+#mundi-root .mh-hx-lead { position: absolute; z-index: 26; left: 50%; top: 172px; transform: translateX(-50%); width: min(480px, calc(100% - 24px)); display: grid; grid-template-columns: 52px 1fr; gap: 6px 12px; align-items: center; padding: 12px 14px; border-radius: 20px; }
+#mundi-root .mh-hx-lead > img, #mundi-root .mh-hx-lead > .mh-walkon-pic { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; }
+#mundi-root .mh-hx-lead > div:first-of-type { display: grid; gap: 2px; font-size: 14px; }
+#mundi-root .mh-hx-lead .mu-row { grid-column: 1 / -1; justify-content: flex-end; }
+@media (max-width: 760px) { #mundi-root .mh-hx-lead { top: 150px; } }
 /* ==========================================================================
    Phones, upright (#mundi-root[data-mobile], set in app.ts).
    The game HUD stacks in rows at the top, the dialogue box fills the bottom, and the panels become full-screen sheets.

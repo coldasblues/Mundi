@@ -39,6 +39,7 @@ import { chanceOf } from '../sim/dice.js';
 import { pstateOverlays, walkOnChips } from './pstateui.js';
 import { storyOverlays, autosaveLine } from './storyui.js';
 import { psOn } from '../sim/pstate-live.js';
+import { hostileButton, hostileOverlays, hxBadge } from './hostileui.js';
 /* ---------- you ---------- */
 // Health and energy are bars; the other needs are round badges. A world can choose with `hudKind`.
 const isBar = (s) => (s.hudKind ? s.hudKind === 'bar' : ['life', 'health', 'energy'].includes(s.id));
@@ -129,7 +130,7 @@ function hereBar(g, w) {
     const extras = walkOnChips(g, w); // and the people the story brought in
     if (!list.length && !extras)
         return '';
-    return `<nav class="mh-here mh-glass" aria-label="Who is here"><small>Here</small>${extras}${list.map(r => `<button class="mh-here-p ${PL.card === r.avatar ? 'is-on' : ''} ${soloOf(g) === r.avatar ? 'is-solo' : ''} ${isWith(g, r.avatar) ? 'is-with' : ''}" data-act="pc-open" data-who="${esc(r.avatar)}" title="${esc(r.met ? r.name : 'Someone')}"><img src="${esc(thumb(r.avatar))}" alt=""><b data-notr>${esc(r.met ? r.name : '?')}</b></button>`).join('')}</nav>`;
+    return `<nav class="mh-here mh-glass" aria-label="Who is here"><small>Here</small>${extras}${list.map(r => `<button class="mh-here-p ${PL.card === r.avatar ? 'is-on' : ''} ${soloOf(g) === r.avatar ? 'is-solo' : ''} ${isWith(g, r.avatar) ? 'is-with' : ''}" data-act="pc-open" data-who="${esc(r.avatar)}" title="${esc(r.met ? r.name : 'Someone')}"><img src="${esc(thumb(r.avatar))}" alt=""><b data-notr>${esc(r.met ? r.name : '?')}</b>${hxBadge(g, `cast:${r.avatar}`)}</button>`).join('')}</nav>`;
 }
 /* ---------- things to do (inside a scene) ---------- */
 function actsColumn(g, w) {
@@ -157,7 +158,7 @@ function actsColumn(g, w) {
     const open = actsOpen();
     return `<aside class="mh-acts ${open ? '' : 'is-closed'}" aria-label="Things to do">
         <button class="mh-acts-head mh-glass" data-act="dock-toggle">${icon(open ? 'up' : 'down')}<span>Things to do</span>${onPhone() ? `<em>${rows.length}</em>` : ''}</button>
-        ${open ? `<div class="mh-acts-list" data-keep="dock">${rows.join('')}</div>` : ''}</aside>`;
+        ${open ? `<div class="mh-acts-list" data-keep="dock">${rows.join('')}</div>` : ''}${hostileButton(g, w)}</aside>`;
 }
 // On a phone the list is a sheet over the scene: closed until you open it, and it closes again after a choice.
 let actsPhone = false;
@@ -178,7 +179,7 @@ export function hudHtml() {
     const w = g && getWorld(g.world);
     if (!g || !w)
         return '';
-    return `${personaCard(g, w)}${houseBar(g, w)}${clockCard(g, w)}${corner(g, w)}${eventPanelHtml(g, w)}${hereBar(g, w)}${peopleColumn(g, w)}${actsColumn(g, w)}${phoneButton(w)}${bumpHtml()}${apptReminderHtml(g, w)}${conflictHtml(g, w)}${facePlanHtml()}${customModalHtml()}${doingHtml()}${lifeOverlays()}${pstateOverlays(g, w)}${storyOverlays(g, w)}`;
+    return `${personaCard(g, w)}${houseBar(g, w)}${clockCard(g, w)}${corner(g, w)}${eventPanelHtml(g, w)}${hereBar(g, w)}${peopleColumn(g, w)}${actsColumn(g, w)}${phoneButton(w)}${bumpHtml()}${apptReminderHtml(g, w)}${conflictHtml(g, w)}${facePlanHtml()}${customModalHtml()}${doingHtml()}${lifeOverlays()}${pstateOverlays(g, w)}${storyOverlays(g, w)}${hostileOverlays(g, w)}`;
 }
 Object.assign(ACT, {
     'dock-toggle': () => { if (onPhone()) {

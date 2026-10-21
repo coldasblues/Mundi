@@ -382,6 +382,8 @@ export function mount() {
         const loc = g.player.loc;
         const msgs = advance(g, w, mins);
         msgs.forEach(m => toast(m, 'warn'));
+        if (g.hostile?.queue?.length)
+            void import('../sim/hostile.js').then(h => h.flushEvents());
         if (runPlans())
             notify();
         lightUpdate();

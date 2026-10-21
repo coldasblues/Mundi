@@ -23,6 +23,7 @@ import { nowAbs, type Save, type Resident } from '../core/store.js';
 import type { WorldDef } from '../core/world.js';
 import { walkOns, psOn, refreshPState, clearPState } from './pstate-live.js';
 import { rosterLines } from './roster.js';
+import { hostileLines } from './hostile.js';
 
 export const PROMPT_KEY = 'mundi_scene';
 
@@ -37,6 +38,7 @@ export const BLOCKS: Block[] = [
     { id: 'solo', name: 'Talking alone', desc: 'Who you are talking to when you talk only with one person.' },
     { id: 'romance', name: 'Friendship and romance', desc: 'Where you stand with each person here.', cut: 7 },
     { id: 'people', name: 'People in your story', desc: 'Notes on what happened with the people here, who is injured, and who is dead.', cut: 7 },
+    { id: 'danger', name: 'Trouble', desc: 'Whether there is law here, your captives, people knocked out, whether you are wanted, and who wants payback.', cut: 8 },
     { id: 'family', name: 'Your children', desc: 'Your children\'s age and how to treat them. Always sent when they are here.' },
     { id: 'ties', name: 'Family and ties', desc: 'Who is whose sister, parent, roommate…', cut: 6 },
     { id: 'needs', name: 'How you feel', desc: 'Hunger, tiredness… only what stands out.', cut: 6 },
@@ -89,6 +91,7 @@ export function sceneBlocks(): Built[] {
         lore: activeWorldLore(g, w),
         needs: [feelings(g, w)],
         people: rosterLines(g, [...names, ...extras]),
+        danger: hostileLines(g, w),
     };
     const tail = ['Write only what happens in this place and at this moment. Do not move the story to another place or skip time; the game handles travel and time.', aiLangNote()].filter(Boolean).join('\n');
     const pc = promptCfg();

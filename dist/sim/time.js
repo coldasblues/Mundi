@@ -1,5 +1,5 @@
 import { applyTimedRules } from './needs.js';
-import { onHour, onDay } from './hooks.js';
+import { onHour, onDay, onStep } from './hooks.js';
 export const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 export const weekday = (day) => WEEKDAYS[(day - 1) % 7];
 export const isWeekend = (day) => (day - 1) % 7 >= 5;
@@ -37,6 +37,8 @@ export function advance(g, w, mins) {
         }
         left -= step;
         out.push(...applyTimedRules(g, w));
+        for (const f of onStep)
+            out.push(...f(g, w));
         if (Math.floor(g.minutes / 60) !== h0 || g.day !== d0)
             for (const f of onHour)
                 out.push(...f(g, w));

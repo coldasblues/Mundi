@@ -19,6 +19,21 @@ export function psPrefs() {
     return s.pstate;
 }
 export const psOn = () => !TUT.save && psPrefs().on && !!game();
+/** Other systems plug in here without importing this file back (the hostile actions engine). */
+export const psHooks = {
+    crimes: (() => false), // ask the model for a "crimes:" line
+    directives: [], // one-shot orders for the next reply (the hidden narrator reads them too)
+    present: (() => []), // people the engine knows are here whatever the story said (your captives)
+    replied: [], // a reply's block was read (a hard capture moves you)
+};
+const replied = () => { for (const f of psHooks.replied) {
+    try {
+        f();
+    }
+    catch (e) {
+        console.warn('[Mundi] state hook', e);
+    }
+} };
 // A world can tune the rolls (world.json → "playerState": { "heldDc": 12, "restrainedDc": 16, ... }).
 export const gateCfg = (w) => ({ ...GATE_DEFAULTS, ...(w?.playerState ?? {}) });
 /* ---------- the lines of this visit ---------- */
@@ -40,7 +55,7 @@ function keep(m, rep, src) {
 const dismissedOf = (m) => !!m?.extra?.mundi_outcome_dismissed && m.extra.mundi_outcome_dismissed === hash(m.mes);
 function lineOf(m) {
     if (m.is_user)
-        return m.extra?.mundi_escape ? { kind: 'user', escape: m.extra.mundi_escape } : { kind: 'user' };
+        return { kind: 'user', ...(m.extra?.mundi_escape ? { escape: m.extra.mundi_escape } : {}), ...(m.extra?.mundi_act ? { act: m.extra.mundi_act } : {}) };
     // the hidden narrator (scenes where you are alone) fills in the block too; its other lines (an epilogue) do not count
     if (isNarrator(m)) {
         const k = keptOf(m);
@@ -83,7 +98,11 @@ export function walkOns(g, w, s = currentState(g), withGone = false) {
     const known = Object.values(g.cast).flatMap(r => { const n = r.name.toLowerCase(); return [n, n.split(/\s+/)[0]]; });
     const me = personaName().toLowerCase();
     void w;
-    return s.present.filter(p => {
+    const all = [...s.present];
+    for (const x of psHooks.present())
+        if (!all.some(p => p.toLowerCase() === x.toLowerCase()))
+            all.push(x);
+    return all.filter(p => {
         const n = p.toLowerCase().replace(/^(the|a|an)\s+/, '');
         if (n === me || n === me.split(/\s+/)[0])
             return false;
@@ -108,7 +127,7 @@ export function setDirective(text) {
 export const pendingDirective = () => directive;
 export function stateInstruction(g, w, skipLast = false) {
     const s = currentState(g, skipLast);
-    return instructionText(s, walkOns(g, w, s));
+    return instructionText(s, walkOns(g, w, s), { crimes: psHooks.crimes() });
 }
 // In the chat, after the last line (depth 0), where models follow a format best.
 export function refreshPState(skipLast = false) {
@@ -166,6 +185,7 @@ export function onReply(id) {
             checks.add(id);
     }
     refreshPState();
+    replied();
 }
 // A reply came without a block: one short AI call fills it in (only for the newest reply, after everyone spoke).
 let checking = false;
@@ -198,6 +218,7 @@ export async function runChecks() {
             saveChat();
             refreshPState();
             notify();
+            replied();
         }
     }
     catch (e) {
@@ -260,6 +281,7 @@ export function keepNarration(id, rep) {
     refreshPState();
     if (rep?.changes?.length)
         afterChanges();
+    replied();
 }
 // Someone died, left, was taken…: who is in the scene changes now (muted in the group, gone from the picture,
 // and the scene's prompt says so).
@@ -291,7 +313,7 @@ export function narratorExtra() {
     const w = g && getWorld(g.world);
     if (!psOn() || !g || !w)
         return '';
-    return [directive, stateInstruction(g, w)].filter(Boolean).join('\n');
+    return [directive, ...psHooks.directives.map(f => f()), stateInstruction(g, w)].filter(Boolean).join('\n');
 }
 /** The narrator's answer, without its block, and what the block said. */
 export function splitNarration(text) {

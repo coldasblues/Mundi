@@ -1,0 +1,138 @@
+export const SEVERITY = { none: 0, minor: 1, theft: 2, assault: 3, kidnapping: 5, murder: 8 };
+export const CRIME_WORD = { none: '', minor: 'causing a disturbance', theft: 'theft', assault: 'assault', kidnapping: 'kidnapping', murder: 'murder' };
+/** The short label on the menu. */
+export const CRIME_TAG = { none: '', minor: 'disturbance', theft: 'theft', assault: 'assault', kidnapping: 'kidnapping', murder: 'murder' };
+export const worst = (list) => list.reduce((a, b) => (SEVERITY[b] > SEVERITY[a] ? b : a), 'none');
+// {t}: the target; {u}: you. The texts are what the AI is told happened (and the toast).
+export const DEFAULT_ACTS = [
+    { id: 'punch', line: "*throws a punch at {t}*", name: 'Punch', verb: 'punch {t}', icon: '👊', desc: 'Hurts them. They will probably hit back.', target: true, dc: 11, traits: ['Strong', 'Athletic', 'Hot-headed'], noise: 2, crime: 'assault', minutes: 1,
+        hit: { text: 'the punch lands: {t} is hurt', change: 'injured', fight: true }, miss: { text: '{t} blocks it and fights back', fight: true } },
+    { id: 'kick', line: "*kicks {t}*", name: 'Kick', verb: 'kick {t}', icon: '🦵', desc: 'Hurts more, and puts them on the ground.', target: true, dc: 13, traits: ['Athletic', 'Strong'], noise: 2, crime: 'assault', minutes: 1,
+        hit: { text: 'the kick lands hard: {t} goes down, hurt', change: 'injured', down: 'down', downMins: 10, free: true }, miss: { text: '{t} dodges the kick and comes back swinging', fight: true } },
+    { id: 'shove', line: "*shoves {t} hard*", name: 'Shove', verb: 'shove {t}', icon: '✋', desc: 'Knocks them over without hurting them. Gets you out of their grip.', target: true, dc: 9, traits: ['Strong', 'Athletic'], noise: 1, crime: 'minor', minutes: 1,
+        hit: { text: '{t} stumbles back and falls', down: 'down', downMins: 4, free: true }, miss: { text: '{t} doesn\'t budge and shoves back', fight: true } },
+    { id: 'threaten', line: "*gets in {t}'s face and threatens them*", name: 'Threaten', verb: 'threaten {t}', icon: '😠', desc: 'Scares them off. If it fails they may call for help.', target: true, dc: 10, traits: ['Hot-headed', 'Serious', 'Outgoing', 'Strong'], noise: 1, crime: 'minor', minutes: 2,
+        hit: { text: '{t} is scared and backs away', scare: true, free: true }, miss: { text: '{t} isn\'t scared, and may call for help', alarm: true } },
+    { id: 'scene', line: "*starts shouting and making a scene*", name: 'Make a scene', verb: 'make a scene', icon: '📢', desc: 'Shout, smash things. Everyone here notices.', target: false, dc: 0, traits: [], noise: 3, crime: 'minor', minutes: 3,
+        hit: { text: 'everyone stops and stares' }, miss: { text: '' } },
+    { id: 'steal', line: "*tries to slip a hand into {t}'s pocket*", name: 'Steal', verb: 'steal from {t}', icon: '👛', desc: 'Quiet. If they catch you, you are held.', target: true, dc: 13, traits: ['Smart', 'Calm', 'Handy'], noise: 0, crime: 'theft', minutes: 2,
+        hit: { text: 'the money comes away clean: {t} doesn\'t notice', money: true }, miss: { text: '{t} catches the hand in their pocket', caught: true, alarm: true } },
+    { id: 'grab', line: "*grabs hold of {t}*", name: 'Grab', verb: 'grab {t}', icon: '🤼', desc: 'Holds on to them: they come with you when you go.', target: true, dc: 13, traits: ['Strong', 'Athletic'], noise: 2, crime: 'assault', minutes: 1,
+        hit: { text: '{t} is caught in a firm grip and can\'t get away', captive: 'held' }, miss: { text: '{t} twists free and fights back', fight: true } },
+    { id: 'restrain', line: "*ties {t} up*", name: 'Tie up', verb: 'tie up {t}', icon: '⛓️', desc: 'Only someone down or in your grip. Much harder for them to escape.', target: true, needs: ['down', 'held'], dc: 8, traits: ['Handy', 'Strong'], noise: 1, crime: 'kidnapping', minutes: 5,
+        hit: { text: '{t} is tied up and can\'t move', captive: 'restrained' }, miss: { text: '{t} struggles too much to be tied up' } },
+    { id: 'knockout', line: "*tries to knock {t} out*", name: 'Knock out', verb: 'knock {t} out', icon: '💤', desc: 'Out cold for a while. Then you can tie them up, take them, or worse.', target: true, dc: 14, traits: ['Strong', 'Athletic'], noise: 2, crime: 'assault', minutes: 1,
+        hit: { text: '{t} is knocked out cold', change: 'injured', down: 'out', downMins: 45, free: true }, miss: { text: '{t} staggers but stays up and fights back', fight: true } },
+    { id: 'kill', line: "*goes to kill {t}*", name: 'Kill', verb: 'kill {t}', icon: '💀', desc: 'Only someone down or held. It is final.', target: true, needs: ['down', 'held'], dc: 6, traits: [], noise: 2, crime: 'murder', minutes: 2,
+        hit: { text: '{t} is killed', change: 'dead', free: true }, miss: { text: '{t} survives it, badly hurt, and screams', change: 'injured', alarm: true } },
+];
+/** Can this action be used on this target? A reason when not. */
+export function blockedFor(def, t) {
+    if (def.target && !t)
+        return 'Pick someone first.';
+    if (def.needs?.length && t) {
+        const ok = (def.needs.includes('down') && !!t.down) || (def.needs.includes('held') && !!t.captive);
+        if (!ok)
+            return 'They have to be down or in your grip first.';
+    }
+    if (def.id === 'grab' && t?.captive)
+        return 'You already have hold of them.';
+    if (def.id === 'restrain' && t?.captive === 'restrained')
+        return 'They are already tied up.';
+    if (def.id === 'steal' && t?.down === 'out')
+        return '';
+    return '';
+}
+/** The difficulty against this target: helpless people are easy, police officers fight back well. */
+export function dcFor(def, t, you = 'free') {
+    if (!def.dc)
+        return 0;
+    let dc = def.dc;
+    if (t?.down === 'out' || t?.captive === 'restrained')
+        dc -= 8;
+    else if (t?.down === 'down' || t?.captive === 'held')
+        dc -= 4;
+    if (t?.law)
+        dc += 2;
+    if (you === 'held')
+        dc += 2;
+    return Math.max(2, dc);
+}
+export function chanceFor(dc, bonus) {
+    if (!dc)
+        return 100;
+    let ok = 0;
+    for (let d = 1; d <= 20; d++)
+        if (d === 20 || (d > 1 && d + bonus >= dc))
+            ok++;
+    return ok * 5;
+}
+/* ---------- who sees it ---------- */
+/**
+ * How busy a place is right now: 0 nobody around (a home, a field at night), 1 a few people, 2 busy, 3 packed.
+ * `explicit`: what the world says for that place (world.json → places[].crowd); otherwise its tags decide.
+ */
+export function crowdLevel(tags, hour, isHome, explicit) {
+    if (isHome)
+        return explicit ?? 0;
+    const has = (...t) => t.some(x => tags.includes(x));
+    let c = explicit ?? (has('shop', 'food') ? 3 : has('service', 'study', 'sport', 'work') ? 2 : 1);
+    const night = hour >= 23 || hour < 6, evening = hour >= 19 && hour < 23;
+    if (night)
+        c -= has('food', 'leisure') ? 1 : 2;
+    else if (evening && has('shop', 'work', 'service', 'study'))
+        c -= 1;
+    return Math.max(0, Math.min(3, c));
+}
+/** The chance that someone in the crowd (not the people in the scene) sees it. */
+export function crowdSees(crowd, noise) {
+    const c = [0, 0.3, 0.6, 0.85][Math.max(0, Math.min(3, crowd))];
+    const n = [0.25, 0.6, 1, 1.25][Math.max(0, Math.min(3, noise))];
+    return Math.min(0.98, c * n);
+}
+/** The chance that one person right here notices: only a quiet action can go unnoticed. */
+export const noticeChance = (noise) => (noise <= 0 ? 0.35 : noise === 1 ? 0.85 : 1);
+/** The chance a crime that was seen gets reported (a friend of yours keeps quiet more often). */
+export function reportChance(crime, friend = false) {
+    const p = { none: 0, minor: 0.3, theft: 0.5, assault: 0.7, kidnapping: 0.9, murder: 0.95 }[crime];
+    return friend ? p * 0.35 : p;
+}
+/** Minutes until the law arrives after a call (a city's police; slower in a world without phones). */
+export const responseMinutes = (rnd, slow = false) => Math.round((slow ? 25 : 10) + rnd * (slow ? 50 : 20));
+/* ---------- who the law is ---------- */
+export const LAW_ROLES_MODERN = ['police', 'police officer', 'officer', 'cop', 'detective', 'deputy', 'sheriff', 'trooper', 'patrolman', 'patrolwoman', 'security guard', 'security', 'agent', 'constable', 'sergeant', 'inspector', 'lieutenant'];
+export const LAW_ROLES_MEDIEVAL = ['guard', 'guardsman', 'watchman', 'the watch', 'city watch', 'soldier', 'knight', 'constable', 'sheriff', 'bailiff', 'reeve', 'sergeant', 'captain of the guard'];
+/** A name like "Officer Diaz", "the police officer", "a security guard": is it the law? */
+export function isLawName(name, roles) {
+    const n = ` ${String(name ?? '').toLowerCase().replace(/[^a-z ]/g, ' ').replace(/\s+/g, ' ').trim()} `;
+    return roles.some(r => r && n.includes(` ${r.toLowerCase()} `));
+}
+export const fillIn = (t, target, user = '{{user}}') => t.replace(/\{t\}/g, target).replace(/\{u\}/g, user);
+/** `holderIsTarget`: the one keeping you here (in a fight, holding you) is the target, so dealing with them frees you. */
+export function decide(def, d20, bonus, dc, target, t, you = 'free', holderIsTarget = true) {
+    const grade = !dc ? 'success' : d20 === 1 ? 'critical-fail' : d20 === 20 ? 'critical-success' : d20 + bonus >= dc ? 'success' : 'fail';
+    const ok = grade === 'success' || grade === 'critical-success';
+    if (ok) {
+        const h = def.hit;
+        const out = { ok, grade, text: fillIn(h.text, target), change: h.change, down: h.down, downMins: h.downMins, captive: h.captive, money: h.money, scare: h.scare };
+        // a great punch puts them down too
+        if (grade === 'critical-success' && def.id === 'punch') {
+            out.down = 'down';
+            out.downMins = 6;
+            out.text += ', and down';
+        }
+        const helpless = !!(out.down || out.captive || out.change === 'dead' || out.scare || t?.down || t?.captive?.length);
+        if (h.free && holderIsTarget && (you === 'engaged' || you === 'held'))
+            out.you = { free: true, reason: `got free of ${target}` };
+        else if (h.fight && !helpless)
+            out.you = { mobility: 'engaged', reason: `in a fight with ${target}` };
+        return out;
+    }
+    const m = def.miss;
+    const out = { ok, grade, text: fillIn(m.text, target), alarm: m.alarm, change: m.change };
+    if (m.caught)
+        out.you = { mobility: grade === 'critical-fail' ? 'restrained' : 'held', reason: `caught by ${target}` };
+    else if (m.fight && !t?.down && !t?.captive)
+        out.you = { mobility: grade === 'critical-fail' ? 'restrained' : 'held', reason: grade === 'critical-fail' ? `pinned down by ${target}` : `in a fight with ${target}` };
+    return out;
+}

@@ -15,6 +15,10 @@ import { visitStart } from '../sim/visits.js';
 import type { ActionDef } from '../core/world.js';
 import { icon } from './icons.js';
 import { ACT, INPUT } from './reg.js';
+import { markSent, clearDirectives } from '../sim/hostile.js';
+import { keyFor } from '../sim/roster.js';
+import { hxBadge } from './hostileui.js';
+const hxBadgeFor = (g: Save, name: string) => hxBadge(g, keyFor(g, name).key);   // tied up, knocked out…
 
 type Modal =
     | { kind: 'walkout'; names: string[]; go: () => void }
@@ -128,12 +132,14 @@ async function tryEscape() {
 
 /** Your line was sent: the roll it answers goes with it. */
 export function onSent(id: number) {
+    markSent(id);   // a hostile action's line: what the engine decided goes with it
     if (!PSUI.escape) return;
     markEscape(id, PSUI.escape);
     PSUI.escape = null;
 }
 /** A reply came in: a roll's order was for this reply only. */
 export function onAnswered() {
+    clearDirectives();   // the hostile actions' orders were for this reply only
     if (!armed) return;
     armed = 0;
     setDirective('');
@@ -238,7 +244,7 @@ export function stateChipHtml(g: Save, w: WorldDef): string {
 /** Walk-ons in the "Here" row: a face for each person the story brought in. */
 export function walkOnChips(g: Save, w: WorldDef): string {
     if (!psOn()) return '';
-    return walkOns(g, w).map(n => `<span class="mh-here-p is-walkon" title="${esc(n)}: not a regular, the story brought them in"><span class="mh-walkon-pic">${icon('user')}</span><b data-notr>${esc(n)}</b></span>`).join('');
+    return walkOns(g, w).map(n => `<span class="mh-here-p is-walkon" title="${esc(n)}: not a regular, the story brought them in"><span class="mh-walkon-pic">${icon('user')}</span><b data-notr>${esc(n)}</b>${hxBadgeFor(g, n)}</span>`).join('');
 }
 /** For the map: the passers-by where you are. */
 export const walkOnsHere = (g: Save, w: WorldDef, loc: string) => (psOn() && loc === g.player.loc ? walkOns(g, w) : []);

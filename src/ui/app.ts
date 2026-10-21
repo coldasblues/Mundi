@@ -301,6 +301,7 @@ export function mount() {
         const loc = g.player.loc;
         const msgs = advance(g, w, mins);
         msgs.forEach(m => toast(m, 'warn'));
+        if ((g as any).hostile?.queue?.length) void import('../sim/hostile.js').then(h => h.flushEvents());
         if (runPlans()) notify();
         lightUpdate();
         const now = residents(g).map(x => whereNow(g, w, x)).join('|') + `|${g.player.loc}`;

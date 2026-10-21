@@ -24,6 +24,7 @@ export async function endVisit(g, w) {
             const spoke = new Set(chat().slice(visitStart(g)).filter(m => !m.is_user && !m.is_system).map(m => String(m.name ?? '')));
             const who = Object.values(g.cast).filter(r => spoke.has(r.name)).map(r => ({ name: r.name }));
             (await import('./roster.js')).endVisitRoster(g, w, who, extras);
+            (await import('./hostile.js')).endVisitHostile(g, w); // crimes the story reported, captives it freed
         }
     }
     catch (e) {

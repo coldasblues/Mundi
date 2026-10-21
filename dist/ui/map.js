@@ -349,6 +349,10 @@ export async function travelTo(loc, opts = {}) {
     runPlans();
     state.sel = null;
     saveGame();
+    // hostile actions: free of a captor once you leave their place; your captives come along; the law may find you
+    const hx = await import('../sim/hostile.js');
+    hx.releaseCaptor(g);
+    hx.onArrive(g, w);
     await syncScene();
     state.view = 'scene'; // arriving somewhere opens its scene (with its things to do), even when nobody is there
     startElevator(g, w, g.player.loc);

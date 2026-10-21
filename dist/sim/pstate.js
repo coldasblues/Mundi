@@ -124,6 +124,64 @@ export function changesOf(v, user = '') {
     }
     return out.slice(0, 12);
 }
+const CRIME_SYN = [
+    ['murder', /^(murder|murdered|killing|killed|homicide|manslaughter)\b/],
+    ['kidnapping', /^(kidnapping|kidnapped|abduction|abducted|took|taking|hostage|unlawful restraint)\b/],
+    ['assault', /^(assault|assaulted|attack|attacked|battery|hit|punched|stabbed|shot|beat|beating|fight|fighting|violence)\b/],
+    ['theft', /^(theft|stole|stealing|robbery|robbed|mugging|mugged|burglary|shoplifting|pickpocket)/],
+    ['minor', /^(disturbance|vandalism|trespass|trespassing|threat|threatened|threatening|harassment|disorderly|minor)\b/],
+];
+export function crimeOf(v) {
+    const s = String(v ?? '').toLowerCase().replace(/[*_`"'[\]().!]/g, '').trim();
+    if (!s || s.includes('|'))
+        return undefined;
+    for (const [c, re] of CRIME_SYN)
+        if (re.test(s))
+            return c;
+    return undefined;
+}
+/** "Marco = assault on the clerk; Ana = theft" (also "Marco: murder of Diaz"). {{user}}'s own crimes are the engine's. */
+export function crimesOf(v, user = '') {
+    const out = [];
+    const self = new Set(['{{user}}', 'you', 'user', 'player', user.toLowerCase()].filter(Boolean));
+    const raw = String(v ?? '');
+    if (NOBODY.test(raw.trim()) || raw.includes('|'))
+        return out;
+    for (let p of raw.split(/;|\n/)) {
+        p = p.replace(/[*_`"[\]]/g, '').trim();
+        const m = p.match(/^(.+?)\s*(?:=|:|→|->|—|–)\s*(.+)$/);
+        if (!m)
+            continue;
+        const name = m[1].replace(/\([^)]*\)/g, '').trim();
+        const what = m[2].trim();
+        const crime = crimeOf(what);
+        if (!name || !crime || name.length > 60 || self.has(name.toLowerCase()))
+            continue;
+        const t = what.match(/\b(?:on|of|against|from|to)\s+(.+)$/i)?.[1]?.replace(/[.!]$/, '').trim();
+        const target = t && !self.has(t.toLowerCase()) ? t.slice(0, 60) : t ? '{{user}}' : undefined;
+        if (!out.some(x => x.name.toLowerCase() === name.toLowerCase() && x.crime === crime))
+            out.push({ name, crime, ...(target ? { target } : {}) });
+    }
+    return out.slice(0, 6);
+}
+/** "Bianca → the docks" (also "Bianca -> her place", "Bianca to the bar", "Bianca: the bar"): someone taking or leading
+ *  {{user}} to another place. null for none. */
+export function goingOf(v, user = '') {
+    const raw = String(v ?? '').replace(/[*_`"[\]]/g, '').trim();
+    if (!raw || NOBODY.test(raw) || raw.includes('|') || /^(no|nobody|no one|n\/a)\b/i.test(raw))
+        return null;
+    const m = raw.match(/^(.+?)\s*(?:→|->|=>|—>|:|=|\s(?:is )?(?:taking (?:\{\{user\}\}|you|them|\w+) )?(?:to|toward|towards|into)\s)\s*(.+)$/i);
+    if (!m)
+        return null;
+    const name = m[1].replace(/\([^)]*\)/g, '').replace(/\s+(?:is\s+)?(?:taking|leading|bringing)(?:\s+\S+)?$/i, '').trim();
+    const place = m[2].replace(/^(to|toward|towards|into)\s+/i, '').replace(/[.!]$/, '').trim();
+    const self = new Set(['{{user}}', 'you', 'user', 'player', user.toLowerCase()].filter(Boolean));
+    if (!name || !place || name.length > 60 || place.length > 80 || self.has(name.toLowerCase()) || NOBODY.test(place))
+        return null;
+    if (/^name$/i.test(name) && /^place$/i.test(place))
+        return null; // the template, copied
+    return { name, place };
+}
 /** Reads the last state block in a reply. null when there is none. */
 export function parseBlock(text, user = '') {
     const t = String(text ?? '');
@@ -162,10 +220,20 @@ export function parseBlock(text, user = '') {
         }
         else if (/^(changes|change|events|others|people changes|what happened)$/.test(key))
             out.changes = changesOf(val, user);
+        else if (/^(crimes|crime|offenses|offences|wrongdoing)$/.test(key))
+            out.crimes = crimesOf(val, user);
+        else if (/^(going|leading|taking|lead|led by|destination|moving)$/.test(key))
+            out.going = goingOf(val, user);
+        else if (/^(captor|held by|captured by|prisoner of|kidnapper|taken by)$/.test(key)) {
+            if (!val.includes('|')) {
+                const n = namesOf(val, user)[0];
+                out.captor = n ?? null;
+            }
+        }
     }
     return out;
 }
-export const freshState = () => ({ mobility: 'free', reason: '', present: [], outcome: 'none', outcomeReason: '', outcomeAt: -1, misses: 0, pending: null, grace: 0, cooldown: 0, lastAi: -1 });
+export const freshState = () => ({ mobility: 'free', reason: '', present: [], outcome: 'none', outcomeReason: '', outcomeAt: -1, misses: 0, pending: null, captor: '', grace: 0, cooldown: 0, lastAi: -1 });
 export function fold(lines, start = freshState()) {
     const s = { ...start, present: [...start.present], pending: start.pending ? { ...start.pending } : null };
     lines.forEach((l, i) => {
@@ -176,6 +244,7 @@ export function fold(lines, start = freshState()) {
                 s.pending = null;
                 s.grace = 1;
                 s.cooldown = 0;
+                s.captor = '';
             }
             else {
                 s.cooldown = 2;
@@ -183,6 +252,29 @@ export function fold(lines, start = freshState()) {
                     s.mobility = 'restrained';
                     s.reason = `${s.reason ? `${s.reason}; ` : ''}caught trying to get away`;
                 }
+            }
+            return;
+        }
+        if (l.kind === 'user' && l.act) {
+            const a = l.act;
+            if (a.outcome && a.outcome !== 'none' && s.outcome === 'none') {
+                s.outcome = a.outcome;
+                s.outcomeReason = a.outcomeReason ?? '';
+                s.outcomeAt = i;
+            }
+            if (a.free) {
+                s.mobility = 'free';
+                s.reason = a.reason ?? '';
+                s.pending = null;
+                s.grace = 1;
+                s.cooldown = 0;
+                s.captor = '';
+            }
+            else if (a.mobility && rank(a.mobility) >= rank(s.mobility)) {
+                s.mobility = a.mobility;
+                if (a.reason)
+                    s.reason = a.reason;
+                s.pending = null;
             }
             return;
         }
@@ -202,6 +294,8 @@ export function fold(lines, start = freshState()) {
         s.misses = 0;
         if (r.present)
             s.present = [...r.present];
+        if (r.captor !== undefined)
+            s.captor = r.captor ?? '';
         if (r.outcome && r.outcome !== 'none' && s.outcome === 'none') {
             s.outcome = r.outcome;
             s.outcomeReason = r.reason ?? '';
@@ -258,6 +352,8 @@ export function fold(lines, start = freshState()) {
         }
         s.pending = { to: r.mobility, n: 1 };
     });
+    if (s.mobility === 'free' || s.mobility === 'engaged')
+        s.captor = '';
     return s;
 }
 export const GATE_DEFAULTS = {
@@ -283,7 +379,7 @@ export const MOBILITY_WORDS = {
     free: 'free to leave', engaged: 'in the middle of something (a conversation or a task)', held: 'being held here',
     restrained: 'physically restrained', incapacitated: 'unable to move',
 };
-export function instructionText(s, walkOns) {
+export function instructionText(s, walkOns, opts = {}) {
     const now = s.mobility === 'free' ? '' : `Right now {{user}} is ${MOBILITY_WORDS[s.mobility]}${s.reason ? ` (${s.reason})` : ''}.`;
     const also = walkOns.length ? ` Also in the scene: ${walkOns.join(', ')}.` : '';
     return [
@@ -295,6 +391,9 @@ export function instructionText(s, walkOns) {
         'present: everyone else in the scene, comma separated, or none',
         'outcome: none | dead | failed | captured',
         'changes: what happened to OTHER people in this reply, as Name = arrived | left | injured | recovered | captured | freed | missing | returned | dead (several separated by ;), or none',
+        ...(opts.crimes ? ['crimes: a crime someone OTHER than {{user}} committed in this reply, as Name = assault | theft | kidnapping | murder | disturbance on Victim (separated by ;), or none'] : []),
+        ...(opts.crimes ? ['captor: the one who has taken {{user}} prisoner (tied up, locked in, carried off; not a scuffle), or none',
+            'going: someone taking or leading {{user}} to ANOTHER place right now (a prisoner being moved, or an invitation to come along), as Name → Place, or none'] : []),
         '</state>',
         'Pick ONE value per line. free = {{user}} can walk away; engaged = in a conversation or task they could leave, but it would be rude; held = someone is keeping {{user}} here (blocking the way, questioning, guarding); restrained = tied, cuffed, grabbed, locked in; incapacitated = unconscious or too hurt to move. outcome stays none unless {{user}} has died, has failed for good, or is captured for good.',
         'Only the game decides whether {{user}} gets away: never write {{user}} leaving the place on their own.',

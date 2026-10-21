@@ -285,6 +285,7 @@ export function syncScene() {
         followBackground(g, w);
         refreshPrompt();
         saveGame();
+        void import('./hostile.js').then(h => h.flushEvents()); // the police arriving, someone coming to…
     }).catch(e => console.warn('[Mundi] scene sync', e));
     return syncing;
 }

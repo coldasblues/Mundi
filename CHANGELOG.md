@@ -2,6 +2,44 @@
 
 This is a fork of [tjalis/Mundi](https://github.com/tjalis/Mundi) (AGPL-3.0). Changes made in this fork are listed here, with their dates, as the license asks.
 
+## 0.1.0-ps.5 — 2026-10-21
+
+Rough stuff: hostile actions for any genre, with consequences that come from the world. Being taken somewhere: as a prisoner, or because someone asked you to come along.
+
+### Added
+
+- **A red "Rough stuff" button** in every scene (under Things to do). Pick someone from the people here, then an action:
+  - **Punch**, **Kick**, **Shove**, **Threaten**, **Make a scene**, **Steal**, **Grab**, **Tie up**, **Knock out**, **Kill**.
+  - Each one shows its chance and the crime it is. Tie up and Kill only work on someone who is down or in your grip.
+  - **The engine rolls** (a d20 plus your traits, like getting away). Someone helpless is easy; a police officer fights back better. The result is final, and the AI is told exactly what happened and writes it.
+  - **What it does to them** is written at once: hurt, on the ground, knocked out for a while (a 💤 on their face), in your grip or tied up (⛓️), scared off, or dead for good.
+  - **What it does to you:** a missed punch starts a fight that holds you; landing one leaves you in a fight; shoving or knocking out the one holding you frees you; being caught stealing holds you.
+  - A world can add or replace actions (`"hostileActions"` in world.json): a vampire's Feed, a zombie's Bite.
+- **Witnesses.** The people in the scene see it (a quiet theft may go unnoticed), and so may the crowd: it depends on how busy the place is right now (your flat: nobody; the mall at noon: packed; a park at night: almost nobody). A world can set it per place (`"crowd": 0–3`). The people who saw it remember it and are shaken; the town talks.
+- **The law, only where there is law.** Each world has some (the police, the city watch), or none (`"law": { "exists": false }` in world.json). Each game can override it in the Rough stuff menu: as the world says, yes, or no law at all (a zombie apocalypse, the wilderness).
+  - A crime someone sees may get reported. The police arrive some minutes later; if you are still there, someone points at you and you are held.
+  - If you left, you are wanted. They may find you later, and at home most of all: they know where you live.
+  - An officer who sees it steps in on the spot.
+  - **Give yourself up** (a chip under the clock while the law holds you): a fine for a disturbance; a night in a cell and a fine for theft or assault (you are out in the morning); for kidnapping or murder, you are taken away and the story ends. Or try to get away (the usual roll).
+  - Who counts as the law: police officers, guards, detectives… by name, the world's police or guard jobs, and anyone you mark as the law on the People screen.
+- **Groups, law or no law.** On the People screen, put people in groups (a gang, a faction, a family) and give a group a base. Hurt one of them and the group holds a grudge: the next time you run into them they confront you, and if it is bad enough they come looking for you.
+- **The AI's characters too.** The state block has a `crimes:` line. A crime the story reports (`the mugger = theft on the clerk`) is followed up when you leave: with an officer there, they are arrested on the spot; otherwise maybe later, and they are out of jail after a while (never, for murder).
+- **Hard captures.** The state block has a `captor:` line. When the story says someone has taken you prisoner (tied up, locked in, carried off; not a scuffle), you are their prisoner:
+  - a cast member takes you to their home; a group with a base, to the base; a stranger the story brought in keeps you where you are;
+  - your captor never leaves your side, on every move, until you get away (the roll) or they let you go;
+  - wherever they take you next, you go too (the `going:` line, below).
+- **Being taken somewhere, or asked to come along.** The state block has a `going:` line (`Bianca → the docks`). The engine finds the place on the map ("the docks", "her place", "your apartment").
+  - As a prisoner, you are moved with your captor, no choice.
+  - Otherwise it is an invitation: "Bianca wants you to come along to the Beach · 30 min away", **Go with her** or **Stay**. If you go, she comes with you as company, the same as when you ask someone to come along. Someone the story brought in comes along too.
+- **Your own captives** come with you when you go. Walking into a busy place with someone in your grip is seen (kidnapping). Someone in your grip may slip away within the hour (much less often when tied up); free, they may go to the police. **Let go** in the menu.
+- **The scene prompt** has a new block, **Trouble**: whether there is law here (and who of it is in the scene), your captives, who is on the ground, whether you are wanted, who wants payback, and whose prisoner you are.
+- Settings → Game → **Rough stuff** turns it all off.
+
+### Files
+
+- New: `src/sim/hostile-rules.ts` (the actions, crowds, witnesses, who the law is, the rolls; unit-testable), `src/sim/hostile.ts` (the engine: effects, incidents, the law, groups, captives, captors, leads, the prompt), `src/ui/hostileui.ts` (the menu, giving up, the come-along card, moves, the groups), `css/91-hostile.css`.
+- Touched: `src/sim/pstate.ts` (the `crimes:`, `captor:` and `going:` lines; the engine's decision on your own line), `src/sim/pstate-live.ts` (hooks), `src/sim/roster.ts` (written at once when the engine decides; captives are not gone; someone who died in this visit is still the one meant), `src/sim/people.ts` (a hook for where someone is), `src/sim/hooks.ts` and `time.ts` (a step hook), `src/sim/visits.ts`, `src/sim/game.ts`, `src/sim/prompt.ts` (the Trouble block), `src/ui/map.ts`, `src/ui/app.ts`, `src/ui/hud.ts`, `src/ui/pstateui.ts`, `src/ui/settings.ts`, `src/ui/storyui.ts`, `src/index.ts`, `manifest.json`, `README.md`.
+
 ## 0.1.0-ps.4 — 2026-10-20
 
 ### Fixed

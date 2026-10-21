@@ -22,6 +22,14 @@ export function psPrefs(): PsPrefs {
     return s.pstate;
 }
 export const psOn = () => !TUT.save && psPrefs().on && !!game();
+/** Other systems plug in here without importing this file back (the hostile actions engine). */
+export const psHooks = {
+    crimes: (() => false) as () => boolean,          // ask the model for a "crimes:" line
+    directives: [] as (() => string)[],              // one-shot orders for the next reply (the hidden narrator reads them too)
+    present: (() => []) as () => string[],           // people the engine knows are here whatever the story said (your captives)
+    replied: [] as (() => void)[],                   // a reply's block was read (a hard capture moves you)
+};
+const replied = () => { for (const f of psHooks.replied) { try { f(); } catch (e) { console.warn('[Mundi] state hook', e); } } };
 
 // A world can tune the rolls (world.json → "playerState": { "heldDc": 12, "restrainedDc": 16, ... }).
 export const gateCfg = (w: WorldDef | null | undefined): GateCfg => ({ ...GATE_DEFAULTS, ...((w as any)?.playerState ?? {}) });
@@ -44,7 +52,7 @@ function keep(m: any, rep: Reported | null, src: Kept['src']) {
 }
 const dismissedOf = (m: any) => !!m?.extra?.mundi_outcome_dismissed && m.extra.mundi_outcome_dismissed === hash(m.mes);
 function lineOf(m: any): PLine {
-    if (m.is_user) return m.extra?.mundi_escape ? { kind: 'user', escape: m.extra.mundi_escape } : { kind: 'user' };
+    if (m.is_user) return { kind: 'user', ...(m.extra?.mundi_escape ? { escape: m.extra.mundi_escape } : {}), ...(m.extra?.mundi_act ? { act: m.extra.mundi_act } : {}) };
     // the hidden narrator (scenes where you are alone) fills in the block too; its other lines (an epilogue) do not count
     if (isNarrator(m)) { const k = keptOf(m); return k ? { kind: 'ai', rep: k.rep, dismissed: dismissedOf(m) } : { kind: 'other' }; }
     if (m.is_system || m.extra?.mundi) return { kind: 'other' };   // Mundi's own lines (a greeting when you meet someone)
@@ -78,7 +86,9 @@ export function walkOns(g: Save, w: WorldDef, s: PState = currentState(g), withG
     const known = Object.values(g.cast).flatMap(r => { const n = r.name.toLowerCase(); return [n, n.split(/\s+/)[0]]; });
     const me = personaName().toLowerCase();
     void w;
-    return s.present.filter(p => {
+    const all = [...s.present];
+    for (const x of psHooks.present()) if (!all.some(p => p.toLowerCase() === x.toLowerCase())) all.push(x);
+    return all.filter(p => {
         const n = p.toLowerCase().replace(/^(the|a|an)\s+/, '');
         if (n === me || n === me.split(/\s+/)[0]) return false;
         return !known.some(k => k && (n === k || n.split(/\s+/)[0] === k)) && (withGone || !nameGone(g, p));
@@ -102,7 +112,7 @@ export function setDirective(text: string) {
 export const pendingDirective = () => directive;
 export function stateInstruction(g: Save, w: WorldDef, skipLast = false): string {
     const s = currentState(g, skipLast);
-    return instructionText(s, walkOns(g, w, s));
+    return instructionText(s, walkOns(g, w, s), { crimes: psHooks.crimes() });
 }
 // In the chat, after the last line (depth 0), where models follow a format best.
 export function refreshPState(skipLast = false) {
@@ -147,6 +157,7 @@ export function onReply(id: number) {
         if (psPrefs().check) checks.add(id);
     }
     refreshPState();
+    replied();
 }
 // A reply came without a block: one short AI call fills it in (only for the newest reply, after everyone spoke).
 let checking = false;
@@ -168,7 +179,7 @@ export async function runChecks() {
         // the reply is still the same one (not swiped or edited meanwhile)
         if (rep && chat()[last] === m && String(m.mes ?? '') === text) {
             keep(m, rep, 'check');
-            syncSwipe(m); saveChat(); refreshPState(); notify();
+            syncSwipe(m); saveChat(); refreshPState(); notify(); replied();
         }
     } catch (e) { console.warn('[Mundi] state check', e); }
     checking = false;
@@ -201,6 +212,7 @@ export function keepNarration(id: number, rep: Reported | null) {
     const m = chat()[id]; if (!m || !isNarrator(m)) return;
     keep(m, rep, 'block'); saveChat(); refreshPState();
     if (rep?.changes?.length) afterChanges();
+    replied();
 }
 // Someone died, left, was taken…: who is in the scene changes now (muted in the group, gone from the picture,
 // and the scene's prompt says so).
@@ -224,7 +236,7 @@ export function dismissOutcome(id: number) {
 export function narratorExtra(): string {
     const g = game(); const w = g && getWorld(g.world);
     if (!psOn() || !g || !w) return '';
-    return [directive, stateInstruction(g, w)].filter(Boolean).join('\n');
+    return [directive, ...psHooks.directives.map(f => f()), stateInstruction(g, w)].filter(Boolean).join('\n');
 }
 /** The narrator's answer, without its block, and what the block said. */
 export function splitNarration(text: string): { text: string; rep: Reported | null } {
