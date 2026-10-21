@@ -2,7 +2,7 @@
 // reads it (or, for a lorebook, a quick look without AI), you tick who to keep and fix names, Mundi makes the cards.
 import { notify, toast, esc } from '../core/store.js';
 import { cardSource, lorebookSource, extract, guessPeople, makeCards, lastRead } from '../sim/extract.js';
-import { emptyWhy, gaveUpWhy, stopReading } from '../sim/reading.js';
+import { emptyWhy, gaveUpText, stopReading } from '../sim/reading.js';
 import { readingClock, readingHtml } from './setupui.js';
 import { icon } from './icons.js';
 import { ACT, INPUT } from './reg.js';
@@ -49,7 +49,7 @@ async function read(ai) {
         EX.found = await extract(src, (i, n) => { EX.busy = i < n ? `Reading part ${i + 1} of ${n}…` : 'Done.'; notify(); });
         EX.skipped = [...new Set(lastRead.skipped)];
         if (lastRead.gaveUp)
-            toast(gaveUpWhy, 'warn', { ms: 15000 });
+            toast(gaveUpText(lastRead.error), 'warn', { ms: 15000 });
         else if (lastRead.stopped)
             toast(`Stopped after ${lastRead.stopped}: ${EX.found.length ? 'here is who was found by then' : 'nobody was found by then'}.`, 'info', { ms: 8000 });
         else if (lastRead.failed)

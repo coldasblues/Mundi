@@ -7,6 +7,7 @@ import { charOf, loadLore, chatLore } from '../st/bridge.js';
 import { askPart, reading, startReading, endReading, titlesOf } from './reading.js';
 import { hs, resolvePlace, actsOf } from './hostile.js';
 import type { StoryLaw } from './judge.js';
+import type { Think } from '../st/bridge.js';
 
 export interface PlanPerson { key: string; avatar: string; name: string; kind: string; law: boolean; group: string; keep: boolean }
 export interface PlanGroup { name: string; base: string; baseText: string; keep: boolean }
@@ -19,7 +20,7 @@ export interface Plan {
      * Pieces the AI gave nothing for (`failed`, `skipped`), out of all it was asked (`total`), and the last error;
      * `stopped`: where Stop was pressed (`unread`: what was left); `gaveUp`: the first pieces all came back empty.
      */
-    issues: { failed: number; total: number; error: string; skipped: Piece[]; unread: Piece[]; stopped?: string; gaveUp?: boolean };
+    issues: { failed: number; total: number; error: string; skipped: Piece[]; unread: Piece[]; stopped?: string; gaveUp?: boolean; think?: Think; stepped?: boolean };
 }
 
 const clean = (t: unknown) => String(t ?? '').replace(/\r/g, '').trim();
@@ -143,6 +144,7 @@ async function read(g: Save, w: WorldDef, progress: (t: string) => void): Promis
         }
     }
     if (reading.gaveUp) plan.issues.gaveUp = true;
+    Object.assign(plan.issues, { think: reading.think, stepped: reading.stepped });
     progress('');
     return plan;
 }
@@ -169,6 +171,7 @@ export async function readAgain(g: Save, w: WorldDef, plan: Plan, progress: (t: 
         }
         plan.issues.failed = plan.issues.skipped.length;
         if (reading.gaveUp) plan.issues.gaveUp = true;
+        Object.assign(plan.issues, { think: reading.think, stepped: plan.issues.stepped || reading.stepped });
         progress('');
     } finally { endReading(); }
 }

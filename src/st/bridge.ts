@@ -405,20 +405,34 @@ export async function quiet(prompt: string, responseLength = 300, systemPrompt =
     return ask(Math.min(Math.max(responseLength * 2, 3000), 4000));   // one more try, with more room (models that think first)
 }
 
+/** How much a chat-completion model may think during a call: 0 not at all, 1 a little, 2 as you have it set. */
+export type Think = 0 | 1 | 2;
 /**
- * Runs `fn` with a chat-completion model's thinking turned down to the least it allows (SillyTavern's reasoning
- * effort "Minimum" with "Request model reasoning" off: no thinking at all on OpenRouter, low on Claude, none on
- * Gemini). For listing calls that don't need it: a thinking model (GLM, DeepSeek R1…) otherwise spends the whole
+ * Runs `fn` with a chat-completion model's thinking set to `level`. 0 is SillyTavern's reasoning effort "Minimum" with
+ * "Request model reasoning" off: no thinking at all on OpenRouter, low on Claude, none on Gemini. 1 is "Low" with
+ * reasoning off. For listing calls that don't need it: a thinking model (GLM, DeepSeek R1…) otherwise spends the whole
  * answer on thinking and gives nothing back. The settings are put back afterwards and never saved; SillyTavern does
  * the same for a call's response length.
  */
-export async function withoutThinking<T>(fn: () => Promise<T>): Promise<T> {
+export async function withThinking<T>(level: Think, fn: () => Promise<T>): Promise<T> {
     const c = ctx(); const s = c?.chatCompletionSettings;
-    if (c?.mainApi !== 'openai' || !s || typeof s !== 'object') return fn();
+    if (level === 2 || c?.mainApi !== 'openai' || !s || typeof s !== 'object') return fn();
+    const set = level === 0 ? 'min' : 'low';
     const was = { reasoning_effort: s.reasoning_effort, show_thoughts: s.show_thoughts };
-    s.reasoning_effort = 'min'; s.show_thoughts = false;
+    s.reasoning_effort = set; s.show_thoughts = false;
     try { return await fn(); }
-    finally { if (s.reasoning_effort === 'min' && s.show_thoughts === false) Object.assign(s, was); }
+    finally { if (s.reasoning_effort === set && s.show_thoughts === false) Object.assign(s, was); }
+}
+/** The model in use, as a key ("openrouter:z-ai/glm-5.3"), to remember what works with it. */
+export function modelKey(): string {
+    try { const c = ctx(); return c.mainApi === 'openai' ? `${c.chatCompletionSettings?.chat_completion_source}:${c.getChatCompletionModel?.() ?? ''}` : String(c.mainApi ?? ''); }
+    catch { return ''; }
+}
+/** One quiet call, no retry (the caller decides what to do with an empty answer). */
+export async function quietOnce(prompt: string, responseLength: number, systemPrompt = ''): Promise<string> {
+    const out = String(await ctx().generateRaw({ prompt, systemPrompt, responseLength }) ?? '').replace(/<(think|thinking|reasoning)>[\s\S]*?<\/\1>/gi, '').trim();
+    if (!out) throw new Error('No message generated');
+    return out;
 }
 
 /** Cancels a quiet call in progress (SillyTavern's stop: raw generations listen for it). */

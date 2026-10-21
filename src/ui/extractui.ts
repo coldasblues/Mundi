@@ -2,7 +2,7 @@
 // reads it (or, for a lorebook, a quick look without AI), you tick who to keep and fix names, Mundi makes the cards.
 import { notify, toast, esc } from '../core/store.js';
 import { cardSource, lorebookSource, extract, guessPeople, makeCards, lastRead, type Found, type Source } from '../sim/extract.js';
-import { emptyWhy, gaveUpWhy, stopReading } from '../sim/reading.js';
+import { emptyWhy, gaveUpText, stopReading } from '../sim/reading.js';
 import { readingClock, readingHtml } from './setupui.js';
 import { icon } from './icons.js';
 import { ACT, INPUT } from './reg.js';
@@ -32,7 +32,7 @@ async function read(ai: boolean) {
     try {
         EX.found = await extract(src, (i, n) => { EX.busy = i < n ? `Reading part ${i + 1} of ${n}…` : 'Done.'; notify(); });
         EX.skipped = [...new Set(lastRead.skipped)];
-        if (lastRead.gaveUp) toast(gaveUpWhy, 'warn', { ms: 15000 });
+        if (lastRead.gaveUp) toast(gaveUpText(lastRead.error), 'warn', { ms: 15000 });
         else if (lastRead.stopped) toast(`Stopped after ${lastRead.stopped}: ${EX.found.length ? 'here is who was found by then' : 'nobody was found by then'}.`, 'info', { ms: 8000 });
         else if (lastRead.failed) toast(`The AI gave nothing back for ${lastRead.failed} of ${lastRead.total} part${lastRead.total === 1 ? '' : 's'}${lastRead.failed < lastRead.total ? ' (skipped; the rest was read)' : ''}. ${emptyWhy}`, 'warn', { ms: 12000 });
         else if (!EX.found.length && !lastRead.stopped) toast('The AI found nobody in it.', 'info');

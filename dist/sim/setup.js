@@ -162,6 +162,7 @@ async function read(g, w, progress) {
     }
     if (reading.gaveUp)
         plan.issues.gaveUp = true;
+    Object.assign(plan.issues, { think: reading.think, stepped: reading.stepped });
     progress('');
     return plan;
 }
@@ -193,6 +194,7 @@ export async function readAgain(g, w, plan, progress = () => { }) {
         plan.issues.failed = plan.issues.skipped.length;
         if (reading.gaveUp)
             plan.issues.gaveUp = true;
+        Object.assign(plan.issues, { think: reading.think, stepped: plan.issues.stepped || reading.stepped });
         progress('');
     }
     finally {

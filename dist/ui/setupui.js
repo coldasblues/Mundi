@@ -3,7 +3,7 @@
 import { game, notify, toast, esc } from '../core/store.js';
 import { getWorld } from '../core/world.js';
 import { readLore, readAgain, applyPlan } from '../sim/setup.js';
-import { emptyWhy, gaveUpWhy, reading, stopReading, clock, limitText } from '../sim/reading.js';
+import { emptyWhy, gaveUpText, thinkText, reading, stopReading, clock, limitText } from '../sim/reading.js';
 import { actsOf } from '../sim/hostile.js';
 import { icon } from './icons.js';
 import { ACT, INPUT } from './reg.js';
@@ -85,10 +85,17 @@ function lawText(w, l) {
     const acts = l.allows.map(a => actsOf(w).find(d => d.id === a)?.name.toLowerCase() ?? a).join(', ');
     return `${l.who.length ? l.who.join(' or ') : 'Anyone'} may ${acts} ${l.about.join(' or ')}${l.handTo ? `, and hand them to ${l.handTo}${l.reward ? ` (+${l.reward})` : ''}` : ''}${l.counts === 'minor' ? ' (a minor offense)' : ''}.${l.objectors?.length ? ` ${l.objectors.join(', ')} disapprove.` : ''}${l.note ? ` ${l.note}` : ''}`;
 }
+/** Which thinking the model read with, when it was not "none". */
+function thinkHtml(p) {
+    const t = p.issues.think ?? 0;
+    if (!t || p.issues.gaveUp)
+        return '';
+    return `<p class="mu-muted mu-su-think">${p.issues.stepped ? `This model would not read with its thinking turned off, so it read with ${esc(thinkText(t))} and more room to answer. Mundi remembers that for this model.` : `This model reads with ${esc(thinkText(t))} and more room to answer (remembered from an earlier reading).`}</p>`;
+}
 function issuesHtml(p, nothing = false) {
     const i = p.issues;
     if (i.gaveUp)
-        return `<p class="mu-su-warn">${icon('alert')}<span>${esc(gaveUpWhy)}${i.error && !/no message generated/i.test(i.error) ? ` (${esc(i.error.slice(0, 160))})` : ''}</span></p>${skippedHtml(p)}`;
+        return `<p class="mu-su-warn">${icon('alert')}<span>${esc(gaveUpText(i.error))}</span></p>${skippedHtml(p)}`;
     const stop = i.stopped ? `<p class="mu-su-warn">${icon('pause')}<span>You stopped it after ${esc(i.stopped)}.${nothing ? '' : ' Below is what was read by then: apply it, or continue reading first.'}</span></p>` : '';
     if (!i.failed)
         return stop;
@@ -100,7 +107,7 @@ function planHtml(g, w, p) {
     const nothing = !p.people.length && !p.groups.length && !p.laws.length && !p.police && !p.notPeople.length;
     if (nothing)
         return `${issuesHtml(p, true)}<p class="mu-muted">${p.issues.gaveUp ? 'Nothing was read.' : p.issues.stopped ? 'Nothing was found before you stopped it.' : p.issues.total && p.issues.failed === p.issues.total ? 'Nothing could be read.' : 'The AI found nothing to set up in the lore: no groups, laws or people it could classify.'}</p><div class="mu-row">${againButton(p, true) || '<button data-act="su-open">Try again</button>'}<button data-act="su-close">Close</button></div>`;
-    return `${issuesHtml(p)}
+    return `${issuesHtml(p)}${thinkHtml(p)}
         ${p.police ? `<section><h4>The law</h4><label class="mu-check"><input type="checkbox" data-input="su-keep" data-k="police" ${p.police.keep ? 'checked' : ''}><span>${p.police.exists ? `There is law here: <b>${esc(p.police.name || 'yes')}</b>` : '<b>No law</b>: no police, nobody comes'}</span></label></section>` : ''}
         ${p.laws.length ? `<section><h4>Laws of this world</h4>${p.laws.map((l, i) => `<label class="mu-check"><input type="checkbox" data-input="su-keep" data-k="law" data-i="${i}" ${l.keep ? 'checked' : ''}><span><b>${esc(l.name)}</b><small>${esc(lawText(w, l))}</small></span></label>`).join('')}</section>` : ''}
         ${p.groups.length ? `<section><h4>Groups</h4>${p.groups.map((x, i) => `<div class="mu-su-row"><label class="mu-check"><input type="checkbox" data-input="su-keep" data-k="group" data-i="${i}" ${x.keep ? 'checked' : ''}><span><b>${esc(x.name)}</b>${x.baseText ? `<small>based: ${esc(x.baseText)}</small>` : ''}</span></label>

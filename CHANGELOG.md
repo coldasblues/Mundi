@@ -2,6 +2,20 @@
 
 This is a fork of [tjalis/Mundi](https://github.com/tjalis/Mundi) (AGPL-3.0). Changes made in this fork are listed here, with their dates, as the license asks.
 
+## 0.1.0-ps.14 — 2026-10-21
+
+GLM 5.3 on OpenRouter refused "no thinking"; now Mundi steps the thinking up for models like that.
+
+### Fixed
+
+- **"Bad Request" on every part with GLM 5.3** (OpenRouter). Some models won't let their thinking be turned off and refuse the request instead (SillyTavern shows "API returned an error · Bad Request"). Kimi K3 accepts it. Mundi now steps up until the model accepts:
+  - no thinking;
+  - then a little thinking ("Low", with reasoning not requested back);
+  - then the model's own settings.
+  When the model is allowed to think, it gets room for it: at least 8,000 tokens, and twice that on an empty answer.
+- **What works is remembered for each model** in this browser, so the refusals happen once. The review says which level was used.
+- A refused request is no longer split in two, since a smaller piece is refused just the same. If every request is refused even with the model's own settings, it stops and says the provider's reason is in the SillyTavern server window.
+
 ## 0.1.0-ps.13 — 2026-10-21
 
 Which parts were skipped, by name, and reading just those again.
