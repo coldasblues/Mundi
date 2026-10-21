@@ -6,7 +6,7 @@
 //   - a world without law (The Walking Dead): nobody comes; the victim's group holds a grudge and comes for you.
 //   - always: the people who saw it remember it (and the town talks), and it changes how they feel about you.
 // The same goes for the AI's characters: a crime the story reports ("crimes:" in the state block) is followed up too.
-import { game, settings, saveGame, nowAbs, TUT, type Save, type Resident } from '../core/store.js';
+import { game, settings, saveGame, nowAbs, TUT, state, type Save, type Resident } from '../core/store.js';
 import { getWorld, styleOf, type WorldDef } from '../core/world.js';
 import { chat, ctx, narratorLine, personaName, saveChat } from '../st/bridge.js';
 import { presentAt, peopleHooks } from './people.js';
@@ -22,7 +22,7 @@ import { payOf } from './bills.js';
 import type { Mobility } from './pstate.js';
 import {
     DEFAULT_ACTS, SEVERITY, CRIME_WORD, worst, blockedFor, dcFor, chanceFor, crowdLevel, crowdSees, noticeChance, reportChance,
-    responseMinutes, LAW_ROLES_MODERN, LAW_ROLES_MEDIEVAL, isLawName, decide, fillIn,
+    responseMinutes, LAW_ROLES_MODERN, LAW_ROLES_MEDIEVAL, LAW_JOBS, isLawName, decide, fillIn,
     type Crime, type HostileDef, type TargetState, type Decided,
 } from './hostile-rules.js';
 
@@ -77,7 +77,8 @@ export function lawOf(g: Save, w: WorldDef, worldOnly = false): Law {
         exists: wl.exists ?? true,
         name: wl.name ?? (medieval ? 'the city watch' : 'the police'),
         roles,
-        occupations: wl.occupations ?? w.occupations.filter(o => isLawName(o.name, roles) || /police|guard|watch|sheriff|security|constable/i.test(o.id)).map(o => o.id),
+        // the world's police or guard jobs, by whole words ("Lifeguard" is not the law)
+        occupations: wl.occupations ?? w.occupations.filter(o => isLawName(o.name, LAW_JOBS) || o.id.toLowerCase().split(/[^a-z]+/).some(x => LAW_JOB_WORDS.includes(x))).map(o => o.id),
         slow: wl.slow ?? medieval,
         walkOn: wl.walkOn ?? (medieval ? 'a town guard' : 'a police officer'),
     };
@@ -95,6 +96,8 @@ export const isLawKey = (g: Save, w: WorldDef, key: string, name: string) => {
     if (key.startsWith('cast:')) { const r = g.cast[key.slice(5)]; return !!r && isLawCast(g, law, r); }
     return isLawName(name, law.roles);
 };
+
+const LAW_JOB_WORDS = ['police', 'policeman', 'policewoman', 'cop', 'guard', 'guardsman', 'watch', 'watchman', 'sheriff', 'deputy', 'security', 'constable', 'bailiff', 'marshal', 'detective'];
 
 /* ---------- who is here ---------- */
 
@@ -432,14 +435,17 @@ export function onArrive(g: Save, w: WorldDef) {
 /** What is waiting to happen is told now: a short line in the scene, and the state the engine decided. */
 let flushing = false;
 export async function flushEvents() {
-    const g = game(); if (!g || flushing || !hs(g).queue.length || !hxOn()) return;
+    const g = game(); if (!g || flushing || !hs(g).queue.length || !psOn()) return;
+    // not in the middle of someone's reply: once they are done
+    if (state.generating) { setTimeout(() => { void flushEvents(); }, 1500); return; }
     flushing = true;
     try {
         const list = hs(g).queue.splice(0); saveGame();
         for (const ev of list) {
             await narratorLine(ev.text);
             const i = chat().length - 1;
-            keepNarration(i, { present: ev.present.length ? [...new Set([...currentState(g).present, ...ev.present])] : undefined, ...(ev.mobility ? { mobility: ev.mobility, reason: ev.reason?.replace(/\{\{user\}\}/g, personaName()) } : {}), ...(ev.captor ? { captor: ev.captor } : {}) });
+            // a line that changes your situation (the police arrive) carries it; a plain one (someone left) is just said
+            if (ev.present.length || ev.mobility || ev.captor) keepNarration(i, { present: ev.present.length ? [...new Set([...currentState(g).present, ...ev.present])] : undefined, ...(ev.mobility ? { mobility: ev.mobility, reason: ev.reason?.replace(/\{\{user\}\}/g, personaName()) } : {}), ...(ev.captor ? { captor: ev.captor } : {}) });
             pushDirective(ev.directive);
         }
     } catch (e) { console.warn('[Mundi] hostile events', e); }

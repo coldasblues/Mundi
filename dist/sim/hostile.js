@@ -6,7 +6,7 @@
 //   - a world without law (The Walking Dead): nobody comes; the victim's group holds a grudge and comes for you.
 //   - always: the people who saw it remember it (and the town talks), and it changes how they feel about you.
 // The same goes for the AI's characters: a crime the story reports ("crimes:" in the state block) is followed up too.
-import { game, settings, saveGame, nowAbs, TUT } from '../core/store.js';
+import { game, settings, saveGame, nowAbs, TUT, state } from '../core/store.js';
 import { getWorld, styleOf } from '../core/world.js';
 import { chat, ctx, narratorLine, personaName, saveChat } from '../st/bridge.js';
 import { presentAt, peopleHooks } from './people.js';
@@ -19,7 +19,7 @@ import { onStep, onHour, onDay } from './hooks.js';
 import { keyFor, applyNow, rosterHooks, statusOf, pendingChanges } from './roster.js';
 import { currentState, walkOns, psOn, psHooks, visitLines, keepNarration, refreshPState, seenWalkOns } from './pstate-live.js';
 import { payOf } from './bills.js';
-import { DEFAULT_ACTS, SEVERITY, CRIME_WORD, worst, blockedFor, dcFor, chanceFor, crowdLevel, crowdSees, noticeChance, reportChance, responseMinutes, LAW_ROLES_MODERN, LAW_ROLES_MEDIEVAL, isLawName, decide, fillIn, } from './hostile-rules.js';
+import { DEFAULT_ACTS, SEVERITY, CRIME_WORD, worst, blockedFor, dcFor, chanceFor, crowdLevel, crowdSees, noticeChance, reportChance, responseMinutes, LAW_ROLES_MODERN, LAW_ROLES_MEDIEVAL, LAW_JOBS, isLawName, decide, fillIn, } from './hostile-rules.js';
 export function hs(g) {
     const x = (g.hostile ??= {});
     x.captives ??= {};
@@ -47,7 +47,8 @@ export function lawOf(g, w, worldOnly = false) {
         exists: wl.exists ?? true,
         name: wl.name ?? (medieval ? 'the city watch' : 'the police'),
         roles,
-        occupations: wl.occupations ?? w.occupations.filter(o => isLawName(o.name, roles) || /police|guard|watch|sheriff|security|constable/i.test(o.id)).map(o => o.id),
+        // the world's police or guard jobs, by whole words ("Lifeguard" is not the law)
+        occupations: wl.occupations ?? w.occupations.filter(o => isLawName(o.name, LAW_JOBS) || o.id.toLowerCase().split(/[^a-z]+/).some(x => LAW_JOB_WORDS.includes(x))).map(o => o.id),
         slow: wl.slow ?? medieval,
         walkOn: wl.walkOn ?? (medieval ? 'a town guard' : 'a police officer'),
     };
@@ -73,6 +74,7 @@ export const isLawKey = (g, w, key, name) => {
     }
     return isLawName(name, law.roles);
 };
+const LAW_JOB_WORDS = ['police', 'policeman', 'policewoman', 'cop', 'guard', 'guardsman', 'watch', 'watchman', 'sheriff', 'deputy', 'security', 'constable', 'bailiff', 'marshal', 'detective'];
 export function groupOf(g, key) { return Object.values(hs(g).groups).find(x => x.members.includes(key)); }
 export function peopleHere(g, w) {
     const st = hs(g);
@@ -462,8 +464,13 @@ export function onArrive(g, w) {
 let flushing = false;
 export async function flushEvents() {
     const g = game();
-    if (!g || flushing || !hs(g).queue.length || !hxOn())
+    if (!g || flushing || !hs(g).queue.length || !psOn())
         return;
+    // not in the middle of someone's reply: once they are done
+    if (state.generating) {
+        setTimeout(() => { void flushEvents(); }, 1500);
+        return;
+    }
     flushing = true;
     try {
         const list = hs(g).queue.splice(0);
@@ -471,7 +478,9 @@ export async function flushEvents() {
         for (const ev of list) {
             await narratorLine(ev.text);
             const i = chat().length - 1;
-            keepNarration(i, { present: ev.present.length ? [...new Set([...currentState(g).present, ...ev.present])] : undefined, ...(ev.mobility ? { mobility: ev.mobility, reason: ev.reason?.replace(/\{\{user\}\}/g, personaName()) } : {}), ...(ev.captor ? { captor: ev.captor } : {}) });
+            // a line that changes your situation (the police arrive) carries it; a plain one (someone left) is just said
+            if (ev.present.length || ev.mobility || ev.captor)
+                keepNarration(i, { present: ev.present.length ? [...new Set([...currentState(g).present, ...ev.present])] : undefined, ...(ev.mobility ? { mobility: ev.mobility, reason: ev.reason?.replace(/\{\{user\}\}/g, personaName()) } : {}), ...(ev.captor ? { captor: ev.captor } : {}) });
             pushDirective(ev.directive);
         }
     }

@@ -100,7 +100,9 @@ export function reportChance(crime, friend = false) {
 /** Minutes until the law arrives after a call (a city's police; slower in a world without phones). */
 export const responseMinutes = (rnd, slow = false) => Math.round((slow ? 25 : 10) + rnd * (slow ? 50 : 20));
 /* ---------- who the law is ---------- */
-export const LAW_ROLES_MODERN = ['police', 'police officer', 'officer', 'cop', 'detective', 'deputy', 'sheriff', 'trooper', 'patrolman', 'patrolwoman', 'security guard', 'security', 'agent', 'constable', 'sergeant', 'inspector', 'lieutenant'];
+export const LAW_ROLES_MODERN = ['police', 'police officer', 'officer', 'cop', 'detective', 'deputy', 'sheriff', 'trooper', 'patrolman', 'patrolwoman', 'security guard', 'security', 'fbi agent', 'federal agent', 'special agent', 'constable', 'sergeant', 'inspector', 'lieutenant', 'marshal'];
+/** For a world's jobs: only plainly police or guard work (a "Station agent" or a "Loan officer" is not the law). */
+export const LAW_JOBS = ['police', 'police officer', 'policeman', 'policewoman', 'cop', 'detective', 'deputy', 'sheriff', 'trooper', 'security guard', 'guard', 'guardsman', 'watchman', 'city watch', 'constable', 'bailiff', 'marshal'];
 export const LAW_ROLES_MEDIEVAL = ['guard', 'guardsman', 'watchman', 'the watch', 'city watch', 'soldier', 'knight', 'constable', 'sheriff', 'bailiff', 'reeve', 'sergeant', 'captain of the guard'];
 /** A name like "Officer Diaz", "the police officer", "a security guard": is it the law? */
 export function isLawName(name, roles) {

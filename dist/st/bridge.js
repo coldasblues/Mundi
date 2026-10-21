@@ -40,7 +40,7 @@ export async function createCharacter(card, avatar) {
     form.append('personality', card.personality ?? '');
     form.append('scenario', card.scenario ?? '');
     form.append('first_mes', card.first_mes ?? '');
-    form.append('mes_example', '');
+    form.append('mes_example', card.mes_example ?? '');
     form.append('creator', 'Mundi');
     form.append('creator_notes', 'Created by Mundi.');
     form.append('tags', (card.tags ?? []).join(','));

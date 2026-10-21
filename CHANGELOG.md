@@ -2,6 +2,35 @@
 
 This is a fork of [tjalis/Mundi](https://github.com/tjalis/Mundi) (AGPL-3.0). Changes made in this fork are listed here, with their dates, as the license asks.
 
+## 0.1.0-ps.7 — 2026-10-21
+
+Characters out of lorebooks and ensemble cards, and the narrator says who leaves or walks in.
+
+### Added
+
+- **Find the characters** in a lorebook, or **Split into characters** for a card with several people in it (a world card, a narrator card, an ensemble). It's in Mundi's Library, on the lorebook or the card.
+  - **The AI reads it** part by part and lists the people in it: their name and other names, age, look, personality, background, relationships, how they talk, and a first line. Places, items, factions and rules are left out. The same person found in several parts is merged into one.
+  - For a lorebook, there is also a **Quick look (no AI)**: the entries named like a person that read like a person.
+  - **You choose:** tick who to keep, fix a name, open one to read what was found.
+    - People you already have a card for are not ticked.
+    - People the text says are underage are not ticked, and if you make them anyway their card is marked so Mundi keeps them out of any romance or matchmaking.
+  - **Mundi makes a card for each one:**
+    - in a folder named after the source, so a new game's cast step can take them all at once;
+    - the source's lorebook linked, so they keep their world's lore (can be turned off);
+    - a picture with their initials, or the source card's picture;
+    - their way of talking as example dialogue.
+  - The source card and lorebook are not changed.
+- **The narrator says who leaves and who walks in.** When someone's day takes them away in the middle of a scene ("Mona has to go: off to work."), when a friend's time with you is up, or when someone walks in, one line in the scene says so. The narrator's line is part of the chat the AI reads, so in a long scene it stops writing in people who left. It says nothing when the story already told it (someone left in a reply, died, or left with someone after you introduced them).
+
+### Fixed
+
+- Rough stuff: a "Station agent" or a "Lifeguard" no longer counts as the law. Only plainly police or guard jobs do.
+
+### Files
+
+- New: `src/sim/extract.ts` (reading a lorebook or a card, the AI's list, merging, the quick look, making the cards), `src/ui/extractui.ts`, `src/sim/presence.ts` (who left or came in), `css/93-extract.css`.
+- Touched: `src/st/bridge.ts` (a card's example dialogue), `src/sim/family.ts` (a card marked underage is never in a romance), `src/sim/game.ts`, `src/sim/hostile.ts`, `src/sim/hostile-rules.ts`, `src/ui/library.ts`, `manifest.json`, `README.md`.
+
 ## 0.1.0-ps.6 — 2026-10-21
 
 Love between the characters, with you as the matchmaker, and conversations with just a few of the people here.

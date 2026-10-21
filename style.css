@@ -2900,6 +2900,27 @@ body.mundi-open #toast-container { display: none !important; }
 #mundi-root .mu-mm-who small { grid-column: 2; color: var(--hud-muted, var(--muted)); font-size: 11px; }
 /* the card reads over a busy scene (the chat showed through it) */
 #mundi-root .mu-pcard.mh-glass, #mundi-root .mu-pcard { background: linear-gradient(160deg, rgba(255, 255, 255, .1), rgba(255, 255, 255, .02) 45%), linear-gradient(var(--glass-strong), var(--glass-strong)), rgba(8, 10, 16, .6) !important; }
+/* Finding the characters in a lorebook or a card. */
+#mundi-root .mu-ex-btn { justify-self: start; display: inline-flex; align-items: center; gap: 8px; margin: 4px 0 10px; }
+#mundi-root .mu-ex { width: min(680px, calc(100% - 24px)); max-height: min(88vh, 820px); overflow: auto; display: grid; gap: 10px; }
+#mundi-root .mu-ex-top { display: flex; align-items: center; justify-content: space-between; }
+#mundi-root .mu-ex-top h3 { display: inline-flex; align-items: center; gap: 8px; }
+#mundi-root .mu-ex-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; max-height: 46vh; overflow: auto; }
+#mundi-root .mu-ex-p { display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; padding: 8px 10px; border-radius: 14px; background: rgba(255, 255, 255, .05); border: 1px solid rgba(255, 255, 255, .1); }
+#mundi-root .mu-ex-p.is-on { border-color: color-mix(in srgb, var(--accent) 55%, transparent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
+#mundi-root .mu-ex-head { display: flex; align-items: center; gap: 8px; min-width: 0; }
+#mundi-root .mu-ex-name { flex: 1; min-width: 0; font-weight: 700; background: transparent; border: 1px solid transparent; padding: 3px 6px; border-radius: 8px; }
+#mundi-root .mu-ex-name:focus, #mundi-root .mu-ex-name:hover { border-color: rgba(255, 255, 255, .2); }
+#mundi-root .mu-ex-more { padding: 3px 10px !important; font-size: 12px; }
+#mundi-root .mu-ex-tags, #mundi-root .mu-ex-sum, #mundi-root .mu-ex-dl { grid-column: 1 / -1; margin: 0; }
+#mundi-root .mu-ex-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+#mundi-root .mu-ex-tags em { font-style: normal; font-size: 11px; padding: 1px 8px; border-radius: 999px; background: color-mix(in srgb, var(--warn) 22%, transparent); }
+#mundi-root .mu-ex-sum { font-size: 12px; color: var(--hud-muted, var(--muted)); }
+#mundi-root .mu-ex-dl { display: grid; grid-template-columns: 120px 1fr; gap: 4px 10px; font-size: 12px; }
+#mundi-root .mu-ex-dl dt { color: var(--hud-muted, var(--muted)); }
+#mundi-root .mu-ex-dl dd { margin: 0; white-space: pre-wrap; }
+#mundi-root .mu-ex-done { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--good); }
+@media (max-width: 600px) { #mundi-root .mu-ex-dl { grid-template-columns: 1fr; } }
 /* ==========================================================================
    Phones, upright (#mundi-root[data-mobile], set in app.ts).
    The game HUD stacks in rows at the top, the dialogue box fills the bottom, and the panels become full-screen sheets.

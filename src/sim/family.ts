@@ -9,6 +9,7 @@ import { romOf } from './romance.js';
 import { bump } from './social.js';
 import { setTie, liveTogether, ties } from './living.js';
 import { playerHomeId } from './places.js';
+import { charOf } from '../st/bridge.js';
 
 export const PREGNANCY_DAYS = 10;
 export const BIRTHDAY_EVERY = 7;
@@ -34,11 +35,15 @@ export const family = (g: Save): Family => {
 export const kidOf = (g: Save, avatar: string) => family(g).kids.find(k => k.avatar === avatar) ?? null;
 export const stageOf = (k: Kid) => STAGES[Math.min(k.stage, STAGES.length - 1)];
 // Children (anyone below the adult stage) are never part of any romance.
-export const isMinor = (g: Save, avatar: string) => { const k = kidOf(g, avatar); return !!k && stageOf(k).id !== 'adult'; };
+export const isMinor = (g: Save, avatar: string) => {
+    const k = kidOf(g, avatar);
+    if (k) return stageOf(k).id !== 'adult';
+    return !!charOf(avatar)?.data?.extensions?.mundi?.minor;   // a card marked underage (characters taken out of a lorebook)
+};
 
 // No romance at all with your own children (at any age), your parents or siblings, or any minor.
 export function romanceBlocked(g: Save, avatar: string) {
-    if (kidOf(g, avatar)) return true;
+    if (kidOf(g, avatar) || isMinor(g, avatar)) return true;
     return ties(g).some(t => ((t.a === '__you' && t.b === avatar) || (t.b === '__you' && t.a === avatar)) && (t.type === 'parent' || t.type === 'child' || t.type === 'sibling'));
 }
 

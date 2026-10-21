@@ -37,7 +37,7 @@ export const avatarUrl = (avatar: string) => (avatar?.startsWith('__tut:') ? tut
 export const me = () => ctx().name1 || 'You';
 
 export interface NewCard {
-    name: string; description: string; first_mes?: string; personality?: string; scenario?: string;
+    name: string; description: string; first_mes?: string; personality?: string; scenario?: string; mes_example?: string;
     tags?: string[]; extensions?: Record<string, unknown>; file?: string;
 }
 
@@ -49,7 +49,7 @@ export async function createCharacter(card: NewCard, avatar?: Blob): Promise<str
     form.append('personality', card.personality ?? '');
     form.append('scenario', card.scenario ?? '');
     form.append('first_mes', card.first_mes ?? '');
-    form.append('mes_example', '');
+    form.append('mes_example', card.mes_example ?? '');
     form.append('creator', 'Mundi');
     form.append('creator_notes', 'Created by Mundi.');
     form.append('tags', (card.tags ?? []).join(','));

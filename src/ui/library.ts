@@ -24,6 +24,7 @@ import { nativeHost } from './native.js';
 
 const L = state.lib;
 import { spritePackHtml, spritePackOpen } from './spritepack.js';
+import { extractButton, extractHtml } from './extractui.js';
 type Tab = 'characters' | 'personas' | 'lorebooks' | 'backgrounds' | 'save' | 'world' | 'st-characters' | 'st-personas' | 'st-worldinfo';
 type ListTab = 'characters' | 'personas' | 'lorebooks' | 'backgrounds';
 const TABS: [Tab, string][] = [['characters', 'Characters'], ['personas', 'Personas'], ['lorebooks', 'Lorebooks'], ['backgrounds', 'Backgrounds']];   // the save's and the world's settings live in the game (the globe button)
@@ -155,7 +156,7 @@ function charDetail(avatar: string) {
     const head = headHtml('characters', avatar, c.name, thumb(avatar), avatar, isMundiCard(c) ? '<span class="mu-tag">Mundi</span>' : '');
     const bar = actionBar({ dup: 'lib-dup', expr: true, del: 'lib-del-one' });
     if (c.shallow) return `${head}<p class="mu-muted">Loading the card…</p>`;
-    if (!L.edit) return `${head}${charToolsHtml(avatar)}${read('Description', c.description)}${read('Personality', c.personality)}${read('Scenario', c.scenario)}${greetingsHtml(c, avatar)}${charLoreHtml(avatar)}${bar}`;
+    if (!L.edit) return `${head}${charToolsHtml(avatar)}${extractButton('card', avatar)}${read('Description', c.description)}${read('Personality', c.personality)}${read('Scenario', c.scenario)}${greetingsHtml(c, avatar)}${charLoreHtml(avatar)}${bar}`;
     return `${head}<div class="mu-lib-form">${charLoreHtml(avatar)}
         ${field('Name', 'name', c.name)}
         ${field('Description', 'description', c.description, 'area', { rows: 9 })}
@@ -371,7 +372,7 @@ function loreDetail(name: string) {
     if (!L.lore || L.lore.name !== name) return `${head}<p class="mu-muted">Loading the lorebook…</p>`;
     const list = entries();
     if (!list.length) return `${head}<p class="mu-muted">This lorebook is empty.</p>`;
-    return `${head}<p class="mu-muted">${list.length} entries</p><ul class="mu-entries">${list.map(e => {
+    return `${head}<p class="mu-muted">${list.length} entries</p>${extractButton('lorebook', name)}<ul class="mu-entries">${list.map(e => {
         const open = L.entry === String(e.uid);
         return `<li class="mu-entry ${open ? 'is-open' : ''} ${e.disable ? 'is-off' : ''}">
             <button class="mu-entry-head" data-act="lib-entry" data-uid="${e.uid}"><b data-notr>${esc(entryTitle(e))}</b>
@@ -611,7 +612,7 @@ export function libraryHtml() {
             </div></div>
         <nav class="mu-lib-tabs">${tabs.map(([id, l]) => `<button class="${L.tab === id ? 'is-on' : ''} ${id.startsWith('st-') ? 'is-st' : ''}" data-act="lib-tab" data-tab="${id}">${l}</button>`).join('')}</nav>
         ${body}
-        ${dialogHtml()}
+        ${dialogHtml()}${extractHtml()}
     </div>`;
 }
 const switchHtml = (act: string, label: string, on: boolean) =>

@@ -281,6 +281,10 @@ export function syncScene(): Promise<void> {
         const still = was.filter(a => here.some(r => r.avatar === a));
         if (still.length !== was.length) setTalk(g, still);
         const talking = still.length ? still : here.map(r => r.avatar);
+        // someone left or walked in while you were here: the narrator says so (the story then knows who is here)
+        const { presenceLine } = await import('./presence.js');
+        const said = presenceLine(g, w, here);
+        if (said) { const { hs } = await import('./hostile.js'); hs(g).queue.push({ text: said, present: [], directive: '' }); }
         await setPresent(gid, Object.keys(g.cast), talking);
         followBackground(g, w);
         refreshPrompt();
