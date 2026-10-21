@@ -2,6 +2,19 @@
 
 This is a fork of [tjalis/Mundi](https://github.com/tjalis/Mundi) (AGPL-3.0). Changes made in this fork are listed here, with their dates, as the license asks.
 
+## 0.1.0-ps.11 — 2026-10-21
+
+Reading the lore no longer gives up on the first empty answer.
+
+### Fixed
+
+- **"No message generated" when setting up from the lore, or finding the characters in a lorebook.** One empty answer from the AI used to stop the whole reading. Now:
+  - an empty part is asked again as two halves (less for a thinking model to chew on, and a passage that trips a filter is cut off from the rest);
+  - a half that is still empty is skipped, and everything else is still read;
+  - the review says how many parts were skipped and the likely reasons (a model that ran out of room while thinking, or the provider's filter refusing dark lore), and Find the characters says the same in a notice;
+  - when nothing at all could be read, the setup says so and has a **Try again** button.
+- The AI is told it is cataloguing fiction for a game engine, which some providers' filters let through more often.
+
 ## 0.1.0-ps.10 — 2026-10-21
 
 The story's own laws, and a setup step where the AI reads the lore and fills in who is who.

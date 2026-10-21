@@ -2,7 +2,8 @@
 // rough-stuff and people systems use: what each person is, who is the law, the groups (with members and a base), the
 // world's own laws, whether there is police at all, and what is not a person. Nothing is applied until you review it.
 import { game, saveGame } from '../core/store.js';
-import { charOf, loadLore, chatLore, quiet } from '../st/bridge.js';
+import { charOf, loadLore, chatLore } from '../st/bridge.js';
+import { askPart } from './reading.js';
 import { hs, resolvePlace, actsOf } from './hostile.js';
 const clean = (t) => String(t ?? '').replace(/\r/g, '').trim();
 const CHUNK = 10000;
@@ -62,13 +63,13 @@ function jsonLines(out) {
 const strs = (v) => (Array.isArray(v) ? v : String(v ?? '').split(',')).map(x => String(x).trim()).filter(Boolean);
 /** Reads it all with the AI. `progress(label)`. */
 export async function readLore(g, w, progress = () => { }) {
-    const plan = { people: [], groups: [], laws: [], police: null, notPeople: [] };
+    const plan = { people: [], groups: [], laws: [], police: null, notPeople: [], issues: { failed: 0, total: 0, error: '' } };
     const actIds = actsOf(w, g).filter(a => a.target).map(a => a.id);
     const parts = await lore(g, w);
     // 1. the world: its groups, its laws, its police, what is not a person
     for (const [i, part] of parts.entries()) {
-        progress(`Reading the lore, part ${i + 1} of ${parts.length}…`);
-        const out = await quiet([
+        progress(`Reading the lore, part ${i + 1} of ${parts.length}…${plan.issues.failed ? ` (${plan.issues.failed} skipped so far)` : ''}`);
+        const read = await askPart(part, (p) => [
             `Below is part ${i + 1} of ${parts.length} of the lore of a role-play world.`,
             'List what it says about these, one JSON object per line, nothing else:',
             '{"type": "group", "name": "", "base": "where they are based, or empty"}  (factions, organizations, gangs, families, agencies)',
@@ -76,9 +77,13 @@ export async function readLore(g, w, progress = () => { }) {
             '{"type": "police", "exists": true, "name": "what the law enforcement is called"}  (or "exists": false when the world has no police or law enforcement at all)',
             '{"type": "notperson", "word": ""}  (creatures the world does not treat as people at all, such as zombies)',
             'Use only what the text says. If it says nothing about these, answer NONE.',
-            '"""', part, '"""',
-        ].join('\n'), 1500, 'You read role-play lore and list its factions and laws as JSON lines. You never invent anything.');
-        for (const o of jsonLines(out)) {
+            '"""', p, '"""',
+        ].join('\n'), 2500, 'You list the factions and laws of a role-play world as JSON lines. You never invent anything.');
+        plan.issues.total += read.pieces;
+        plan.issues.failed += read.failed;
+        if (read.error)
+            plan.issues.error = read.error;
+        for (const o of read.outs.flatMap(jsonLines)) {
             if (o.type === 'group' && o.name && !plan.groups.some(x => x.name.toLowerCase() === String(o.name).toLowerCase()))
                 plan.groups.push({ name: clean(o.name).slice(0, 60), baseText: clean(o.base), base: o.base ? resolvePlace(g, w, String(o.base)) : '', keep: true });
             else if (o.type === 'law' && o.name && strs(o.about).length && strs(o.allows).some(a => actIds.includes(a)) && !plan.laws.some(x => x.name.toLowerCase() === String(o.name).toLowerCase()))
@@ -96,15 +101,19 @@ export async function readLore(g, w, progress = () => { }) {
         const batch = cast.slice(i, i + 8);
         progress(`Reading the characters, ${Math.min(cast.length, i + batch.length)} of ${cast.length}…`);
         const cards = batch.map(r => { const c = charOf(r.avatar); return `## ${r.name}\n${clean(c?.description).slice(0, 1400)}${clean(c?.personality) ? `\nPersonality: ${clean(c?.personality).slice(0, 300)}` : ''}`; }).join('\n\n');
-        const out = await quiet([
+        const read = await askPart(cards, (p) => [
             'These are characters of a role-play world.',
             groups.length ? `The world's groups: ${groups.join('; ')}.` : '',
             'For each character, write one JSON object per line, nothing else:',
             '{"name": "", "kind": "what they are, in a few words (human, mouse kemonomimi, vampire…)", "law": false (true if they are police, a guard or other law enforcement), "group": "one of the groups above, or empty"}',
             'Use only what the cards say.',
-            '"""', cards, '"""',
-        ].filter(Boolean).join('\n'), 900, 'You read character cards and classify the characters as JSON lines. You never invent anything.');
-        for (const o of jsonLines(out)) {
+            '"""', p, '"""',
+        ].filter(Boolean).join('\n'), 1500, 'You classify the characters of a role-play world as JSON lines. You never invent anything.');
+        plan.issues.total += read.pieces;
+        plan.issues.failed += read.failed;
+        if (read.error)
+            plan.issues.error = read.error;
+        for (const o of read.outs.flatMap(jsonLines)) {
             const r = batch.find(x => x.name.toLowerCase() === String(o.name ?? '').toLowerCase()) ?? batch.find(x => x.name.toLowerCase().split(' ')[0] === String(o.name ?? '').toLowerCase().split(' ')[0]);
             if (!r || plan.people.some(p => p.avatar === r.avatar))
                 continue;

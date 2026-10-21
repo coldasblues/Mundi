@@ -2,7 +2,8 @@
 // reads it in parts and lists the people in it; you choose who to keep; each becomes a SillyTavern card of its own,
 // tagged (a folder) with where it came from and, when there is one, with the lorebook linked so they keep their lore.
 // The source is never changed.
-import { characters, charOf, createCharacter, loadLore, quiet, newFolder, putInFolder, avatarUrl } from '../st/bridge.js';
+import { characters, charOf, createCharacter, loadLore, newFolder, putInFolder, avatarUrl } from '../st/bridge.js';
+import { askPart } from './reading.js';
 import { initialsAvatar } from './game.js';
 const clean = (t) => String(t ?? '').replace(/\r/g, '').trim();
 const CHUNK = 11000;
@@ -132,16 +133,22 @@ function merge(into, add) {
     if (add.name && add.name.length > into.name.length && norm(add.name).includes(norm(into.name)))
         into.name = add.name;
 }
+/** Parts the AI gave nothing for in the last reading (skipped), out of all it was asked (a split part counts as two), and why. */
+export const lastRead = { failed: 0, total: 0, error: '' };
 /** Reads the source with the AI, part by part. `progress` gets (part done, parts). */
 export async function extract(src, progress = () => { }) {
     const found = [];
     const n = src.parts.length;
+    Object.assign(lastRead, { failed: 0, total: 0, error: '' });
     for (let i = 0; i < n; i++) {
         progress(i, n);
-        const out = await quiet(promptFor(src, src.parts[i], i, n), 1800, 'You read role-play material and list the characters in it as JSON lines. You never invent details.');
-        if (/^\s*NONE\s*$/i.test(out))
-            continue;
-        for (const f of parseLines(out)) {
+        // an empty answer is retried as two halves, then skipped (the rest is still read)
+        const read = await askPart(src.parts[i], (p) => promptFor(src, p, i, n), 2500, 'You list the characters in role-play material as JSON lines. You never invent details.');
+        lastRead.total += read.pieces;
+        lastRead.failed += read.failed;
+        if (read.error)
+            lastRead.error = read.error;
+        for (const f of read.outs.filter(o => !/^\s*NONE\s*$/i.test(o)).flatMap(parseLines)) {
             const hit = found.find(x => sameAs(x, f));
             if (hit) {
                 merge(hit, f);

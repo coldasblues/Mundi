@@ -3,6 +3,7 @@
 import { game, notify, toast, esc } from '../core/store.js';
 import { getWorld } from '../core/world.js';
 import { readLore, applyPlan } from '../sim/setup.js';
+import { emptyWhy } from '../sim/reading.js';
 import { actsOf } from '../sim/hostile.js';
 import { icon } from './icons.js';
 import { ACT, INPUT } from './reg.js';
@@ -32,13 +33,19 @@ function lawText(w, l) {
     const acts = l.allows.map(a => actsOf(w).find(d => d.id === a)?.name.toLowerCase() ?? a).join(', ');
     return `${l.who.length ? l.who.join(' or ') : 'Anyone'} may ${acts} ${l.about.join(' or ')}${l.handTo ? `, and hand them to ${l.handTo}${l.reward ? ` (+${l.reward})` : ''}` : ''}${l.counts === 'minor' ? ' (a minor offense)' : ''}.${l.objectors?.length ? ` ${l.objectors.join(', ')} disapprove.` : ''}${l.note ? ` ${l.note}` : ''}`;
 }
+function issuesHtml(p) {
+    const i = p.issues;
+    if (!i.failed)
+        return '';
+    return `<p class="mu-su-warn">${icon('alert')}<span>The AI gave nothing back for ${i.failed} of ${i.total} part${i.total === 1 ? '' : 's'}${i.failed < i.total ? `, so ${i.failed === 1 ? 'that one was' : 'those were'} skipped; the rest was read` : ''}. ${esc(emptyWhy)}${i.error && !/no message generated/i.test(i.error) ? ` (${esc(i.error.slice(0, 160))})` : ''}</span></p>`;
+}
 function planHtml(g, w, p) {
     const places = w.places.filter(x => !x.link);
     const groupNames = p.groups.filter(x => x.keep).map(x => x.name);
     const nothing = !p.people.length && !p.groups.length && !p.laws.length && !p.police && !p.notPeople.length;
     if (nothing)
-        return '<p class="mu-muted">The AI found nothing to set up in the lore: no groups, laws or people it could classify.</p>';
-    return `
+        return `${issuesHtml(p)}<p class="mu-muted">${p.issues.total && p.issues.failed === p.issues.total ? 'Nothing could be read.' : 'The AI found nothing to set up in the lore: no groups, laws or people it could classify.'}</p><div class="mu-row"><button data-act="su-open">Try again</button><button data-act="su-close">Close</button></div>`;
+    return `${issuesHtml(p)}
         ${p.police ? `<section><h4>The law</h4><label class="mu-check"><input type="checkbox" data-input="su-keep" data-k="police" ${p.police.keep ? 'checked' : ''}><span>${p.police.exists ? `There is law here: <b>${esc(p.police.name || 'yes')}</b>` : '<b>No law</b>: no police, nobody comes'}</span></label></section>` : ''}
         ${p.laws.length ? `<section><h4>Laws of this world</h4>${p.laws.map((l, i) => `<label class="mu-check"><input type="checkbox" data-input="su-keep" data-k="law" data-i="${i}" ${l.keep ? 'checked' : ''}><span><b>${esc(l.name)}</b><small>${esc(lawText(w, l))}</small></span></label>`).join('')}</section>` : ''}
         ${p.groups.length ? `<section><h4>Groups</h4>${p.groups.map((x, i) => `<div class="mu-su-row"><label class="mu-check"><input type="checkbox" data-input="su-keep" data-k="group" data-i="${i}" ${x.keep ? 'checked' : ''}><span><b>${esc(x.name)}</b>${x.baseText ? `<small>based: ${esc(x.baseText)}</small>` : ''}</span></label>
