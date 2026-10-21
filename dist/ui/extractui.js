@@ -2,13 +2,14 @@
 // reads it (or, for a lorebook, a quick look without AI), you tick who to keep and fix names, Mundi makes the cards.
 import { notify, toast, esc } from '../core/store.js';
 import { cardSource, lorebookSource, extract, guessPeople, makeCards, lastRead } from '../sim/extract.js';
-import { emptyWhy } from '../sim/reading.js';
+import { emptyWhy, gaveUpWhy, stopReading } from '../sim/reading.js';
+import { readingClock, readingHtml } from './setupui.js';
 import { icon } from './icons.js';
 import { ACT, INPUT } from './reg.js';
 export const EX = {
     open: false, kind: 'card', id: '',
     src: null, found: [], busy: '', open1: -1,
-    linkLore: true, sourcePicture: false, done: [],
+    linkLore: true, sourcePicture: false, done: [], reading: false,
 };
 /** The button on a card or a lorebook in the Library. */
 export const extractButton = (kind, id) => `<button class="mu-ex-btn" data-act="ex-open" data-kind="${kind}" data-id="${esc(id)}">${icon('users')}<span>${kind === 'card' ? 'Split into characters…' : 'Find the characters in it…'}</span></button>`;
@@ -41,18 +42,26 @@ async function read(ai) {
         return;
     }
     EX.busy = 'Reading…';
+    EX.reading = true;
     notify();
+    readingClock(true);
     try {
         EX.found = await extract(src, (i, n) => { EX.busy = i < n ? `Reading part ${i + 1} of ${n}…` : 'Done.'; notify(); });
-        if (lastRead.failed)
+        if (lastRead.gaveUp)
+            toast(gaveUpWhy, 'warn', { ms: 15000 });
+        else if (lastRead.stopped)
+            toast(`Stopped after ${lastRead.stopped}: ${EX.found.length ? 'here is who was found by then' : 'nobody was found by then'}.`, 'info', { ms: 8000 });
+        else if (lastRead.failed)
             toast(`The AI gave nothing back for ${lastRead.failed} of ${lastRead.total} part${lastRead.total === 1 ? '' : 's'}${lastRead.failed < lastRead.total ? ' (skipped; the rest was read)' : ''}. ${emptyWhy}`, 'warn', { ms: 12000 });
-        else if (!EX.found.length)
+        else if (!EX.found.length && !lastRead.stopped)
             toast('The AI found nobody in it.', 'info');
     }
     catch (e) {
         toast(`The AI could not read it: ${String(e?.message ?? e)}`, 'error');
     }
+    readingClock(false);
     EX.busy = '';
+    EX.reading = false;
     notify();
 }
 async function make() {
@@ -95,7 +104,7 @@ export function extractHtml() {
         return '';
     const src = EX.src;
     const kept = EX.found.filter(f => f.keep).length;
-    const body = !src ? `<p class="mu-muted">${esc(EX.busy || 'Opening…')}</p>` : `
+    const body = !src ? `<p class="mu-muted">${esc(EX.busy || 'Opening…')}</p>` : EX.reading ? readingHtml(EX.busy, 'ex-stop', 'One AI call per part.') : `
         <p class="mu-muted">${src.kind === 'card' ? `The card “${esc(src.title)}”` : `The lorebook “${esc(src.title)}”`}: ${src.parts.length} part${src.parts.length === 1 ? '' : 's'} to read${src.lorebook && src.kind === 'card' ? `, with its lorebook “${esc(src.lorebook)}”` : ''}. Nothing in it is changed.</p>
         ${EX.found.length ? `<ul class="mu-ex-list" data-keep="ex">${EX.found.map(row).join('')}</ul>
             <label class="mu-check"><input type="checkbox" data-input="ex-lore" ${EX.linkLore ? 'checked' : ''} ${src.lorebook ? '' : 'disabled'}><span>Link the lorebook to each card<small>${src.lorebook ? `“${esc(src.lorebook)}” goes with them, so they keep their world's lore.` : 'There is no lorebook to link.'}</small></span></label>
@@ -115,6 +124,7 @@ Object.assign(ACT, {
     'ex-close': () => { if (EX.busy && !EX.busy.startsWith('Done'))
         return; EX.open = false; notify(); },
     'ex-read': (el) => { void read(el.dataset.v === 'ai'); },
+    'ex-stop': () => { stopReading(); EX.busy = 'Stopping…'; notify(); },
     'ex-make': () => { void make(); },
     'ex-more': (el) => { const i = Number(el.dataset.i); EX.open1 = EX.open1 === i ? -1 : i; notify(); },
 });

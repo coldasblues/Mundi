@@ -4,7 +4,7 @@
 import { game, saveGame, type Save } from '../core/store.js';
 import type { WorldDef } from '../core/world.js';
 import { charOf, loadLore, chatLore } from '../st/bridge.js';
-import { askPart } from './reading.js';
+import { askPart, reading, startReading, endReading } from './reading.js';
 import { hs, resolvePlace, actsOf } from './hostile.js';
 import type { StoryLaw } from './judge.js';
 
@@ -15,8 +15,8 @@ export interface Plan {
     people: PlanPerson[]; groups: PlanGroup[]; laws: PlanLaw[];
     police: { exists: boolean; name: string; keep: boolean } | null;
     notPeople: { word: string; keep: boolean }[];
-    /** Parts the AI gave nothing for (skipped), out of all of them, and the last error. */
-    issues: { failed: number; total: number; error: string };
+    /** Parts the AI gave nothing for (skipped), out of all of them, and the last error; `stopped`: where Stop was pressed. */
+    issues: { failed: number; total: number; error: string; stopped?: string; gaveUp?: boolean };
 }
 
 const clean = (t: unknown) => String(t ?? '').replace(/\r/g, '').trim();
@@ -54,6 +54,10 @@ const strs = (v: unknown) => (Array.isArray(v) ? v : String(v ?? '').split(','))
 
 /** Reads it all with the AI. `progress(label)`. */
 export async function readLore(g: Save, w: WorldDef, progress: (t: string) => void = () => {}): Promise<Plan> {
+    startReading();
+    try { return await read(g, w, progress); } finally { endReading(); }
+}
+async function read(g: Save, w: WorldDef, progress: (t: string) => void): Promise<Plan> {
     const plan: Plan = { people: [], groups: [], laws: [], police: null, notPeople: [], issues: { failed: 0, total: 0, error: '' } };
     const actIds = actsOf(w, g).filter(a => a.target).map(a => a.id);
     const parts = await lore(g, w);
@@ -70,6 +74,7 @@ export async function readLore(g: Save, w: WorldDef, progress: (t: string) => vo
             'Use only what the text says. If it says nothing about these, answer NONE.',
             '"""', p, '"""',
         ].join('\n'), 2500, 'You list the factions and laws of a role-play world as JSON lines. You never invent anything.');
+        if (reading.stop) { plan.issues.stopped = `${i} of ${parts.length} parts of the lore`; break; }   // the part in progress was cancelled
         plan.issues.total += read.pieces; plan.issues.failed += read.failed; if (read.error) plan.issues.error = read.error;
         for (const o of read.outs.flatMap(jsonLines)) {
             if (o.type === 'group' && o.name && !plan.groups.some(x => x.name.toLowerCase() === String(o.name).toLowerCase())) plan.groups.push({ name: clean(o.name).slice(0, 60), baseText: clean(o.base), base: o.base ? resolvePlace(g, w, String(o.base)) : '', keep: true });
@@ -82,7 +87,7 @@ export async function readLore(g: Save, w: WorldDef, progress: (t: string) => vo
     // 2. the people: what each one is, whether they are the law, their group
     const cast = Object.values(g.cast);
     const groups = plan.groups.map(x => x.name);
-    for (let i = 0; i < cast.length; i += 8) {
+    for (let i = 0; i < cast.length && !plan.issues.stopped; i += 8) {
         const batch = cast.slice(i, i + 8);
         progress(`Reading the characters, ${Math.min(cast.length, i + batch.length)} of ${cast.length}…`);
         const cards = batch.map(r => { const c = charOf(r.avatar); return `## ${r.name}\n${clean(c?.description).slice(0, 1400)}${clean(c?.personality) ? `\nPersonality: ${clean(c?.personality).slice(0, 300)}` : ''}`; }).join('\n\n');
@@ -94,6 +99,7 @@ export async function readLore(g: Save, w: WorldDef, progress: (t: string) => vo
             'Use only what the cards say.',
             '"""', p, '"""',
         ].filter(Boolean).join('\n'), 1500, 'You classify the characters of a role-play world as JSON lines. You never invent anything.');
+        if (reading.stop) { plan.issues.stopped = `the lore and ${i} of ${cast.length} characters`; break; }
         plan.issues.total += read.pieces; plan.issues.failed += read.failed; if (read.error) plan.issues.error = read.error;
         for (const o of read.outs.flatMap(jsonLines)) {
             const r = batch.find(x => x.name.toLowerCase() === String(o.name ?? '').toLowerCase()) ?? batch.find(x => x.name.toLowerCase().split(' ')[0] === String(o.name ?? '').toLowerCase().split(' ')[0]);
@@ -102,6 +108,7 @@ export async function readLore(g: Save, w: WorldDef, progress: (t: string) => vo
             plan.people.push({ key: `cast:${r.avatar}`, avatar: r.avatar, name: r.name, kind: clean(o.kind).slice(0, 60), law: o.law === true, group: grp, keep: true });
         }
     }
+    if (reading.gaveUp) plan.issues.gaveUp = true;
     progress('');
     return plan;
 }

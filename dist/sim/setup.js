@@ -3,7 +3,7 @@
 // world's own laws, whether there is police at all, and what is not a person. Nothing is applied until you review it.
 import { game, saveGame } from '../core/store.js';
 import { charOf, loadLore, chatLore } from '../st/bridge.js';
-import { askPart } from './reading.js';
+import { askPart, reading, startReading, endReading } from './reading.js';
 import { hs, resolvePlace, actsOf } from './hostile.js';
 const clean = (t) => String(t ?? '').replace(/\r/g, '').trim();
 const CHUNK = 10000;
@@ -63,6 +63,15 @@ function jsonLines(out) {
 const strs = (v) => (Array.isArray(v) ? v : String(v ?? '').split(',')).map(x => String(x).trim()).filter(Boolean);
 /** Reads it all with the AI. `progress(label)`. */
 export async function readLore(g, w, progress = () => { }) {
+    startReading();
+    try {
+        return await read(g, w, progress);
+    }
+    finally {
+        endReading();
+    }
+}
+async function read(g, w, progress) {
     const plan = { people: [], groups: [], laws: [], police: null, notPeople: [], issues: { failed: 0, total: 0, error: '' } };
     const actIds = actsOf(w, g).filter(a => a.target).map(a => a.id);
     const parts = await lore(g, w);
@@ -79,6 +88,10 @@ export async function readLore(g, w, progress = () => { }) {
             'Use only what the text says. If it says nothing about these, answer NONE.',
             '"""', p, '"""',
         ].join('\n'), 2500, 'You list the factions and laws of a role-play world as JSON lines. You never invent anything.');
+        if (reading.stop) {
+            plan.issues.stopped = `${i} of ${parts.length} parts of the lore`;
+            break;
+        } // the part in progress was cancelled
         plan.issues.total += read.pieces;
         plan.issues.failed += read.failed;
         if (read.error)
@@ -97,7 +110,7 @@ export async function readLore(g, w, progress = () => { }) {
     // 2. the people: what each one is, whether they are the law, their group
     const cast = Object.values(g.cast);
     const groups = plan.groups.map(x => x.name);
-    for (let i = 0; i < cast.length; i += 8) {
+    for (let i = 0; i < cast.length && !plan.issues.stopped; i += 8) {
         const batch = cast.slice(i, i + 8);
         progress(`Reading the characters, ${Math.min(cast.length, i + batch.length)} of ${cast.length}…`);
         const cards = batch.map(r => { const c = charOf(r.avatar); return `## ${r.name}\n${clean(c?.description).slice(0, 1400)}${clean(c?.personality) ? `\nPersonality: ${clean(c?.personality).slice(0, 300)}` : ''}`; }).join('\n\n');
@@ -109,6 +122,10 @@ export async function readLore(g, w, progress = () => { }) {
             'Use only what the cards say.',
             '"""', p, '"""',
         ].filter(Boolean).join('\n'), 1500, 'You classify the characters of a role-play world as JSON lines. You never invent anything.');
+        if (reading.stop) {
+            plan.issues.stopped = `the lore and ${i} of ${cast.length} characters`;
+            break;
+        }
         plan.issues.total += read.pieces;
         plan.issues.failed += read.failed;
         if (read.error)
@@ -121,6 +138,8 @@ export async function readLore(g, w, progress = () => { }) {
             plan.people.push({ key: `cast:${r.avatar}`, avatar: r.avatar, name: r.name, kind: clean(o.kind).slice(0, 60), law: o.law === true, group: grp, keep: true });
         }
     }
+    if (reading.gaveUp)
+        plan.issues.gaveUp = true;
     progress('');
     return plan;
 }

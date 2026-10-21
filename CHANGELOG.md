@@ -2,6 +2,21 @@
 
 This is a fork of [tjalis/Mundi](https://github.com/tjalis/Mundi) (AGPL-3.0). Changes made in this fork are listed here, with their dates, as the license asks.
 
+## 0.1.0-ps.12 — 2026-10-21
+
+Reading the lore with a thinking model (GLM 5.3 on OpenRouter): fast, and never stuck.
+
+### Fixed
+
+- **Set up from the lore seemed stuck on a thinking model.** GLM 5.3 spent its whole answer thinking (2,500 tokens, then 4,000 on the retry) and never wrote the answer, so every part came back empty, each after several slow calls. Now, while Mundi reads the lore or looks for characters, the model's thinking is turned down as far as it goes. SillyTavern's settings are set to reasoning effort "Minimum" with "Request model reasoning" off. On OpenRouter that means no thinking at all; on Claude it is low, and on Gemini none. The settings are put back as soon as the reading ends, and they are never saved.
+- **It gives up by itself** when the first three pieces all come back empty, and says it is probably the model or its settings rather than the lore. Before, a reading like that went through all 17 parts, at about six calls each.
+
+### Added
+
+- **The reading shows it is working:** what it is reading, a clock for the current part and one for the whole reading.
+- **A time limit per part (3 minutes).** A part that takes longer is split in two, and a half that is still too slow is skipped, like an empty one.
+- **Stop, and keep what was read.** Set up from the lore and Find the characters both have it. The review shows what was found up to that point, and says where it stopped.
+
 ## 0.1.0-ps.11 — 2026-10-21
 
 Reading the lore no longer gives up on the first empty answer.

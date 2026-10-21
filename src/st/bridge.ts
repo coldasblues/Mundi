@@ -405,6 +405,31 @@ export async function quiet(prompt: string, responseLength = 300, systemPrompt =
     return ask(Math.min(Math.max(responseLength * 2, 3000), 4000));   // one more try, with more room (models that think first)
 }
 
+/**
+ * Runs `fn` with a chat-completion model's thinking turned down to the least it allows (SillyTavern's reasoning
+ * effort "Minimum" with "Request model reasoning" off: no thinking at all on OpenRouter, low on Claude, none on
+ * Gemini). For listing calls that don't need it: a thinking model (GLM, DeepSeek R1…) otherwise spends the whole
+ * answer on thinking and gives nothing back. The settings are put back afterwards and never saved; SillyTavern does
+ * the same for a call's response length.
+ */
+export async function withoutThinking<T>(fn: () => Promise<T>): Promise<T> {
+    const c = ctx(); const s = c?.chatCompletionSettings;
+    if (c?.mainApi !== 'openai' || !s || typeof s !== 'object') return fn();
+    const was = { reasoning_effort: s.reasoning_effort, show_thoughts: s.show_thoughts };
+    s.reasoning_effort = 'min'; s.show_thoughts = false;
+    try { return await fn(); }
+    finally { if (s.reasoning_effort === 'min' && s.show_thoughts === false) Object.assign(s, was); }
+}
+
+/** Cancels a quiet call in progress (SillyTavern's stop: raw generations listen for it). */
+export function stopRaw() {
+    try {
+        const c = ctx();
+        if (typeof c.stopGeneration === 'function') c.stopGeneration();
+        else c.eventSource?.emit?.(c.eventTypes?.GENERATION_STOPPED ?? 'generation_stopped');
+    } catch (e) { console.warn('[Mundi] stop', e); }
+}
+
 // Hides lines from the AI's prompt (SillyTavern's /hide: the messages stay in the chat).
 export async function hideMessages(start: number, end: number) {
     if (end < start) return;

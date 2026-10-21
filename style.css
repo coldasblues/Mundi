@@ -2956,6 +2956,11 @@ body.mundi-open #toast-container { display: none !important; }
 #mundi-root .mu-su, #mundi-root .mu-ex, #mundi-root .mu-hx { background: linear-gradient(160deg, rgba(255, 255, 255, .08), rgba(255, 255, 255, 0) 40%), linear-gradient(var(--glass-strong, rgba(20, 26, 40, .68)), var(--glass-strong, rgba(20, 26, 40, .68))), rgba(8, 10, 16, .7) !important; }
 #mundi-root .mu-su-warn { display: flex; gap: 8px; align-items: flex-start; margin: 0; padding: 8px 12px; border-radius: 12px; background: color-mix(in srgb, var(--warn) 16%, transparent); font-size: 13px; }
 #mundi-root .mu-su-warn .mu-ic { flex: none; margin-top: 2px; color: var(--warn); }
+/* a reading in progress: what it is on, the clocks, Stop */
+#mundi-root .mu-su-busy { display: flex; gap: 10px; align-items: center; margin: 4px 0 0; font-weight: 600; }
+#mundi-root .mu-panel .mu-su-busy .mu-spin { display: block; flex: none; width: 16px; height: 16px; border: 2px solid color-mix(in srgb, var(--text) 18%, transparent); border-top-color: var(--accent); border-radius: 50%; animation: mu-spin .9s linear infinite; }
+#mundi-root .mu-su-clock { margin: 0; font-size: 13px; color: var(--muted, inherit); font-variant-numeric: tabular-nums; }
+#mundi-root .mu-panel .mu-su-clock b { display: inline; color: var(--text); font-weight: 600; }
 /* ==========================================================================
    Phones, upright (#mundi-root[data-mobile], set in app.ts).
    The game HUD stacks in rows at the top, the dialogue box fills the bottom, and the panels become full-screen sheets.
