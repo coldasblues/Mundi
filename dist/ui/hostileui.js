@@ -3,16 +3,19 @@
 // A hard capture moves you to your captor's home from here too.
 import { game, state, notify, toast, esc, saveGame, saveSettings, nowAbs } from '../core/store.js';
 import { getWorld } from '../core/world.js';
-import { thumb, personaName } from '../st/bridge.js';
-import { hxOn, hxPrefs, hs, lawOf, peopleHere, optionsFor, cannotAct, resolveAct, captives, letGo, surrender, lawHolding, openCrimes, knownCrimes, crowdHere, CROWD_WORD, pushDirective, armAct, hardCapture, arrivedCaptive, flushEvents, groupOf, newLead, takePrisoner, followLeader, rolesOf, canTakeIn, takeIn, } from '../sim/hostile.js';
+import { thumb, personaName, charOf } from '../st/bridge.js';
+import { hxOn, hxPrefs, hs, lawOf, peopleHere, optionsFor, cannotAct, resolveAct, captives, letGo, surrender, lawHolding, openCrimes, knownCrimes, crowdHere, CROWD_WORD, pushDirective, armAct, hardCapture, arrivedCaptive, flushEvents, groupOf, newLead, takePrisoner, followLeader, rolesOf, canTakeIn, takeIn, turnInOf, turnIn, actsOf, } from '../sim/hostile.js';
 import { CRIME_WORD, SEVERITY, worst } from '../sim/hostile-rules.js';
 import { ROLES, CODES } from '../sim/judge.js';
+import { money as moneyText } from '../sim/needs.js';
+import { setupButton } from './setupui.js';
 import { currentState, psHooks } from '../sim/pstate-live.js';
 import { placeOf, playerHomeId, travelMinutes } from '../sim/places.js';
 import { keyFor } from '../sim/roster.js';
 import { icon } from './icons.js';
 import { ACT, INPUT } from './reg.js';
-export const HX = { open: false, target: '', surrender: false, lawOpen: false, newGroup: '', lead: null, item: '' };
+const freshLaw = () => ({ name: '', about: '', allows: ['grab', 'restrain'], who: '', counts: 'legal', handTo: '', reward: '', objectors: '', note: '' });
+export const HX = { open: false, target: '', surrender: false, lawOpen: false, newGroup: '', lead: null, item: '', law: freshLaw(), lawsOpen: false };
 const ctxW = () => { const g = game(); const w = g && getWorld(g.world); return g && w ? { g, w } : null; };
 // the engine's reasons, said to you ("{{user}} is the law" → "You are the law")
 const youSay = (t) => { const x = t.replace(/\{\{user\}\} is/g, 'you are').replace(/\{\{user\}\}/g, 'you'); return x.charAt(0).toUpperCase() + x.slice(1); };
@@ -90,15 +93,41 @@ function menuHtml(g, w) {
     }).join('')}</div>
         ${opts.some(o => o.def.id === 'take') ? `<label class="mu-hx-item"><span>Take what?</span><input type="text" data-input="hx-item" maxlength="60" placeholder="something (a blood bag, a bottle, the cash box…)" value="${esc(HX.item)}"></label>` : ''}
         ${opts.find(o => o.verdict.why && o.verdict.kind !== 'crime') ? `<p class="mu-muted mu-hx-desc">${esc(youSay(opts.find(o => o.verdict.why && o.verdict.kind !== 'crime').verdict.why))}.</p>` : HX.target ? '<p class="mu-muted mu-hx-desc">Hover an action to see what it does.</p>' : ''}
-        ${caps.length ? `<h4>With you</h4><ul class="mu-hx-caps">${caps.map(c => `<li><b data-notr>${esc(c.name)}</b><small>${c.custody ? 'under arrest' : c.how === 'restrained' ? 'tied up' : 'in your grip: they may slip away'}</small><span class="mu-row">${canTakeIn(g, w, c.key) ? `<button class="mu-primary" data-act="hx-takein" data-v="${esc(c.key)}">Take them in</button>` : ''}<button data-act="hx-letgo" data-v="${esc(c.key)}">Let go</button></span></li>`).join('')}</ul>` : ''}
+        ${caps.length ? `<h4>With you</h4><ul class="mu-hx-caps">${caps.map(c => `<li><b data-notr>${esc(c.name)}</b><small>${c.custody ? 'under arrest' : c.how === 'restrained' ? 'tied up' : 'in your grip: they may slip away'}</small><span class="mu-row">${turnInOf(g, w, c.key) ? `<button class="mu-primary" data-act="hx-turnin" data-v="${esc(c.key)}">Turn in to ${esc(turnInOf(g, w, c.key).handTo)}${turnInOf(g, w, c.key).reward ? ` · +${esc(moneyText(w, turnInOf(g, w, c.key).reward))}` : ''}</button>` : ''}${canTakeIn(g, w, c.key) ? `<button class="mu-primary" data-act="hx-takein" data-v="${esc(c.key)}">Take them in</button>` : ''}<button data-act="hx-letgo" data-v="${esc(c.key)}">Let go</button></span></li>`).join('')}</ul>` : ''}
         <details class="mu-hx-law" ${HX.lawOpen ? 'open' : ''}><summary data-act="hx-law-toggle">You: <b>${esc(rolesOf(g, w).map(r => ROLES.find(x => x.id === r)?.name ?? r).join(', '))}</b> · Law in this story: <b>${law.exists ? esc(law.name) : 'none'}</b></summary>
             <div class="mu-hx-roles"><span>Who you are</span>${ROLES.map(r => `<label class="mu-check"><input type="checkbox" data-input="hx-role" data-v="${r.id}" ${rolesOf(g, w).includes(r.id) ? 'checked' : ''}><span>${esc(r.name)}<small>${esc(r.desc)}</small></span></label>`).join('')}</div>
             <label class="mu-field"><span>In your own words (for the story)</span><input type="text" data-input="hx-roletext" maxlength="120" placeholder="a detective of the 9th precinct, a Toreador of the Camarilla…" value="${esc(hs(g).roleText)}"></label>
             <label class="mu-field"><span>Is there law?</span><select data-input="hx-law-mode">${[['auto', `As the world says (${lawOf(g, w, true).exists ? 'yes' : 'no'})`], ['on', 'Yes: crimes get reported, and they come'], ['off', 'No law (a zombie apocalypse, the wilderness…)']].map(([v, l]) => `<option value="${v}" ${hs(g).law.mode === v ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select></label>
             <label class="mu-field"><span>Called</span><input type="text" data-input="hx-law-name" maxlength="40" placeholder="${esc(lawOf(g, w, true).name)}" value="${esc(hs(g).law.name ?? '')}"></label>
-            <small class="mu-muted">Who belongs to which group (a gang, a faction, the law) is set in ☰ → People in your story. A group you wrong holds a grudge and comes for you, law or no law.</small>
+            ${lawsHtml(g, w)}
+            ${setupButton('Set up laws, groups and people from the lore…')}
+            <small class="mu-muted">Who belongs to which group (a gang, a faction, the law), and what each person is, are set in ☰ → People in your story. A group you wrong holds a grudge and comes for you, law or no law.</small>
         </details>
     </div>`;
+}
+/* ---------- the story's laws ---------- */
+const csvList = (t) => String(t ?? '').split(',').map(x => x.trim()).filter(Boolean);
+function lawLine(w, l) {
+    const acts = l.allows.map(a => actsOf(w).find(d => d.id === a)?.name.toLowerCase() ?? a).join(', ');
+    return `${l.who.length ? l.who.join(' or ') : 'Anyone'} may ${acts} ${l.about.join(' or ')}${l.handTo ? `, and hand them to ${l.handTo}${l.reward ? ` (+${moneyText(w, l.reward)})` : ''}` : ''}${l.counts === 'minor' ? ' (a minor offense)' : ''}.`;
+}
+function lawsHtml(g, w) {
+    const own = hs(g).laws, world = (w.laws ?? []);
+    const d = HX.law;
+    const acts = actsOf(w, g).filter(a => a.target);
+    return `<div class="mu-hx-laws"><span>Laws of this story</span>
+        ${[...world.map(l => ({ l, mine: false })), ...own.map(l => ({ l, mine: true }))].map(({ l, mine }) => `<div class="mu-hx-lawrow"><b>${esc(l.name)}</b><small>${esc(lawLine(w, l))}${l.objectors?.length ? ` ${esc(l.objectors.join(', '))} disapprove.` : ''}</small>${mine ? `<button class="mu-ghost mu-ibtn" data-act="hx-law-del" data-id="${esc(l.id)}" title="Remove this law">${icon('trash')}</button>` : '<em>the world\'s</em>'}</div>`).join('') || '<small class="mu-muted">None: the ordinary law applies to everyone.</small>'}
+        <details ${HX.lawsOpen ? 'open' : ''}><summary data-act="hx-laws-toggle">Add a law</summary><div class="mu-hx-lawform">
+            <label class="mu-field"><span>Name</span><input type="text" data-input="hx-ld" data-k="name" maxlength="60" placeholder="the K4 control order, the bounty on outlaws…" value="${esc(d.name)}"></label>
+            <label class="mu-field"><span>About (what they are, separated by commas)</span><input type="text" data-input="hx-ld" data-k="about" maxlength="120" placeholder="mouse, mice" value="${esc(d.about)}"></label>
+            <div class="mu-hx-lawacts"><span>Allows</span>${acts.map(a => `<label><input type="checkbox" data-input="hx-ld-act" data-v="${a.id}" ${d.allows.includes(a.id) ? 'checked' : ''}>${esc(a.name)}</label>`).join('')}</div>
+            <label class="mu-field"><span>Who may (empty: anyone; or "law", or words from who you are)</span><input type="text" data-input="hx-ld" data-k="who" maxlength="80" placeholder="anyone" value="${esc(d.who)}"></label>
+            <div class="mu-row2"><label class="mu-field"><span>It counts as</span><select data-input="hx-ld" data-k="counts"><option value="legal" ${d.counts === 'legal' ? 'selected' : ''}>Legal</option><option value="minor" ${d.counts === 'minor' ? 'selected' : ''}>A minor offense</option></select></label>
+                <label class="mu-field"><span>Hand them over to</span><input type="text" data-input="hx-ld" data-k="handTo" maxlength="60" placeholder="Animal Control" value="${esc(d.handTo)}"></label>
+                <label class="mu-field"><span>Reward</span><input type="number" min="0" data-input="hx-ld" data-k="reward" value="${esc(d.reward)}"></label></div>
+            <label class="mu-field"><span>Who disapproves (they won't report it, but they remember)</span><input type="text" data-input="hx-ld" data-k="objectors" maxlength="120" placeholder="kemonomimi, cat, fox" value="${esc(d.objectors)}"></label>
+            <label class="mu-field"><span>Note for the story</span><input type="text" data-input="hx-ld" data-k="note" maxlength="160" placeholder="Mouse kemonomimi breed fast; the state pays per head." value="${esc(d.note)}"></label>
+            <button class="mu-primary" data-act="hx-law-add">Add the law</button></div></details></div>`;
 }
 /* ---------- giving yourself up ---------- */
 function surrenderChip(g, w) {
@@ -293,7 +322,8 @@ export function personGroupHtml(g, p) {
     const grp = groupOf(g, p.key);
     const w = getWorld(g.world);
     const isLaw = st.lawKeys.includes(p.key) || (w ? (p.kind === 'cast' && p.avatar && g.cast[p.avatar]?.occupation ? lawOf(g, w).occupations.includes(g.cast[p.avatar].occupation) : false) : false);
-    return `<div class="mu-hx-pg"><label><span>Group</span><select data-input="hx-group" data-key="${esc(p.key)}"><option value="">None</option>${Object.values(st.groups).map(x => `<option value="${esc(x.id)}" ${grp?.id === x.id ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}</select></label>
+    const kind = st.kinds[p.key] ?? (p.avatar ? String(charOf(p.avatar)?.data?.extensions?.mundi?.kind ?? '') : '');
+    return `<div class="mu-hx-pg"><label class="mu-hx-kind"><span>What they are</span><input type="text" data-input="hx-kind" data-key="${esc(p.key)}" maxlength="60" placeholder="human, mouse kemonomimi, Kindred…" value="${esc(kind)}"></label><label><span>Group</span><select data-input="hx-group" data-key="${esc(p.key)}"><option value="">None</option>${Object.values(st.groups).map(x => `<option value="${esc(x.id)}" ${grp?.id === x.id ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}</select></label>
         <label class="mu-hx-pl"><input type="checkbox" data-input="hx-lawkey" data-key="${esc(p.key)}" ${isLaw ? 'checked' : ''}><span>The law</span></label></div>`;
 }
 /** On the People screen: the groups of this story, and where each takes its prisoners. */
@@ -318,6 +348,31 @@ Object.assign(ACT, {
             toast(t, 'info');
         return;
     } void runAct(el.dataset.v); },
+    'hx-turnin': (el) => { const c = ctxW(); if (!c)
+        return; const r = turnIn(c.g, c.w, el.dataset.v); if (r) {
+        toast(`You turn ${r.name} in to ${r.to}.${r.reward ? ` +${moneyText(c.w, r.reward)}` : ''}`, 'success');
+        pushDirective(r.directive);
+        void import('../sim/game.js').then(m => m.syncScene());
+    } notify(); },
+    'hx-laws-toggle': (_el, e) => { e.preventDefault(); HX.lawsOpen = !HX.lawsOpen; notify(); },
+    'hx-law-add': () => {
+        const g = game();
+        if (!g)
+            return;
+        const d = HX.law;
+        if (!d.name.trim() || !csvList(d.about).length || !d.allows.length) {
+            toast('A law needs a name, who it is about, and at least one act.', 'info');
+            return;
+        }
+        hs(g).laws.push({ id: `l${Date.now().toString(36)}`, name: d.name.trim(), about: csvList(d.about), allows: [...d.allows], who: csvList(d.who).filter(x => x.toLowerCase() !== 'anyone'), counts: d.counts, ...(d.handTo.trim() ? { handTo: d.handTo.trim() } : {}), ...(Number(d.reward) > 0 ? { reward: Number(d.reward) } : {}), ...(csvList(d.objectors).length ? { objectors: csvList(d.objectors) } : {}), ...(d.note.trim() ? { note: d.note.trim() } : {}) });
+        HX.law = freshLaw();
+        HX.lawsOpen = false;
+        saveGame();
+        void import('../sim/prompt.js').then(m => m.refreshPrompt());
+        notify();
+    },
+    'hx-law-del': (el) => { const g = game(); if (!g)
+        return; hs(g).laws = hs(g).laws.filter(l => l.id !== el.dataset.id); saveGame(); void import('../sim/prompt.js').then(m => m.refreshPrompt()); notify(); },
     'hx-takein': (el) => { const c = ctxW(); if (!c)
         return; const r = takeIn(c.g, c.w, el.dataset.v); if (r) {
         toast(`You take ${r.name} in.${r.days < 9999 ? ` They'll be held for ${r.days} day${r.days === 1 ? '' : 's'}.` : ' They won\'t be out again.'}`, 'success');
@@ -385,6 +440,14 @@ Object.assign(INPUT, {
     },
     'hx-newgroup': (el) => { HX.newGroup = el.value; },
     'hx-item': (el) => { HX.item = el.value; },
+    'hx-ld': (el) => { HX.law[el.dataset.k] = el.value; },
+    'hx-ld-act': (el) => { const v = el.dataset.v; HX.law.allows = HX.law.allows.filter(x => x !== v); if (el.checked)
+        HX.law.allows.push(v); },
+    'hx-kind': (el) => { const g = game(); if (!g)
+        return; const k = el.dataset.key; if (el.value.trim())
+        hs(g).kinds[k] = el.value.trim();
+    else
+        delete hs(g).kinds[k]; saveGame(); void import('../sim/prompt.js').then(m => m.refreshPrompt()); },
     'hx-role': (el) => {
         const g = game();
         if (!g)

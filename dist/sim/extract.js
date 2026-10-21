@@ -56,14 +56,14 @@ export async function lorebookSource(name) {
     return { kind: 'lorebook', id: name, title: name, parts: chunked(list.map(entryText)), lorebook: name, scenario: '', avatar: '' };
 }
 /* ---------- the AI reads it ---------- */
-const KEYS = ['name', 'aliases', 'age', 'appearance', 'personality', 'background', 'speech', 'relationships', 'greeting'];
+const KEYS = ['name', 'aliases', 'age', 'kind', 'appearance', 'personality', 'background', 'speech', 'relationships', 'greeting'];
 function promptFor(src, part, i, n) {
     return [
         `Below is part ${i + 1} of ${n} of a SillyTavern ${src.kind === 'card' ? 'character card' : 'lorebook'} called "${src.title}".`,
         'List every distinct PERSON it describes: characters with a name who could speak in a story. Not places, items, groups, factions, species or rules. Not {{user}} or the player. Not a narrator.',
         'For each person, write ONE line of JSON, exactly with these keys:',
-        '{"name": "", "aliases": [], "age": "", "appearance": "", "personality": "", "background": "", "speech": "", "relationships": "", "greeting": ""}',
-        'age: as the text says (a number, or words like "young adult", "elderly"), or "" when it does not say. appearance, personality, background, relationships: a few sentences each, from the text only. speech: how they talk, with one sample line. greeting: one short line they might say on meeting someone new, in their voice.',
+        '{"name": "", "aliases": [], "age": "", "kind": "", "appearance": "", "personality": "", "background": "", "speech": "", "relationships": "", "greeting": ""}',
+        'kind: what they are, in a few words (human, mouse kemonomimi, vampire, android…), as the text says. age: as the text says (a number, or words like "young adult", "elderly"), or "" when it does not say. appearance, personality, background, relationships: a few sentences each, from the text only. speech: how they talk, with one sample line. greeting: one short line they might say on meeting someone new, in their voice.',
         'Use only what the text says; leave a field "" when it does not say. If there is nobody, answer NONE. Answer with the JSON lines only.',
         '"""', part, '"""',
     ].join('\n');
@@ -147,7 +147,7 @@ export async function extract(src, progress = () => { }) {
                 merge(hit, f);
                 continue;
             }
-            const one = { name: clean(f.name), aliases: f.aliases ?? [], age: '', appearance: '', personality: '', background: '', speech: '', relationships: '', greeting: '', keep: true, minor: false, exists: '' };
+            const one = { name: clean(f.name), aliases: f.aliases ?? [], age: '', kind: '', appearance: '', personality: '', background: '', speech: '', relationships: '', greeting: '', keep: true, minor: false, exists: '' };
             merge(one, f);
             found.push(one);
         }
@@ -176,7 +176,7 @@ export function guessPeople(src) {
                 continue;
             if (out.some(f => norm(f.name) === norm(first)))
                 continue;
-            out.push({ name: first, aliases: (m[2] ?? '').split(',').map(s => s.trim()).filter(s => s && norm(s) !== norm(first)).slice(0, 6), age: '', appearance: '', personality: '', background: body.slice(0, 1800), speech: '', relationships: '', greeting: '', keep: true, minor: minorFrom('', body), exists: '' });
+            out.push({ name: first, aliases: (m[2] ?? '').split(',').map(s => s.trim()).filter(s => s && norm(s) !== norm(first)).slice(0, 6), age: '', kind: '', appearance: '', personality: '', background: body.slice(0, 1800), speech: '', relationships: '', greeting: '', keep: true, minor: minorFrom('', body), exists: '' });
         }
     for (const f of out) {
         f.exists = characters().find(c => norm(String(c.name ?? '')) === norm(f.name))?.avatar ?? '';
@@ -219,7 +219,7 @@ export async function makeCards(src, list, opts, progress = () => { }) {
             first_mes: f.greeting,
             mes_example: f.speech ? `<START>\n{{char}}: ${f.speech.replace(/^["“]|["”]$/g, '')}` : '',
             tags: [src.title],
-            extensions: { mundi: { extractedFrom: { kind: src.kind, title: src.title }, ...(f.minor ? { minor: true } : {}) }, ...(opts.linkLore && src.lorebook ? { world: src.lorebook } : {}) },
+            extensions: { mundi: { extractedFrom: { kind: src.kind, title: src.title }, ...(f.kind ? { kind: f.kind } : {}), ...(f.minor ? { minor: true } : {}) }, ...(opts.linkLore && src.lorebook ? { world: src.lorebook } : {}) },
         }, avatar);
         made.push(file);
     }

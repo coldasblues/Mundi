@@ -1,0 +1,14 @@
+/* Set up from the lore: the review. */
+#mundi-root .mu-su-btn { display: inline-flex; align-items: center; gap: 8px; }
+#mundi-root .mu-su { width: min(720px, calc(100% - 24px)); max-height: min(88vh, 860px); overflow: auto; display: grid; gap: 10px; }
+#mundi-root .mu-su-top { display: flex; align-items: center; justify-content: space-between; }
+#mundi-root .mu-su-top h3 { display: inline-flex; align-items: center; gap: 8px; }
+#mundi-root .mu-su section { display: grid; gap: 6px; }
+#mundi-root .mu-su h4 { margin: 4px 0 0; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: var(--hud-muted, var(--muted)); }
+#mundi-root .mu-su-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }
+#mundi-root .mu-su-row.is-person { grid-template-columns: minmax(120px, 1fr) minmax(120px, 1.2fr) auto auto; }
+#mundi-root .mu-su-row input[type="text"], #mundi-root .mu-su-row select { padding: 3px 8px; font-size: 12px; min-width: 0; }
+#mundi-root .mu-su-law { display: inline-flex; gap: 4px; align-items: center; font-size: 12px; white-space: nowrap; }
+#mundi-root .mu-su-done { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--good); }
+@media (max-width: 640px) { #mundi-root .mu-su-row.is-person { grid-template-columns: 1fr 1fr; } }
+#mundi-root .mu-su, #mundi-root .mu-ex, #mundi-root .mu-hx { background: linear-gradient(160deg, rgba(255, 255, 255, .08), rgba(255, 255, 255, 0) 40%), linear-gradient(var(--glass-strong, rgba(20, 26, 40, .68)), var(--glass-strong, rgba(20, 26, 40, .68))), rgba(8, 10, 16, .7) !important; }

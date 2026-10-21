@@ -9,6 +9,7 @@ import { psOn } from '../sim/pstate-live.js';
 import { icon } from './icons.js';
 import { ACT, INPUT } from './reg.js';
 import { personGroupHtml, groupsHtml } from './hostileui.js';
+import { setupButton } from './setupui.js';
 
 export const STORY = { people: false, save: false, name: '', saving: false, filter: 'all' as 'all' | 'gone' };
 
@@ -32,6 +33,7 @@ function peopleHtml(g: Save, w: WorldDef) {
         <div class="mu-chips"><button class="mu-chip ${STORY.filter === 'all' ? 'is-on' : ''}" data-act="story-filter" data-v="all">Everyone · ${all.length}</button><button class="mu-chip ${STORY.filter === 'gone' ? 'is-on' : ''}" data-act="story-filter" data-v="gone">Dead or gone · ${all.length - all.filter(p => !['dead', 'captured', 'missing'].includes(p.status)).length}</button></div>
         ${list.length ? `<ul class="mu-story-list" data-keep="story">${list.map(p => personRow(g, p)).join('')}</ul>` : '<p class="mu-muted">Nobody yet. Everyone you meet, and everyone the story brings in, shows up here.</p>'}
         ${groupsHtml(g, w)}
+        ${psOn() ? setupButton() : ''}
         <label class="mu-check"><input type="checkbox" data-input="story-sum" ${rosterPrefs().summaries ? 'checked' : ''}><span>Write notes about them<small>One short AI call each time you leave a place: everyone who was there gets their notes brought up to date. The story keeps them in mind when they are in a scene.</small></span></label>
     </div>`;
 }

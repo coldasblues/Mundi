@@ -27,7 +27,7 @@ export function startWizard() {
     resetPick('cast');
     resetPick('scen');
     const w = getWorld('modern') ?? worlds()[0];
-    state.wizard = { mode: null, sq: '', pick: '', step: 'world', world: w.id, examples: false, cast: [], q: '', hero: freshHero(w), portraitUrl: '' };
+    state.wizard = { mode: null, sq: '', pick: '', step: 'world', world: w.id, examples: false, setup: true, cast: [], q: '', hero: freshHero(w), portraitUrl: '' };
     setWorldDicts(w.id, w.i18n ?? {});
     state.view = 'newgame';
     notify();
@@ -121,6 +121,7 @@ function stepReview() {
         <p class="mu-muted">Mundi will create in your SillyTavern:</p>
         ${charLoreHtml()}
         <ul class="mu-muted mu-review-list">${wz.examples ? '<li>the example characters\' cards</li>' : ''}${wz.heroMode === 'existing' ? '' : '<li>your persona</li>'}<li>the lorebook “Mundi - ${esc(w.name)}”</li><li>a group chat for this game (each save is a chat of that group)</li></ul>
+        <label class="mu-check"><input type="checkbox" data-input="ng-setup" ${wz.setup ? 'checked' : ''}><span>Set up from the lore<small>Once the game starts, the AI reads its lorebooks and the characters' cards and proposes what each person is, who is the law, the groups and their bases, and the world's own laws. You review it before anything is applied. A few AI calls.</small></span></label>
     </div>`;
 }
 // Characters of this game with lorebooks of their own: keep each lorebook always on in this world, or not.
@@ -305,7 +306,14 @@ Object.assign(ACT, {
         try {
             await startNewGame({ world: W(), cast: wz.cast, examples: wz.examples, hero: { ...wz.hero, name: wz.hero.name.trim() }, persona: wz.heroMode === 'existing' ? wz.persona : undefined, lore: chosenLore(),
                 households: (wz.hh ?? []).filter((h) => h.members.length), family: wz.family ?? [], home: wz.home ?? undefined, difficulty: wz.difficulty ?? 'normal' });
+            const setup = !!wz.setup;
             state.wizard = null;
+            if (setup) {
+                const { runSetup } = await import('./setupui.js');
+                state.busy = '';
+                notify();
+                void runSetup();
+            }
         }
         catch (e) {
             console.error('[Mundi] new game', e);
@@ -319,6 +327,7 @@ Object.assign(ACT, {
 });
 Object.assign(INPUT, {
     'ng-examples': (el) => { state.wizard.examples = el.checked; notify(); },
+    'ng-setup': (el) => { state.wizard.setup = el.checked; },
     'ng-q': (el) => { state.wizard.q = el.value; notify(); },
     'ng-pq': (el) => { state.wizard.pq = el.value; notify(); },
     'ng-sq': (el) => { state.wizard.sq = el.value; notify(); },

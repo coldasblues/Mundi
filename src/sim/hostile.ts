@@ -20,7 +20,9 @@ import { keyFor, applyNow, rosterHooks, statusOf, pendingChanges } from './roste
 import { currentState, walkOns, psOn, psHooks, visitLines, keepNarration, refreshPState, seenWalkOns } from './pstate-live.js';
 import { payOf } from './bills.js';
 import type { Mobility } from './pstate.js';
-import { judge, isNotPerson, ATTACK_WORDS, ROLES, CODES, outsiders, enforcerOf, type Who, type Verdict } from './judge.js';
+import { judge, isNotPerson, ATTACK_WORDS, ROLES, CODES, outsiders, enforcerOf, kindMatches, lawsAbout, type Who, type Verdict, type StoryLaw } from './judge.js';
+import { charOf } from '../st/bridge.js';
+import { money as moneyText } from './needs.js';
 import { addStatus } from './needs.js';
 import {
     DEFAULT_ACTS, SEVERITY, CRIME_WORD, worst, blockedFor, dcFor, chanceFor, crowdLevel, crowdSees, noticeChance, reportChance,
@@ -30,7 +32,7 @@ import {
 
 /* ---------- what the save keeps ---------- */
 
-export interface Captive { key: string; name: string; kind: 'cast' | 'walkon'; avatar?: string; how: 'held' | 'restrained'; since: number; custody?: boolean }
+export interface Captive { key: string; name: string; kind: 'cast' | 'walkon'; avatar?: string; how: 'held' | 'restrained'; since: number; custody?: boolean; lawful?: string }
 /** A code broken where someone outside it saw (the Masquerade). */
 export interface Breach { code: string; at: number; place: string; seen: string[] }
 export interface Down { key: string; name: string; avatar?: string; how: 'down' | 'out'; until: number; loc: string }
@@ -60,11 +62,15 @@ export interface HState {
     /** Who you are (roles: civilian, law, kindred…), and how you'd put it in your own words, for the story. */
     roles: string[]; roleText: string;
     breaches: Breach[];
+    /** This game's own laws, and what each person is ("mouse kemonomimi"), by roster key. */
+    laws: StoryLaw[]; kinds: Record<string, string>;
+    /** Words for what is not a person in this game (besides the world's). */
+    notPeople: string[];
 }
 export function hs(g: Save): HState {
     const x = ((g as any).hostile ??= {}) as HState;
     x.captives ??= {}; x.down ??= {}; x.incidents ??= []; x.groups ??= {}; x.grudge ??= {};
-    x.law ??= { mode: 'auto' }; x.lawKeys ??= []; x.jail ??= {}; x.queue ??= []; x.captor ??= null; x.followers ??= []; x.roles ??= []; x.roleText ??= ''; x.breaches ??= [];
+    x.law ??= { mode: 'auto' }; x.lawKeys ??= []; x.jail ??= {}; x.queue ??= []; x.captor ??= null; x.followers ??= []; x.roles ??= []; x.roleText ??= ''; x.breaches ??= []; x.laws ??= []; x.kinds ??= {}; x.notPeople ??= [];
     return x;
 }
 export interface HxPrefs { on: boolean }
@@ -152,6 +158,7 @@ export function rolesOf(g: Save, w: WorldDef): string[] {
     return own.length ? own : ['civilian'];
 }
 /** What they are wanted for, if anything: a crime the story reported in this visit, or one still open. */
+const ACT_WORDS: Record<string, string> = { grab: 'grab', restrain: 'tie up', knockout: 'knock out', kill: 'kill', punch: 'hit', kick: 'kick', shove: 'shove', threaten: 'threaten', steal: 'take from', feed: 'feed on', scene: 'shout at' };
 /** "the mugger", "a mugger" and "Mugger" are the same person. */
 const bareName = (n: string) => String(n ?? '').toLowerCase().replace(/^(the|a|an)\s+/, '').replace(/\s+/g, ' ').trim();
 export function wantedFor(g: Save, name: string): Crime | '' {
@@ -170,11 +177,19 @@ export function isAttacker(g: Save, name: string): boolean {
     for (const { line } of visitLines(g)) if (line.kind === 'ai' && !line.dismissed) for (const c of line.rep?.crimes ?? []) if (c.name.toLowerCase().includes(first) && c.target === '{{user}}' && c.crime !== 'theft') return true;
     return false;
 }
+/** The story's laws: the world's (world.json → "laws") and this game's. */
+export const lawsOf = (g: Save, w: WorldDef): StoryLaw[] => [...(((w as any).laws ?? []) as StoryLaw[]), ...hs(g).laws];
+/** What someone is, as words: what you wrote on the People screen, what their card says, their name, their group. */
+export function kindsOf(g: Save, key: string, name: string, avatar?: string): string[] {
+    const c = avatar ? charOf(avatar) : null;
+    return [hs(g).kinds[key] ?? '', String(c?.data?.extensions?.mundi?.kind ?? ''), ...((c?.tags ?? c?.data?.tags ?? []) as string[]), name, groupOf(g, key)?.name ?? ''].filter(Boolean);
+}
 export function whoIs(g: Save, w: WorldDef, p: HerePerson): Who {
     const grp = groupOf(g, p.key);
     return {
+        kinds: kindsOf(g, p.key, p.name, p.avatar),
         law: p.law, wanted: wantedFor(g, p.name), attacker: isAttacker(g, p.name),
-        notPerson: isNotPerson(p.name, ((w as any).notPeople ?? []) as string[]),
+        notPerson: isNotPerson(`${p.name} ${hs(g).kinds[p.key] ?? ''}`, [...(((w as any).notPeople ?? []) as string[]), ...hs(g).notPeople]),
         insider: [grp?.name ?? '', p.name].filter(Boolean),
         willing: !!p.avatar && (bondOf(g, p.avatar) >= 55 || isPartner(g, p.avatar)),
     };
@@ -184,7 +199,7 @@ export function verdictFor(g: Save, w: WorldDef, def: HostileDef, p: HerePerson 
     const atHome = g.player.loc === playerHomeId;
     const base: Crime = def.id === 'take' && atHome ? 'none' : def.crime;
     const s = currentState(g);
-    return judge(def, base, rolesOf(g, w), p ? whoIs(g, w, p) : null, s.mobility === 'held' || s.mobility === 'restrained');
+    return judge(def, base, rolesOf(g, w), p ? whoIs(g, w, p) : null, s.mobility === 'held' || s.mobility === 'restrained', lawsOf(g, w), hs(g).roleText);
 }
 export function bonusOf(g: Save, def: HostileDef): number {
     const mine = traitsOf(g);
@@ -263,6 +278,7 @@ export function resolveAct(g: Save, w: WorldDef, id: string, targetKey: string, 
         if (decided.scare) applyNow(g, w, target.name, 'left');
         if (decided.money) { cash = money(g, w); g.player.money += cash; }
         if (decided.captive && verdict.kind === 'arrest') st.captives[target.key].custody = true;   // under arrest
+        if (decided.captive && verdict.law) st.captives[target.key].lawful = verdict.law.id;          // caught under the story's law
         if (target.avatar && verdict.kind === 'crime') {
             loseBond(g, target.avatar, SEVERITY[def.crime] * (decided.ok ? 6 : 3));
             feel(g, target.avatar, decided.change === 'dead' ? '' : `afraid of and angry at you: you tried to ${fillIn(def.verb, 'them', 'you')}`, 3 + SEVERITY[def.crime]);
@@ -307,6 +323,11 @@ export function resolveAct(g: Save, w: WorldDef, id: string, targetKey: string, 
     const grp = target ? groupOf(g, target.key) : undefined;
     if (grp && crime !== 'none' && (victimSaw || seenBy.some(x => grp.members.includes(x.key)) || decided.change === 'dead')) st.grudge[grp.id] = (st.grudge[grp.id] ?? 0) + SEVERITY[crime];
 
+    // the ones a law of the story leaves uneasy (people of the same kind): they won't report it, but they remember
+    if (verdict.law?.objectors?.length) for (const x of seenBy) if (x.avatar && kindMatches(kindsOf(g, x.key, x.name, x.avatar), verdict.law.objectors)) {
+        loseBond(g, x.avatar, 8);
+        feel(g, x.avatar, `sick at heart: watched you ${fillIn(def.verb, target?.name ?? 'someone', 'you').replace(/^you /, '')}, as the ${verdict.law.name} allows`, 4);
+    }
     // codes besides the law (the Masquerade): broken if someone outside it saw
     const broke: string[] = [];
     for (const code of verdict.codes) {
@@ -396,6 +417,25 @@ export function takeIn(g: Save, w: WorldDef, key: string): { name: string; days:
     saveGame();
     const law = lawOf(g, w);
     return { name: c.name, days, directive: `[{{user}} hands ${c.name} over to ${law.name}${crime ? ` for ${CRIME_WORD[crime]}` : ''}: ${c.name} is taken away to a cell and is gone from the scene. In the state block: changes: ${c.name} = captured.]` };
+}
+
+/* ---------- handing someone over, under the story's law ---------- */
+
+export function turnInOf(g: Save, w: WorldDef, key: string): StoryLaw | undefined {
+    const c = hs(g).captives[key];
+    const l = c?.lawful ? lawsOf(g, w).find(x => x.id === c.lawful) : undefined;
+    return l?.handTo ? l : undefined;
+}
+export function turnIn(g: Save, w: WorldDef, key: string): { name: string; to: string; reward: number; directive: string } | null {
+    const l = turnInOf(g, w, key); if (!l) return null;
+    const st = hs(g); const c = st.captives[key];
+    delete st.captives[key];
+    const reward = l.reward ? payOf(g, l.reward) : 0;
+    if (reward) g.player.money += reward;
+    applyNow(g, w, c.name, 'captured');
+    note(g, '{u} turned {0} in to {1}.', [c.name, l.handTo!], c.avatar ? [c.avatar] : [], g.player.loc, 'life');
+    saveGame();
+    return { name: c.name, to: l.handTo!, reward, directive: `[{{user}} hands ${c.name} over to ${l.handTo}${reward ? `, and is paid ${moneyText(w, reward)}` : ''}, under the ${l.name}. ${c.name} is taken away and is gone from the scene. In the state block: changes: ${c.name} = captured.]` };
 }
 
 /* ---------- giving yourself up ---------- */
@@ -754,6 +794,8 @@ export function hostileLines(g: Save, w: WorldDef): string[] {
     const codeNames = [...new Set(roles.flatMap(r => r.codes ?? []))].map(id => CODES.find(c => c.id === id)!.name);
     const recent = st.breaches.filter(b => now - b.at < 7 * 1440);
     return [
+        ...lawsOf(g, w).map(l => `A law of this world, the ${l.name}: ${l.who.length ? l.who.join(' or ') : 'anyone'} may ${l.allows.map(a => ACT_WORDS[a] ?? a).join(', ')} ${l.about.join(' or ')}${l.handTo ? `, and hand them over to ${l.handTo}${l.reward ? ` for a reward of ${moneyText(w, payOf(g, l.reward))}` : ''}` : ''}${l.counts === 'minor' ? ' (a minor offense at most)' : ' (it is legal)'}.${l.note ? ` ${l.note}` : ''}`),
+        ...hereNow.flatMap(p => lawsAbout(lawsOf(g, w), kindsOf(g, p.key, p.name, p.avatar)).length ? [`${display(p)} is covered by the ${lawsAbout(lawsOf(g, w), kindsOf(g, p.key, p.name, p.avatar)).map(l => l.name).join(' and ')}.`] : []).slice(0, 4),
         roles.length || st.roleText.trim() ? `Who {{user}} is: ${[...roles.map(r => r.name.toLowerCase()), st.roleText.trim()].filter(Boolean).join('; ')}.${roles.some(r => r.authority) ? ' {{user}} may lawfully arrest people who are wanted or who attack them.' : ''}${codeNames.length ? ` {{user}} lives under ${codeNames.join(' and ')}.` : ''}` : '',
         recent.length ? `{{user}} broke ${[...new Set(recent.map(b => CODES.find(c => c.id === b.code)?.name ?? b.code))].join(', ')} recently (seen by ${[...new Set(recent.flatMap(b => b.seen))].slice(0, 4).join(', ')}).` : '',
         law.exists ? `The law here: ${law.name}. A crime people see can be reported, and ${law.name} come${law.name.startsWith('the') ? '' : 's'} for whoever did it.${lawNames.length ? ` Here right now: ${lawNames.join(', ')}.` : ''}` : 'There is no law here: no police, nobody comes to stop or arrest anyone. People deal with trouble themselves.',

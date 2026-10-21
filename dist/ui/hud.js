@@ -41,6 +41,7 @@ import { storyOverlays, autosaveLine } from './storyui.js';
 import { psOn } from '../sim/pstate-live.js';
 import { hostileButton, hostileOverlays, hxBadge } from './hostileui.js';
 import { inSmallTalk } from './matchui.js';
+import { setupHtml } from './setupui.js';
 /* ---------- you ---------- */
 // Health and energy are bars; the other needs are round badges. A world can choose with `hudKind`.
 const isBar = (s) => (s.hudKind ? s.hudKind === 'bar' : ['life', 'health', 'energy'].includes(s.id));
@@ -180,7 +181,7 @@ export function hudHtml() {
     const w = g && getWorld(g.world);
     if (!g || !w)
         return '';
-    return `${personaCard(g, w)}${houseBar(g, w)}${clockCard(g, w)}${corner(g, w)}${eventPanelHtml(g, w)}${hereBar(g, w)}${peopleColumn(g, w)}${actsColumn(g, w)}${phoneButton(w)}${bumpHtml()}${apptReminderHtml(g, w)}${conflictHtml(g, w)}${facePlanHtml()}${customModalHtml()}${doingHtml()}${lifeOverlays()}${pstateOverlays(g, w)}${storyOverlays(g, w)}${hostileOverlays(g, w)}`;
+    return `${personaCard(g, w)}${houseBar(g, w)}${clockCard(g, w)}${corner(g, w)}${eventPanelHtml(g, w)}${hereBar(g, w)}${peopleColumn(g, w)}${actsColumn(g, w)}${phoneButton(w)}${bumpHtml()}${apptReminderHtml(g, w)}${conflictHtml(g, w)}${facePlanHtml()}${customModalHtml()}${doingHtml()}${lifeOverlays()}${pstateOverlays(g, w)}${storyOverlays(g, w)}${hostileOverlays(g, w)}${setupHtml()}`;
 }
 Object.assign(ACT, {
     'dock-toggle': () => { if (onPhone()) {

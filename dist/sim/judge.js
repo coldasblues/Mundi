@@ -15,9 +15,10 @@ export const isNotPerson = (name, extra = []) => {
 };
 /** Words in your situation's reason that mean the person named in it is attacking you or holding you. */
 export const ATTACK_WORDS = /\b(fight|fighting|attack|attacking|grab|grabbed|grabbing|pin|pinned|hold|holding|held|hit|hitting|punch|stab|stabbing|shoot|shooting|choke|choking|strangl|kidnap|bound|tied|tying|cuff|beat|beating|corner|cornered|threaten|mug|rob|drag|dragging|captive|prisoner)/i;
+const SEV = { none: 0, minor: 1, theft: 2, assault: 3, kidnapping: 5, murder: 8 };
 const ARREST_ACTS = ['grab', 'restrain', 'shove', 'knockout', 'punch', 'kick', 'threaten'];
 const DEFENSE_ACTS = ['punch', 'kick', 'shove', 'knockout', 'grab', 'restrain', 'threaten'];
-export function judge(def, base, roles, t, youHeld) {
+export function judge(def, base, roles, t, youHeld, laws = [], selfText = '') {
     const r = ROLES.filter(x => roles.includes(x.id));
     const authority = r.some(x => x.authority);
     const codes = CODES.filter(c => c.acts.includes(def.id) && r.some(x => x.codes?.includes(c.id))).map(c => c.id);
@@ -25,6 +26,12 @@ export function judge(def, base, roles, t, youHeld) {
         return { kind: 'nothing', crime: 'none', label: 'not a person', why: 'they are not a person: nobody calls this a crime', codes };
     if (base === 'none')
         return { kind: 'fine', crime: 'none', label: '', why: '', codes };
+    // the story's own law: this act, on someone like them, by someone like you
+    const sl = t ? lawFor(laws, def.id, t.kinds ?? [], roles, selfText) : undefined;
+    if (sl && sl.counts === 'minor' && SEV[base] > 1)
+        return { kind: 'crime', crime: 'minor', label: `minor: ${sl.name}`, why: `${sl.name} makes it a minor offense`, codes, law: sl };
+    if (sl)
+        return { kind: 'legal', crime: 'none', label: `legal: ${sl.name}`, why: `${sl.name}${sl.note ? `: ${sl.note}` : ' allows it'}`, codes, law: sl };
     // someone who trusts you lets you drink: no crime (the Masquerade still says who may see)
     if (def.id === 'feed' && t?.willing)
         return { kind: 'fine', crime: 'none', label: 'willing vessel', why: 'they trust {{user}} and let it happen', codes };
@@ -53,3 +60,15 @@ export const enforcerOf = (codeId, groups) => {
     const c = CODES.find(x => x.id === codeId);
     return c ? groups.find(gr => c.enforcers.some(k => gr.name.toLowerCase().includes(k))) : undefined;
 };
+const words = (t) => ` ${String(t ?? '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim()} `;
+/** Does any of what they are match any of the words? (whole words: "mouse" matches "mouse kemonomimi", not "mousetrap") */
+export function kindMatches(kinds, about) {
+    const k = kinds.map(words);
+    return about.map(a => a.trim().toLowerCase()).filter(Boolean).some(a => k.some(x => x.includes(` ${a} `) || x.includes(` ${a}s `)));
+}
+/** The law that covers this act on someone like them, if you may use it. */
+export function lawFor(laws, actId, kinds, roles, selfText) {
+    return laws.find(l => l.allows.includes(actId) && kindMatches(kinds, l.about) && (!l.who.length || l.who.some(w => roles.includes(w) || words(selfText).includes(` ${w.toLowerCase()} `))));
+}
+/** A law that is about them, whatever the act (for the menu: "she is covered by the K4 control order"). */
+export const lawsAbout = (laws, kinds) => laws.filter(l => kindMatches(kinds, l.about));

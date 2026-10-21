@@ -6,7 +6,7 @@ import { characters, charOf, createCharacter, loadLore, quiet, newFolder, putInF
 import { initialsAvatar } from './game.js';
 
 export interface Found {
-    name: string; aliases: string[]; age: string; appearance: string; personality: string; background: string;
+    name: string; aliases: string[]; age: string; kind: string; appearance: string; personality: string; background: string;
     speech: string; relationships: string; greeting: string;
     keep: boolean; minor: boolean; exists: string;   // exists: the avatar of a card you already have with that name
 }
@@ -53,14 +53,14 @@ export async function lorebookSource(name: string): Promise<Source> {
 
 /* ---------- the AI reads it ---------- */
 
-const KEYS = ['name', 'aliases', 'age', 'appearance', 'personality', 'background', 'speech', 'relationships', 'greeting'] as const;
+const KEYS = ['name', 'aliases', 'age', 'kind', 'appearance', 'personality', 'background', 'speech', 'relationships', 'greeting'] as const;
 function promptFor(src: Source, part: string, i: number, n: number): string {
     return [
         `Below is part ${i + 1} of ${n} of a SillyTavern ${src.kind === 'card' ? 'character card' : 'lorebook'} called "${src.title}".`,
         'List every distinct PERSON it describes: characters with a name who could speak in a story. Not places, items, groups, factions, species or rules. Not {{user}} or the player. Not a narrator.',
         'For each person, write ONE line of JSON, exactly with these keys:',
-        '{"name": "", "aliases": [], "age": "", "appearance": "", "personality": "", "background": "", "speech": "", "relationships": "", "greeting": ""}',
-        'age: as the text says (a number, or words like "young adult", "elderly"), or "" when it does not say. appearance, personality, background, relationships: a few sentences each, from the text only. speech: how they talk, with one sample line. greeting: one short line they might say on meeting someone new, in their voice.',
+        '{"name": "", "aliases": [], "age": "", "kind": "", "appearance": "", "personality": "", "background": "", "speech": "", "relationships": "", "greeting": ""}',
+        'kind: what they are, in a few words (human, mouse kemonomimi, vampire, android…), as the text says. age: as the text says (a number, or words like "young adult", "elderly"), or "" when it does not say. appearance, personality, background, relationships: a few sentences each, from the text only. speech: how they talk, with one sample line. greeting: one short line they might say on meeting someone new, in their voice.',
         'Use only what the text says; leave a field "" when it does not say. If there is nobody, answer NONE. Answer with the JSON lines only.',
         '"""', part, '"""',
     ].join('\n');
@@ -119,7 +119,7 @@ export async function extract(src: Source, progress: (i: number, n: number) => v
         for (const f of parseLines(out)) {
             const hit = found.find(x => sameAs(x, f));
             if (hit) { merge(hit, f); continue; }
-            const one: Found = { name: clean(f.name), aliases: f.aliases ?? [], age: '', appearance: '', personality: '', background: '', speech: '', relationships: '', greeting: '', keep: true, minor: false, exists: '' };
+            const one: Found = { name: clean(f.name), aliases: f.aliases ?? [], age: '', kind: '', appearance: '', personality: '', background: '', speech: '', relationships: '', greeting: '', keep: true, minor: false, exists: '' };
             merge(one, f);
             found.push(one);
         }
@@ -146,7 +146,7 @@ export function guessPeople(src: Source): Found[] {
         const first = title.split(/[,/|]/)[0].trim();
         if (!/^[A-Z][\w'’-]*(?: [A-Z][\w'’-]*){0,3}$/.test(first) || !PERSON.test(body)) continue;
         if (out.some(f => norm(f.name) === norm(first))) continue;
-        out.push({ name: first, aliases: (m[2] ?? '').split(',').map(s => s.trim()).filter(s => s && norm(s) !== norm(first)).slice(0, 6), age: '', appearance: '', personality: '', background: body.slice(0, 1800), speech: '', relationships: '', greeting: '', keep: true, minor: minorFrom('', body), exists: '' });
+        out.push({ name: first, aliases: (m[2] ?? '').split(',').map(s => s.trim()).filter(s => s && norm(s) !== norm(first)).slice(0, 6), age: '', kind: '', appearance: '', personality: '', background: body.slice(0, 1800), speech: '', relationships: '', greeting: '', keep: true, minor: minorFrom('', body), exists: '' });
     }
     for (const f of out) { f.exists = characters().find(c => norm(String(c.name ?? '')) === norm(f.name))?.avatar ?? ''; f.keep = !f.minor && !f.exists; }
     return out;
@@ -183,7 +183,7 @@ export async function makeCards(src: Source, list: Found[], opts: MakeOpts, prog
             first_mes: f.greeting,
             mes_example: f.speech ? `<START>\n{{char}}: ${f.speech.replace(/^["“]|["”]$/g, '')}` : '',
             tags: [src.title],
-            extensions: { mundi: { extractedFrom: { kind: src.kind, title: src.title }, ...(f.minor ? { minor: true } : {}) }, ...(opts.linkLore && src.lorebook ? { world: src.lorebook } : {}) },
+            extensions: { mundi: { extractedFrom: { kind: src.kind, title: src.title }, ...(f.kind ? { kind: f.kind } : {}), ...(f.minor ? { minor: true } : {}) }, ...(opts.linkLore && src.lorebook ? { world: src.lorebook } : {}) },
         }, avatar);
         made.push(file);
     }

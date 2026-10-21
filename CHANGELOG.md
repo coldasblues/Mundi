@@ -2,6 +2,45 @@
 
 This is a fork of [tjalis/Mundi](https://github.com/tjalis/Mundi) (AGPL-3.0). Changes made in this fork are listed here, with their dates, as the license asks.
 
+## 0.1.0-ps.10 — 2026-10-21
+
+The story's own laws, and a setup step where the AI reads the lore and fills in who is who.
+
+### Added
+
+- **Laws of this story** (Rough stuff menu → You · Law in this story → Laws of this story, or `"laws"` in world.json). A law makes some acts against some kind of people lawful: a control order, a bounty, a curfew. Each law has:
+  - a name ("the K4 control order");
+  - who it is about, as words ("mouse, mice"), matched against what someone is;
+  - the acts it allows (grab, tie up, knock out, kill…);
+  - who may use it: anyone, the law, or words from who you are ("animal control");
+  - what it counts as: legal, or a minor offense;
+  - optionally, who they are handed over to ("Animal Control") and a reward;
+  - optionally, who disapproves ("kemonomimi"): such witnesses don't report it, but they remember it and like you less;
+  - a note for the story.
+- **The verdict follows the law.** Under the K4 control order, a hotel receptionist grabbing a mouse girl shows **legal: K4 control order**: no crime, nobody calls it in. What the law doesn't allow (killing her, unless it says so) is still a crime. A law only some people may use is a crime for everyone else.
+- **Turn in.** Someone caught under such a law can be turned in ("Turn in to Animal Control · +$50"): the reward is paid and they are taken away.
+- **What someone is.**
+  - The People screen has a **What they are** field ("mouse kemonomimi", "Kindred", "human").
+  - Cards made by Find the characters get it from the lore.
+  - A card's own tags, a person's group, and a passer-by's name ("a mouse girl") count too.
+- **The story is told the laws**, and who in the scene they cover, so it plays the world consistently.
+- **Set up from the lore.** The AI reads the game's lorebooks (the world's, the save's, and the ones linked to its characters) and the characters' cards, and proposes:
+  - whether there is police at all, and what it is called;
+  - the world's laws, written up like the ones above;
+  - the groups, with a base on the map;
+  - for each person: what they are, whether they are the law, and their group;
+  - what is not a person.
+  You review it all on one screen (untick, fix a kind, pick a base) and only then is it applied. It is offered at the start of a new game (on by default), and any time from the Rough stuff menu and the People screen.
+
+### Changed
+
+- The Rough stuff, Find the characters and Set up dialogs are darker, so they read over a busy scene.
+
+### Files
+
+- New: `src/sim/setup.ts` (reading the lore, applying the plan), `src/ui/setupui.ts`, `css/94-setup.css`.
+- Touched: `src/sim/judge.ts` (story laws), `src/sim/hostile.ts` (laws, what someone is, turning in, the prompt), `src/sim/extract.ts` and `src/ui/extractui.ts` (what they are), `src/ui/hostileui.ts` (the laws editor, turn in), `src/ui/storyui.ts`, `src/ui/newgame.ts`, `src/ui/hud.ts`, `css/91-hostile.css`, `manifest.json`, `README.md`.
+
 ## 0.1.0-ps.9 — 2026-10-21
 
 A decision engine for rough stuff: who you are, who they are and the setting's own codes decide what an act is.

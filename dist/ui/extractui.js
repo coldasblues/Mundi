@@ -76,7 +76,7 @@ async function make() {
 }
 function row(f, i) {
     const tags = [f.exists ? 'you already have a card with this name' : '', f.minor ? 'underage: kept out of romance' : ''].filter(Boolean);
-    const sum = [f.age && `Age ${f.age}`, f.appearance, f.personality].filter(Boolean).join(' · ');
+    const sum = [f.kind, f.age && `Age ${f.age}`, f.appearance, f.personality].filter(Boolean).join(' · ');
     const open = EX.open1 === i;
     return `<li class="mu-ex-p ${f.keep ? 'is-on' : ''}">
         <label class="mu-ex-head"><input type="checkbox" data-input="ex-keep" data-i="${i}" ${f.keep ? 'checked' : ''}>
@@ -84,7 +84,7 @@ function row(f, i) {
         <button class="mu-ghost mu-ex-more" data-act="ex-more" data-i="${i}">${open ? 'Less' : 'More'}</button>
         ${tags.length ? `<small class="mu-ex-tags">${tags.map(t => `<em>${esc(t)}</em>`).join('')}</small>` : ''}
         <p class="mu-ex-sum">${esc(sum.slice(0, 220)) || '<span class="mu-muted">No details.</span>'}</p>
-        ${open ? `<dl class="mu-ex-dl">${[['Also called', f.aliases.join(', ')], ['Appearance', f.appearance], ['Personality', f.personality], ['Background', f.background], ['Relationships', f.relationships], ['How they talk', f.speech], ['Greeting', f.greeting]].filter(([, v]) => v).map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl>` : ''}
+        ${open ? `<dl class="mu-ex-dl">${[['Also called', f.aliases.join(', ')], ['What they are', f.kind], ['Appearance', f.appearance], ['Personality', f.personality], ['Background', f.background], ['Relationships', f.relationships], ['How they talk', f.speech], ['Greeting', f.greeting]].filter(([, v]) => v).map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl>` : ''}
     </li>`;
 }
 export function extractHtml() {
