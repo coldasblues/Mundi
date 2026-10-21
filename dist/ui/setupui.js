@@ -2,7 +2,7 @@
 // group's base), and only then is it applied.
 import { game, notify, toast, esc } from '../core/store.js';
 import { getWorld } from '../core/world.js';
-import { readLore, applyPlan } from '../sim/setup.js';
+import { readLore, readAgain, applyPlan } from '../sim/setup.js';
 import { emptyWhy, gaveUpWhy, reading, stopReading, clock, limitText } from '../sim/reading.js';
 import { actsOf } from '../sim/hostile.js';
 import { icon } from './icons.js';
@@ -46,6 +46,41 @@ export async function runSetup() {
     SU.busy = '';
     notify();
 }
+/** Reads the skipped parts again, and after Stop the ones not read yet; what is found joins the review. */
+async function runAgain() {
+    const c = ctxW();
+    const plan = SU.plan;
+    if (!c || !plan || SU.busy)
+        return;
+    SU.busy = 'Reading again…';
+    notify();
+    readingClock(true);
+    try {
+        await readAgain(c.g, c.w, plan, (t) => { SU.busy = t; notify(); });
+    }
+    catch (e) {
+        toast(`The AI could not read it: ${String(e?.message ?? e)}`, 'error');
+    }
+    readingClock(false);
+    SU.busy = '';
+    notify();
+}
+/** Which entries were skipped, by name. */
+function skippedHtml(p) {
+    const titles = [...new Set(p.issues.skipped.flatMap(x => x.titles))];
+    if (!titles.length)
+        return '';
+    const few = titles.slice(0, 6).join(', ');
+    return `<details class="mu-su-skipped"><summary>Skipped: ${esc(few)}${titles.length > 6 ? ` and ${titles.length - 6} more` : ''}</summary><ul>${titles.map(t => `<li>${esc(t)}</li>`).join('')}</ul></details>`;
+}
+/** The button that reads the skipped parts (and what Stop left) again. */
+function againButton(p, primary = false) {
+    const { skipped, unread, gaveUp } = p.issues;
+    if (!skipped.length && !unread.length)
+        return '';
+    const label = unread.length && !gaveUp ? `Continue reading (${unread.length} part${unread.length === 1 ? '' : 's'} left${skipped.length ? `, ${skipped.length} skipped` : ''})` : gaveUp ? 'Try again' : `Read the ${skipped.length === 1 ? 'skipped part' : `${skipped.length} skipped parts`} again`;
+    return `<button ${primary ? 'class="mu-primary" ' : ''}data-act="su-again">${icon('redo')}<span>${esc(label)}</span></button>`;
+}
 function lawText(w, l) {
     const acts = l.allows.map(a => actsOf(w).find(d => d.id === a)?.name.toLowerCase() ?? a).join(', ');
     return `${l.who.length ? l.who.join(' or ') : 'Anyone'} may ${acts} ${l.about.join(' or ')}${l.handTo ? `, and hand them to ${l.handTo}${l.reward ? ` (+${l.reward})` : ''}` : ''}${l.counts === 'minor' ? ' (a minor offense)' : ''}.${l.objectors?.length ? ` ${l.objectors.join(', ')} disapprove.` : ''}${l.note ? ` ${l.note}` : ''}`;
@@ -53,18 +88,18 @@ function lawText(w, l) {
 function issuesHtml(p, nothing = false) {
     const i = p.issues;
     if (i.gaveUp)
-        return `<p class="mu-su-warn">${icon('alert')}<span>${esc(gaveUpWhy)}${i.error && !/no message generated/i.test(i.error) ? ` (${esc(i.error.slice(0, 160))})` : ''}</span></p>`;
-    const stop = i.stopped ? `<p class="mu-su-warn">${icon('pause')}<span>You stopped it after ${esc(i.stopped)}.${nothing ? '' : ' Below is what was read by then; apply it, or read it all again later.'}</span></p>` : '';
+        return `<p class="mu-su-warn">${icon('alert')}<span>${esc(gaveUpWhy)}${i.error && !/no message generated/i.test(i.error) ? ` (${esc(i.error.slice(0, 160))})` : ''}</span></p>${skippedHtml(p)}`;
+    const stop = i.stopped ? `<p class="mu-su-warn">${icon('pause')}<span>You stopped it after ${esc(i.stopped)}.${nothing ? '' : ' Below is what was read by then: apply it, or continue reading first.'}</span></p>` : '';
     if (!i.failed)
         return stop;
-    return `${stop}<p class="mu-su-warn">${icon('alert')}<span>The AI gave nothing back for ${i.failed} of ${i.total} part${i.total === 1 ? '' : 's'}${i.failed < i.total ? `, so ${i.failed === 1 ? 'that one was' : 'those were'} skipped; the rest was read` : ''}. ${esc(emptyWhy)}${i.error && !/no message generated/i.test(i.error) ? ` (${esc(i.error.slice(0, 160))})` : ''}</span></p>`;
+    return `${stop}<p class="mu-su-warn">${icon('alert')}<span>The AI gave nothing back for ${i.failed} of ${i.total} part${i.total === 1 ? '' : 's'}${i.failed < i.total ? `, so ${i.failed === 1 ? 'that one was' : 'those were'} skipped; the rest was read` : ''}. ${esc(emptyWhy)}${i.error && !/no message generated/i.test(i.error) ? ` (${esc(i.error.slice(0, 160))})` : ''}</span></p>${skippedHtml(p)}`;
 }
 function planHtml(g, w, p) {
     const places = w.places.filter(x => !x.link);
     const groupNames = p.groups.filter(x => x.keep).map(x => x.name);
     const nothing = !p.people.length && !p.groups.length && !p.laws.length && !p.police && !p.notPeople.length;
     if (nothing)
-        return `${issuesHtml(p, true)}<p class="mu-muted">${p.issues.gaveUp ? 'Nothing was read.' : p.issues.stopped ? 'Nothing was found before you stopped it.' : p.issues.total && p.issues.failed === p.issues.total ? 'Nothing could be read.' : 'The AI found nothing to set up in the lore: no groups, laws or people it could classify.'}</p><div class="mu-row"><button data-act="su-open">Try again</button><button data-act="su-close">Close</button></div>`;
+        return `${issuesHtml(p, true)}<p class="mu-muted">${p.issues.gaveUp ? 'Nothing was read.' : p.issues.stopped ? 'Nothing was found before you stopped it.' : p.issues.total && p.issues.failed === p.issues.total ? 'Nothing could be read.' : 'The AI found nothing to set up in the lore: no groups, laws or people it could classify.'}</p><div class="mu-row">${againButton(p, true) || '<button data-act="su-open">Try again</button>'}<button data-act="su-close">Close</button></div>`;
     return `${issuesHtml(p)}
         ${p.police ? `<section><h4>The law</h4><label class="mu-check"><input type="checkbox" data-input="su-keep" data-k="police" ${p.police.keep ? 'checked' : ''}><span>${p.police.exists ? `There is law here: <b>${esc(p.police.name || 'yes')}</b>` : '<b>No law</b>: no police, nobody comes'}</span></label></section>` : ''}
         ${p.laws.length ? `<section><h4>Laws of this world</h4>${p.laws.map((l, i) => `<label class="mu-check"><input type="checkbox" data-input="su-keep" data-k="law" data-i="${i}" ${l.keep ? 'checked' : ''}><span><b>${esc(l.name)}</b><small>${esc(lawText(w, l))}</small></span></label>`).join('')}</section>` : ''}
@@ -75,7 +110,7 @@ function planHtml(g, w, p) {
             <label class="mu-su-law"><input type="checkbox" data-input="su-law" data-i="${i}" ${x.law ? 'checked' : ''}>the law</label>
             <select data-input="su-group" data-i="${i}"><option value="">No group</option>${groupNames.map(n => `<option ${x.group === n ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></div>`).join('')}</section>` : ''}
         ${p.notPeople.length ? `<section><h4>Not people</h4>${p.notPeople.map((x, i) => `<label class="mu-check"><input type="checkbox" data-input="su-keep" data-k="np" data-i="${i}" ${x.keep ? 'checked' : ''}><span>${esc(x.word)}</span></label>`).join('')}</section>` : ''}
-        <div class="mu-row"><button class="mu-primary" data-act="su-apply">${icon('check')}<span>Apply</span></button><button data-act="su-close">Not now</button></div>`;
+        <div class="mu-row"><button class="mu-primary" data-act="su-apply">${icon('check')}<span>Apply</span></button>${againButton(p)}<button data-act="su-close">Not now</button></div>`;
 }
 export function setupHtml() {
     if (!SU.open)
@@ -95,6 +130,7 @@ Object.assign(ACT, {
     'su-open': (el, e) => { ACT['hx-close']?.(el, e); void runSetup(); }, // over the Rough stuff menu: that one closes
     'su-close': () => { if (SU.busy)
         return; SU.open = false; notify(); },
+    'su-again': () => { void runAgain(); },
     'su-stop': () => { stopReading(); SU.busy = 'Stopping…'; notify(); },
     'su-apply': () => {
         const c = ctxW();

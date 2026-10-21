@@ -22,6 +22,14 @@ export function endReading() { reading.busy = false; }
 export function stopReading() { if (!reading.busy)
     return; reading.stop = true; stopRaw(); }
 export const clock = (ms) => { const s = Math.max(0, Math.floor(ms / 1000)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+/** The entries in a piece of text, by their headings ("### Willow", "## Mona"), for showing what was skipped. */
+export function titlesOf(text) {
+    const t = [...text.matchAll(/^#{2,3} (.+)$/gm)].map(m => m[1].trim()).filter(Boolean);
+    if (t.length)
+        return t;
+    const first = text.replace(/\s+/g, ' ').trim();
+    return first ? [`“${first.slice(0, 50)}${first.length > 50 ? '…' : ''}”`] : [];
+}
 function splitAt(t) {
     const mid = Math.floor(t.length / 2);
     for (const sep of ['\n\n### ', '\n\n', '\n', '. ']) {
@@ -48,28 +56,28 @@ async function timed(prompt, len, sys) {
         clearTimeout(timer);
     }
 }
-const NONE = { outs: [], failed: 0, pieces: 0, error: '' };
 /** Asks about one part; an empty answer, an error or a part that takes too long is retried as two halves, once. */
 export async function askPart(part, prompt, len, sys, depth = 0) {
+    const cancel = () => ({ outs: [], failed: 0, pieces: 0, error: '', skipped: [], cancelled: [part] });
     if (reading.stop)
-        return { ...NONE };
+        return cancel();
     try {
         const out = await timed(prompt(part), len, `${CATALOG} ${sys}`);
         if (out.trim()) {
             reading.ok++;
-            return { outs: [out], failed: 0, pieces: 1, error: '' };
+            return { outs: [out], failed: 0, pieces: 1, error: '', skipped: [], cancelled: [] };
         }
         throw new Error('No message generated');
     }
     catch (e) {
         if (reading.stop)
-            return { ...NONE }; // Stop was pressed: not a failure
+            return cancel(); // Stop was pressed: not a failure, it can be read later
         const msg = String(e?.message ?? e);
         if (depth < 1 && part.length > 2500) {
             const at = splitAt(part);
             const a = await askPart(part.slice(0, at), prompt, len, sys, depth + 1);
             const b = await askPart(part.slice(at), prompt, len, sys, depth + 1);
-            return { outs: [...a.outs, ...b.outs], failed: a.failed + b.failed, pieces: a.pieces + b.pieces, error: a.error || b.error };
+            return { outs: [...a.outs, ...b.outs], failed: a.failed + b.failed, pieces: a.pieces + b.pieces, error: a.error || b.error, skipped: [...a.skipped, ...b.skipped], cancelled: [...a.cancelled, ...b.cancelled] };
         }
         console.warn('[Mundi] a part could not be read:', msg);
         reading.bad++;
@@ -77,7 +85,7 @@ export async function askPart(part, prompt, len, sys, depth = 0) {
             reading.gaveUp = true;
             reading.stop = true;
         } // don't spend more on it
-        return { outs: [], failed: 1, pieces: 1, error: msg };
+        return { outs: [], failed: 1, pieces: 1, error: msg, skipped: [part], cancelled: [] };
     }
 }
 /** Why parts came back empty, for the person reading the result. */

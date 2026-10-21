@@ -24,8 +24,18 @@ export function endReading() { reading.busy = false; }
 export function stopReading() { if (!reading.busy) return; reading.stop = true; stopRaw(); }
 export const clock = (ms: number) => { const s = Math.max(0, Math.floor(ms / 1000)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
 
-/** `pieces`: how many pieces it ended up asked in (1, or 2 when it was split); `failed`: how many of them gave nothing. */
-export interface Read { outs: string[]; failed: number; pieces: number; error: string }
+/**
+ * `pieces`: how many pieces it ended up asked in (1, or 2 when it was split); `failed`: how many of them gave nothing;
+ * `skipped`: the text of those, to show which entries they were and to read them again; `cancelled`: the text Stop cut off.
+ */
+export interface Read { outs: string[]; failed: number; pieces: number; error: string; skipped: string[]; /** not read because Stop was pressed */ cancelled: string[] }
+/** The entries in a piece of text, by their headings ("### Willow", "## Mona"), for showing what was skipped. */
+export function titlesOf(text: string): string[] {
+    const t = [...text.matchAll(/^#{2,3} (.+)$/gm)].map(m => m[1].trim()).filter(Boolean);
+    if (t.length) return t;
+    const first = text.replace(/\s+/g, ' ').trim();
+    return first ? [`“${first.slice(0, 50)}${first.length > 50 ? '…' : ''}”`] : [];
+}
 function splitAt(t: string): number {
     const mid = Math.floor(t.length / 2);
     for (const sep of ['\n\n### ', '\n\n', '\n', '. ']) {
@@ -43,27 +53,27 @@ async function timed(prompt: string, len: number, sys: string): Promise<string> 
     catch (e) { if (late) throw new Error(`took longer than ${limitText()}`); throw e; }
     finally { clearTimeout(timer); }
 }
-const NONE: Read = { outs: [], failed: 0, pieces: 0, error: '' };
 /** Asks about one part; an empty answer, an error or a part that takes too long is retried as two halves, once. */
 export async function askPart(part: string, prompt: (p: string) => string, len: number, sys: string, depth = 0): Promise<Read> {
-    if (reading.stop) return { ...NONE };
+    const cancel = (): Read => ({ outs: [], failed: 0, pieces: 0, error: '', skipped: [], cancelled: [part] });
+    if (reading.stop) return cancel();
     try {
         const out = await timed(prompt(part), len, `${CATALOG} ${sys}`);
-        if (out.trim()) { reading.ok++; return { outs: [out], failed: 0, pieces: 1, error: '' }; }
+        if (out.trim()) { reading.ok++; return { outs: [out], failed: 0, pieces: 1, error: '', skipped: [], cancelled: [] }; }
         throw new Error('No message generated');
     } catch (e: any) {
-        if (reading.stop) return { ...NONE };          // Stop was pressed: not a failure
+        if (reading.stop) return cancel();          // Stop was pressed: not a failure, it can be read later
         const msg = String(e?.message ?? e);
         if (depth < 1 && part.length > 2500) {
             const at = splitAt(part);
             const a = await askPart(part.slice(0, at), prompt, len, sys, depth + 1);
             const b = await askPart(part.slice(at), prompt, len, sys, depth + 1);
-            return { outs: [...a.outs, ...b.outs], failed: a.failed + b.failed, pieces: a.pieces + b.pieces, error: a.error || b.error };
+            return { outs: [...a.outs, ...b.outs], failed: a.failed + b.failed, pieces: a.pieces + b.pieces, error: a.error || b.error, skipped: [...a.skipped, ...b.skipped], cancelled: [...a.cancelled, ...b.cancelled] };
         }
         console.warn('[Mundi] a part could not be read:', msg);
         reading.bad++;
         if (!reading.ok && reading.bad >= GIVE_UP) { reading.gaveUp = true; reading.stop = true; }   // don't spend more on it
-        return { outs: [], failed: 1, pieces: 1, error: msg };
+        return { outs: [], failed: 1, pieces: 1, error: msg, skipped: [part], cancelled: [] };
     }
 }
 /** Why parts came back empty, for the person reading the result. */

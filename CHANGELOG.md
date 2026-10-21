@@ -2,6 +2,17 @@
 
 This is a fork of [tjalis/Mundi](https://github.com/tjalis/Mundi) (AGPL-3.0). Changes made in this fork are listed here, with their dates, as the license asks.
 
+## 0.1.0-ps.13 — 2026-10-21
+
+Which parts were skipped, by name, and reading just those again.
+
+### Added
+
+- **Set up from the lore names what it skipped.** Under the warning, "Skipped: Willow, Kayla, Arlette and 9 more" opens to the full list of the lorebook entries (or characters) in the parts the AI gave nothing back for.
+- **Read the skipped parts again.** One button reads only those again, splitting them further, so an entry that shares a half with a refused one is separated from it this time. What it finds joins the review, and your ticks are kept.
+- **Continue reading after Stop.** The review offers "Continue reading (N parts left)", which picks up where you stopped, the cut-off part included.
+- **Find the characters names what it skipped**, in the dialog.
+
 ## 0.1.0-ps.12 — 2026-10-21
 
 Reading the lore with a thinking model (GLM 5.3 on OpenRouter): fast, and never stuck.

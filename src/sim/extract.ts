@@ -3,7 +3,7 @@
 // tagged (a folder) with where it came from and, when there is one, with the lorebook linked so they keep their lore.
 // The source is never changed.
 import { characters, charOf, createCharacter, loadLore, newFolder, putInFolder, avatarUrl } from '../st/bridge.js';
-import { askPart, reading, startReading, endReading } from './reading.js';
+import { askPart, reading, startReading, endReading, titlesOf } from './reading.js';
 import { initialsAvatar } from './game.js';
 
 export interface Found {
@@ -110,7 +110,7 @@ function merge(into: Found, add: Partial<Found>) {
     if (add.name && add.name.length > into.name.length && norm(add.name).includes(norm(into.name))) into.name = add.name;
 }
 /** Parts the AI gave nothing for in the last reading (skipped), out of all it was asked (a split part counts as two), and why. */
-export const lastRead = { failed: 0, total: 0, error: '', stopped: '', gaveUp: false };
+export const lastRead = { failed: 0, total: 0, error: '', stopped: '', gaveUp: false, skipped: [] as string[] };
 /** Reads the source with the AI, part by part. `progress` gets (part done, parts). */
 export async function extract(src: Source, progress: (i: number, n: number) => void = () => {}): Promise<Found[]> {
     startReading();
@@ -119,13 +119,13 @@ export async function extract(src: Source, progress: (i: number, n: number) => v
 async function readAll(src: Source, progress: (i: number, n: number) => void): Promise<Found[]> {
     const found: Found[] = [];
     const n = src.parts.length;
-    Object.assign(lastRead, { failed: 0, total: 0, error: '', stopped: '', gaveUp: false });
+    Object.assign(lastRead, { failed: 0, total: 0, error: '', stopped: '', gaveUp: false, skipped: [] });
     for (let i = 0; i < n; i++) {
         progress(i, n);
         // an empty answer is retried as two halves, then skipped (the rest is still read)
         const read = await askPart(src.parts[i], (p) => promptFor(src, p, i, n), 2500, 'You list the characters in role-play material as JSON lines. You never invent details.');
-        if (reading.stop) { lastRead.stopped = `${i} of ${n} part${n === 1 ? '' : 's'}`; lastRead.gaveUp = reading.gaveUp; break; }   // the part in progress was cancelled
         lastRead.total += read.pieces; lastRead.failed += read.failed; if (read.error) lastRead.error = read.error;
+        lastRead.skipped.push(...read.skipped.flatMap(titlesOf));
         for (const f of read.outs.filter(o => !/^\s*NONE\s*$/i.test(o)).flatMap(parseLines)) {
             const hit = found.find(x => sameAs(x, f));
             if (hit) { merge(hit, f); continue; }
@@ -133,6 +133,7 @@ async function readAll(src: Source, progress: (i: number, n: number) => void): P
             merge(one, f);
             found.push(one);
         }
+        if (reading.stop) { lastRead.stopped = `${i + (read.cancelled.length ? 0 : 1)} of ${n} part${n === 1 ? '' : 's'}`; lastRead.gaveUp = reading.gaveUp; break; }
     }
     lastRead.gaveUp = reading.gaveUp;
     progress(n, n);

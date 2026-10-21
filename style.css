@@ -2961,6 +2961,10 @@ body.mundi-open #toast-container { display: none !important; }
 #mundi-root .mu-panel .mu-su-busy .mu-spin { display: block; flex: none; width: 16px; height: 16px; border: 2px solid color-mix(in srgb, var(--text) 18%, transparent); border-top-color: var(--accent); border-radius: 50%; animation: mu-spin .9s linear infinite; }
 #mundi-root .mu-su-clock { margin: 0; font-size: 13px; color: var(--muted, inherit); font-variant-numeric: tabular-nums; }
 #mundi-root .mu-panel .mu-su-clock b { display: inline; color: var(--text); font-weight: 600; }
+/* which entries were skipped */
+#mundi-root .mu-su-skipped { margin: -2px 0 0; padding: 0 12px; font-size: 13px; }
+#mundi-root .mu-su-skipped summary { cursor: pointer; color: var(--warn); }
+#mundi-root .mu-su-skipped ul { margin: 6px 0 0; padding-left: 18px; max-height: 140px; overflow: auto; columns: 2; column-gap: 18px; }
 /* ==========================================================================
    Phones, upright (#mundi-root[data-mobile], set in app.ts).
    The game HUD stacks in rows at the top, the dialogue box fills the bottom, and the panels become full-screen sheets.

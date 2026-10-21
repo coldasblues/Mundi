@@ -9,7 +9,7 @@ import { ACT, INPUT } from './reg.js';
 export const EX = {
     open: false, kind: 'card', id: '',
     src: null, found: [], busy: '', open1: -1,
-    linkLore: true, sourcePicture: false, done: [], reading: false,
+    linkLore: true, sourcePicture: false, done: [], reading: false, skipped: [],
 };
 /** The button on a card or a lorebook in the Library. */
 export const extractButton = (kind, id) => `<button class="mu-ex-btn" data-act="ex-open" data-kind="${kind}" data-id="${esc(id)}">${icon('users')}<span>${kind === 'card' ? 'Split into characters…' : 'Find the characters in it…'}</span></button>`;
@@ -47,6 +47,7 @@ async function read(ai) {
     readingClock(true);
     try {
         EX.found = await extract(src, (i, n) => { EX.busy = i < n ? `Reading part ${i + 1} of ${n}…` : 'Done.'; notify(); });
+        EX.skipped = [...new Set(lastRead.skipped)];
         if (lastRead.gaveUp)
             toast(gaveUpWhy, 'warn', { ms: 15000 });
         else if (lastRead.stopped)
@@ -106,6 +107,7 @@ export function extractHtml() {
     const kept = EX.found.filter(f => f.keep).length;
     const body = !src ? `<p class="mu-muted">${esc(EX.busy || 'Opening…')}</p>` : EX.reading ? readingHtml(EX.busy, 'ex-stop', 'One AI call per part.') : `
         <p class="mu-muted">${src.kind === 'card' ? `The card “${esc(src.title)}”` : `The lorebook “${esc(src.title)}”`}: ${src.parts.length} part${src.parts.length === 1 ? '' : 's'} to read${src.lorebook && src.kind === 'card' ? `, with its lorebook “${esc(src.lorebook)}”` : ''}. Nothing in it is changed.</p>
+        ${EX.skipped.length ? `<details class="mu-su-skipped"><summary>Skipped (the AI gave nothing back): ${esc(EX.skipped.slice(0, 6).join(', '))}${EX.skipped.length > 6 ? ` and ${EX.skipped.length - 6} more` : ''}</summary><ul>${EX.skipped.map(t => `<li>${esc(t)}</li>`).join('')}</ul></details>` : ''}
         ${EX.found.length ? `<ul class="mu-ex-list" data-keep="ex">${EX.found.map(row).join('')}</ul>
             <label class="mu-check"><input type="checkbox" data-input="ex-lore" ${EX.linkLore ? 'checked' : ''} ${src.lorebook ? '' : 'disabled'}><span>Link the lorebook to each card<small>${src.lorebook ? `“${esc(src.lorebook)}” goes with them, so they keep their world's lore.` : 'There is no lorebook to link.'}</small></span></label>
             ${src.avatar ? `<label class="mu-check"><input type="checkbox" data-input="ex-pic" ${EX.sourcePicture ? 'checked' : ''}><span>Use the card's picture for all of them<small>Otherwise each gets a picture with their initials; make portraits later (Library → Expressions).</small></span></label>` : ''}
@@ -120,7 +122,7 @@ export function extractHtml() {
         ${body}</div>`;
 }
 Object.assign(ACT, {
-    'ex-open': (el) => { Object.assign(EX, { open: true, kind: el.dataset.kind, id: el.dataset.id, src: null, found: [], busy: '', open1: -1, done: [], linkLore: true, sourcePicture: false }); notify(); void load(); },
+    'ex-open': (el) => { Object.assign(EX, { open: true, kind: el.dataset.kind, id: el.dataset.id, src: null, found: [], busy: '', open1: -1, done: [], linkLore: true, sourcePicture: false, skipped: [] }); notify(); void load(); },
     'ex-close': () => { if (EX.busy && !EX.busy.startsWith('Done'))
         return; EX.open = false; notify(); },
     'ex-read': (el) => { void read(el.dataset.v === 'ai'); },
