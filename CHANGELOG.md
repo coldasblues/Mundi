@@ -2,6 +2,23 @@
 
 This is a fork of [tjalis/Mundi](https://github.com/tjalis/Mundi) (AGPL-3.0). Changes made in this fork are listed here, with their dates, as the license asks.
 
+## 0.1.0-ps.16 — 2026-10-21
+
+Set up from the lore, fixed against a real model: GLM 5.3 reading the Kemonomimi Crisis lorebook.
+
+### Fixed
+
+- **A kind of people could end up under "Not people".** GLM listed "kemonomimi", "mouse kemonomimi" and "tiny kemonomimi" there, because the setting's law calls them pests and property. To Mundi, "not a person" means nothing done to them counts, which overrode every law. Now:
+  - the model is told the category is only for mindless creatures (zombies, feral beasts), never a kind of people, whatever the law calls them;
+  - anything that shares a word with what someone in the game is, or with whom a law covers, is dropped from it.
+- **Laws didn't apply to anyone.** Models write whom a law covers as a phrase, like "K4 mouse kemonomimi (V-protein carriers)", and Mundi matched it word for word, so "a mouse girl" was never covered.
+  - Phrases are now tidied into short kinds: "k4 mouse kemonomimi", "rodent kemonomimi".
+  - A kind matches by any word in it that tells kinds apart: "mouse" covers "a mouse girl" and "the mice". Words every person in the setting shares ("kemonomimi", "girl", "people") don't count on their own.
+  - Who may use a law and who disapproves are tidied the same way.
+- **Groups.** The model listed 34, with duplicates ("US government" and "US federal government", "Underground Railroad" twice).
+  - Near-duplicates are merged, and names lose their notes in brackets.
+  - A group is ticked only when someone in the game is in it or it has a base on the map. The rest are folded under "N more groups in the lore that nobody here belongs to".
+
 ## 0.1.0-ps.15 — 2026-10-21
 
 Templates: start a new game of a world the way an earlier one started, without the AI reading the lore again.

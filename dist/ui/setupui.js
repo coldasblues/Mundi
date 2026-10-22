@@ -10,7 +10,7 @@ import { slug } from '../sim/creator.js';
 import { pickFile } from './cropper.js';
 import { icon } from './icons.js';
 import { ACT, INPUT } from './reg.js';
-export const SU = { open: false, busy: '', plan: null, done: '', view: 'read', tplName: '', confirmDel: '' };
+export const SU = { open: false, busy: '', plan: null, done: '', view: 'read', tplName: '', confirmDel: '', openMore: false };
 const ctxW = () => { const g = game(); const w = g && getWorld(g.world); return g && w ? { g, w } : null; };
 export const setupButton = (label = 'Set up from the lore…') => `<span class="mu-su-btns"><button class="mu-su-btn" data-act="su-open">${icon('book')}<span>${esc(label)}</span></button><button class="mu-su-btn" data-act="su-tpls">${icon('save')}<span>Templates…</span></button></span>`;
 /** Opens a template's setup for review in this game (from a new game started with it, or the Templates screen). */
@@ -138,6 +138,14 @@ function issuesHtml(p, nothing = false) {
         return stop;
     return `${stop}<p class="mu-su-warn">${icon('alert')}<span>The AI gave nothing back for ${i.failed} of ${i.total} part${i.total === 1 ? '' : 's'}${i.failed < i.total ? `, so ${i.failed === 1 ? 'that one was' : 'those were'} skipped; the rest was read` : ''}. ${esc(emptyWhy)}${i.error && !/no message generated/i.test(i.error) ? ` (${esc(i.error.slice(0, 160))})` : ''}</span></p>${skippedHtml(p)}`;
 }
+/** The groups: the ones ticked (someone here is in them, or they have a base), then the rest of the lore's, folded away. */
+function groupsHtml(p, places) {
+    const row = (x, i) => `<div class="mu-su-row"><label class="mu-check"><input type="checkbox" data-input="su-keep" data-k="group" data-i="${i}" ${x.keep ? 'checked' : ''}><span><b>${esc(x.name)}</b>${x.baseText ? `<small>based: ${esc(x.baseText)}</small>` : ''}</span></label>
+            <select data-input="su-base" data-i="${i}"><option value="">No base on the map</option>${places.map(pl => `<option value="${esc(pl.id)}" ${x.base === pl.id ? 'selected' : ''}>${esc(pl.name)}</option>`).join('')}</select></div>`;
+    const on = p.groups.map((x, i) => [x, i]).filter(([x]) => x.keep), off = p.groups.map((x, i) => [x, i]).filter(([x]) => !x.keep);
+    return `<section><h4>Groups</h4>${on.length ? on.map(([x, i]) => row(x, i)).join('') : '<p class="mu-muted">None in use here yet.</p>'}
+        ${off.length ? `<details class="mu-su-more" ${SU.openMore ? 'open' : ''}><summary data-act="su-more">${off.length} more group${off.length === 1 ? '' : 's'} in the lore that nobody here belongs to (tick the ones you want)</summary>${off.map(([x, i]) => row(x, i)).join('')}</details>` : ''}</section>`;
+}
 function planHtml(g, w, p) {
     const places = w.places.filter(x => !x.link);
     const groupNames = p.groups.filter(x => x.keep).map(x => x.name);
@@ -147,8 +155,7 @@ function planHtml(g, w, p) {
     return `${issuesHtml(p)}${thinkHtml(p)}
         ${p.police ? `<section><h4>The law</h4><label class="mu-check"><input type="checkbox" data-input="su-keep" data-k="police" ${p.police.keep ? 'checked' : ''}><span>${p.police.exists ? `There is law here: <b>${esc(p.police.name || 'yes')}</b>` : '<b>No law</b>: no police, nobody comes'}</span></label></section>` : ''}
         ${p.laws.length ? `<section><h4>Laws of this world</h4>${p.laws.map((l, i) => `<label class="mu-check"><input type="checkbox" data-input="su-keep" data-k="law" data-i="${i}" ${l.keep ? 'checked' : ''}><span><b>${esc(l.name)}</b><small>${esc(lawText(w, l))}</small></span></label>`).join('')}</section>` : ''}
-        ${p.groups.length ? `<section><h4>Groups</h4>${p.groups.map((x, i) => `<div class="mu-su-row"><label class="mu-check"><input type="checkbox" data-input="su-keep" data-k="group" data-i="${i}" ${x.keep ? 'checked' : ''}><span><b>${esc(x.name)}</b>${x.baseText ? `<small>based: ${esc(x.baseText)}</small>` : ''}</span></label>
-            <select data-input="su-base" data-i="${i}"><option value="">No base on the map</option>${places.map(pl => `<option value="${esc(pl.id)}" ${x.base === pl.id ? 'selected' : ''}>${esc(pl.name)}</option>`).join('')}</select></div>`).join('')}</section>` : ''}
+        ${p.groups.length ? groupsHtml(p, places) : ''}
         ${p.people.length ? `<section><h4>The people</h4>${p.people.map((x, i) => `<div class="mu-su-row is-person"><label class="mu-check"><input type="checkbox" data-input="su-keep" data-k="person" data-i="${i}" ${x.keep ? 'checked' : ''}><span><b data-notr>${esc(x.name)}</b></span></label>
             <input type="text" data-input="su-kind" data-i="${i}" maxlength="60" value="${esc(x.kind)}" placeholder="what they are">
             <label class="mu-su-law"><input type="checkbox" data-input="su-law" data-i="${i}" ${x.law ? 'checked' : ''}>the law</label>
@@ -177,6 +184,7 @@ Object.assign(ACT, {
     'su-close': () => { if (SU.busy)
         return; SU.open = false; notify(); },
     'su-again': () => { void runAgain(); },
+    'su-more': (el, e) => { e?.preventDefault?.(); SU.openMore = !SU.openMore; notify(); },
     'su-tpls': (el, e) => { ACT['hx-close']?.(el, e); Object.assign(SU, { open: true, view: 'tpl', plan: null, done: '', busy: '', confirmDel: '' }); notify(); },
     'su-tpl-use': (el) => { openTemplateSetup(el.dataset.id); },
     'su-tpl-save': () => {

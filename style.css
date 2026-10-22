@@ -2978,6 +2978,8 @@ body.mundi-open #toast-container { display: none !important; }
 #mundi-root .mu-tpl-pick .mu-chip small { opacity: .7; }
 #mundi-root .mu-tpl-save { margin-top: 14px; padding-top: 12px; border-top: 1px solid color-mix(in srgb, var(--text) 12%, transparent); }
 #mundi-root .mu-tpl-save .mu-row { flex-wrap: wrap; }
+#mundi-root .mu-su-more { margin-top: 6px; }
+#mundi-root .mu-su-more > summary { cursor: pointer; font-size: 13px; opacity: .8; padding: 6px 0; }
 /* ==========================================================================
    Phones, upright (#mundi-root[data-mobile], set in app.ts).
    The game HUD stacks in rows at the top, the dialogue box fills the bottom, and the panels become full-screen sheets.

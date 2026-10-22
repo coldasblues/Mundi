@@ -122,10 +122,21 @@ export interface StoryLaw {
     note?: string;
 }
 const words = (t: string) => ` ${String(t ?? '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim()} `;
-/** Does any of what they are match any of the words? (whole words: "mouse" matches "mouse kemonomimi", not "mousetrap") */
+/** A word's plain form, to compare "mice" with "mouse" and "rodents" with "rodent". */
+export const stemWord = (w: string) => (w === 'mice' ? 'mouse' : w === 'wolves' ? 'wolf' : w.length > 3 ? w.replace(/ies$/, 'y').replace(/([^s])s$/, '$1') : w);
+/** Words that say nothing about which people: a law about "mouse kemonomimi" is about mice, in a world where all are kemonomimi. */
+const GENERIC = new Set(['kemonomimi', 'people', 'person', 'persons', 'folk', 'folks', 'species', 'series', 'type', 'types', 'kind', 'kinds', 'citizen', 'citizens', 'being', 'beings', 'individual', 'individuals', 'girl', 'girls', 'boy', 'boys', 'man', 'men', 'woman', 'women', 'the', 'a', 'an', 'of', 'and', 'or', 'all', 'any', 'anyone', 'those', 'who', 'are', 'non']);
+/**
+ * Does any of what they are match any of the words? Whole words ("mouse" matches "mouse kemonomimi", not "mousetrap"),
+ * and a longer phrase matches by any word in it that tells kinds apart: a law about "K4 mouse kemonomimi" covers "a mouse
+ * girl"; one about "kemonomimi" alone covers anyone called a kemonomimi.
+ */
 export function kindMatches(kinds: string[], about: string[]): boolean {
     const k = kinds.map(words);
-    return about.map(a => a.trim().toLowerCase()).filter(Boolean).some(a => k.some(x => x.includes(` ${a} `) || x.includes(` ${a}s `)));
+    const stems = new Set(kinds.flatMap(x => words(x).trim().split(' ').filter(Boolean).map(stemWord)));
+    return about.map(a => words(a).trim()).filter(Boolean).some(a =>
+        k.some(x => x.includes(` ${a} `) || x.includes(` ${a}s `))
+        || a.split(' ').filter(w => w.length >= 3 && !GENERIC.has(w)).some(w => stems.has(stemWord(w))));
 }
 /** The law that covers this act on someone like them, if you may use it. */
 export function lawFor(laws: StoryLaw[], actId: string, kinds: string[], roles: string[], selfText: string): StoryLaw | undefined {
