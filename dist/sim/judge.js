@@ -27,7 +27,7 @@ export function judge(def, base, roles, t, youHeld, laws = [], selfText = '') {
     if (base === 'none')
         return { kind: 'fine', crime: 'none', label: '', why: '', codes };
     // the story's own law: this act, on someone like them, by someone like you
-    const sl = t ? lawFor(laws, def.id, t.kinds ?? [], roles, selfText) : undefined;
+    const sl = t ? lawFor(laws, def.id, t.kinds ?? [], roles, selfText, !!t.willing) : undefined;
     if (sl && sl.counts === 'minor' && SEV[base] > 1)
         return { kind: 'crime', crime: 'minor', label: `minor: ${sl.name}`, why: `${sl.name} makes it a minor offense`, codes, law: sl };
     if (sl)
@@ -77,8 +77,8 @@ export function kindMatches(kinds, about) {
         || a.split(' ').filter(w => w.length >= 3 && !GENERIC.has(w)).some(w => stems.has(stemWord(w))));
 }
 /** The law that covers this act on someone like them, if you may use it. */
-export function lawFor(laws, actId, kinds, roles, selfText) {
-    return laws.find(l => l.allows.includes(actId) && kindMatches(kinds, l.about) && (!l.who.length || l.who.some(w => roles.includes(w) || words(selfText).includes(` ${w.toLowerCase()} `))));
+export function lawFor(laws, actId, kinds, roles, selfText, willing = false) {
+    return laws.find(l => l.allows.includes(actId) && kindMatches(kinds, l.about) && (!l.consent || willing) && (!l.who.length || l.who.some(w => roles.includes(w) || words(selfText).includes(` ${w.toLowerCase()} `))));
 }
 /** A law that is about them, whatever the act (for the menu: "she is covered by the K4 control order"). */
 export const lawsAbout = (laws, kinds) => laws.filter(l => kindMatches(kinds, l.about));

@@ -127,7 +127,7 @@ export function importText(text) {
         police: o.police && typeof o.police.exists === 'boolean' ? { exists: o.police.exists, name: str(o.police.name, 40) } : null,
         laws: arr(o.laws).filter((l) => l?.name && Array.isArray(l.about) && Array.isArray(l.allows)).map((l) => ({
             id: str(l.id, 40) || newId(), name: str(l.name, 60), about: arr(l.about).map((x) => str(x, 40)), allows: arr(l.allows).map((x) => str(x, 30)), who: arr(l.who).map((x) => str(x, 40)),
-            counts: l.counts === 'minor' ? 'minor' : 'legal', ...(l.handTo ? { handTo: str(l.handTo, 60) } : {}), ...(Number(l.reward) > 0 ? { reward: Math.round(Number(l.reward)) } : {}),
+            counts: l.counts === 'minor' ? 'minor' : 'legal', ...(l.consent === true ? { consent: true } : {}), ...(l.handTo ? { handTo: str(l.handTo, 60) } : {}), ...(Number(l.reward) > 0 ? { reward: Math.round(Number(l.reward)) } : {}),
             ...(Array.isArray(l.objectors) ? { objectors: l.objectors.map((x) => str(x, 40)) } : {}), ...(l.note ? { note: str(l.note) } : {}),
         })),
         groups: arr(o.groups).filter((x) => x?.name).map((x) => ({ name: str(x.name, 60), base: str(x.base, 80), baseName: str(x.baseName, 80) })),

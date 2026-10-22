@@ -98,7 +98,7 @@ const lorePrompt = (actIds, label) => (p) => [
     `Below is ${label} of the lore of a role-play world.`,
     'List what it says about these, one JSON object per line, nothing else:',
     '{"type": "group", "name": "", "base": "where they are based, or empty"}  (organized factions people in a story could belong to: agencies, companies, gangs, families, movements; the main ones only, each once)',
-    `{"type": "law", "name": "", "about": ["the kind of people it is about, in one to three words each: mouse, rodent kemonomimi, outlaw"], "allows": [${actIds.map(a => `"${a}"`).join(', ')}] (only the acts it makes lawful), "who": ["who may: empty for anyone, or law, or a role"], "counts": "legal or minor", "handTo": "who they are handed over to, or empty", "reward": 0, "objectors": ["who disapproves"], "note": "one sentence"}  (laws or rules of this world that make some acts against some kind of people lawful, such as a bounty or a control order)`,
+    `{"type": "law", "name": "", "about": ["the kind of people it is about, in one to three words each: mouse, rodent kemonomimi, outlaw"], "allows": [${actIds.map(a => `"${a}"`).join(', ')}] (only the acts it makes lawful), "who": ["who may: empty for anyone, or law, or a role"], "counts": "legal or minor", "consent": false (true if it is only allowed when they agree to it), "handTo": "who they are handed over to, or empty", "reward": 0, "objectors": ["who disapproves"], "note": "one sentence"}  (laws or rules of this world that make some acts against some kind of people lawful, such as a bounty or a control order)`,
     '{"type": "police", "exists": true, "name": "what the law enforcement is called"}  (or "exists": false when the world has no police or law enforcement at all)',
     '{"type": "notperson", "word": ""}  (only mindless creatures that nobody in the story treats as a person, such as zombies or feral beasts; never a kind of people, even one the law calls property, pests or vermin)',
     'Use only what the text says. If it says nothing about these, answer NONE.',
@@ -127,20 +127,35 @@ function takeLore(g, w, plan, actIds, outs) {
                 plan.groups.push({ name: groupName(o.name), baseText: clean(o.base), base: o.base ? resolvePlace(g, w, String(o.base)) : '', keep: true });
         }
         else if (o.type === 'law' && o.name && shortKinds(o.about).length && strs(o.allows).some(a => actIds.includes(a)) && !plan.laws.some(x => x.name.toLowerCase() === String(o.name).toLowerCase()))
-            plan.laws.push({ id: `l${Date.now().toString(36)}${plan.laws.length}`, name: clean(o.name).slice(0, 60), about: shortKinds(o.about), allows: strs(o.allows).filter(a => actIds.includes(a)), who: shortKinds(o.who).slice(0, 4), counts: o.counts === 'minor' ? 'minor' : 'legal', ...(clean(o.handTo) ? { handTo: clean(o.handTo).slice(0, 60) } : {}), ...(Number(o.reward) > 0 ? { reward: Math.round(Number(o.reward)) } : {}), ...(shortKinds(o.objectors).length ? { objectors: shortKinds(o.objectors) } : {}), ...(clean(o.note) ? { note: clean(o.note).slice(0, 200) } : {}), keep: true });
+            plan.laws.push({ id: `l${Date.now().toString(36)}${plan.laws.length}`, name: clean(o.name).slice(0, 60), about: shortKinds(o.about), allows: strs(o.allows).filter(a => actIds.includes(a)), who: shortKinds(o.who).slice(0, 4), counts: o.counts === 'minor' ? 'minor' : 'legal', ...(o.consent === true ? { consent: true } : {}), ...(clean(o.handTo) ? { handTo: clean(o.handTo).slice(0, 60) } : {}), ...(Number(o.reward) > 0 ? { reward: Math.round(Number(o.reward)) } : {}), ...(shortKinds(o.objectors).length ? { objectors: shortKinds(o.objectors) } : {}), ...(clean(o.note) ? { note: clean(o.note).slice(0, 200) } : {}), keep: true });
         else if (o.type === 'police' && typeof o.exists === 'boolean' && !plan.police)
             plan.police = { exists: o.exists, name: clean(o.name).slice(0, 40), keep: true };
         else if (o.type === 'notperson' && o.word) {
             const wd = shortKinds(o.word)[0];
-            if (wd && !plan.notPeople.some(x => x.word === wd))
+            if (wd && !/^(none|nothing|n a|na|null|no one|nobody|empty)$/.test(wd) && !plan.notPeople.some(x => x.word === wd))
                 plan.notPeople.push({ word: wd, keep: true });
         }
     }
 }
+/** Titles that are not part of a name ("Officer Dana Reyes" is Dana Reyes). */
+const TITLES = new Set(['officer', 'mr', 'mrs', 'ms', 'miss', 'mx', 'dr', 'doctor', 'sir', 'dame', 'lady', 'lord', 'captain', 'capt', 'agent', 'detective', 'det', 'sergeant', 'sgt', 'professor', 'prof', 'father', 'sister', 'brother', 'mother', 'madam', 'madame', 'master', 'mistress', 'the', 'young', 'old']);
+const nameWords = (n) => String(n ?? '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter(x => x.length >= 2 && !TITLES.has(x));
+/** The card a model means: its exact name, or the one that shares the most name words with it (a model may say "Gordon Hale" for "Mr. Hale"). */
+export function whoIs(batch, name) {
+    const n = String(name ?? '').toLowerCase().trim();
+    if (!n)
+        return undefined;
+    const exact = batch.find(x => x.name.toLowerCase() === n);
+    if (exact)
+        return exact;
+    const nw = nameWords(n);
+    const scored = batch.map(x => ({ x, s: nameWords(x.name).filter(w => nw.includes(w)).length })).filter(o => o.s > 0).sort((a, b) => b.s - a.s);
+    return scored.length && (scored.length === 1 || scored[0].s > scored[1].s) ? scored[0].x : undefined;
+}
 function takeCast(plan, batch, outs) {
     const groups = plan.groups.map(x => x.name);
     for (const o of outs.flatMap(jsonLines)) {
-        const r = batch.find(x => x.name.toLowerCase() === String(o.name ?? '').toLowerCase()) ?? batch.find(x => x.name.toLowerCase().split(' ')[0] === String(o.name ?? '').toLowerCase().split(' ')[0]);
+        const r = whoIs(batch, o.name);
         if (!r || plan.people.some(p => p.avatar === r.avatar))
             continue;
         const grp = groups.find(x => x.toLowerCase() === String(o.group ?? '').toLowerCase()) ?? '';

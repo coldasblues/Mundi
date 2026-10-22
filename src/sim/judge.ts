@@ -71,7 +71,7 @@ export function judge(def: HostileDef, base: Crime, roles: string[], t: Who | nu
     if (t?.notPerson) return { kind: 'nothing', crime: 'none', label: 'not a person', why: 'they are not a person: nobody calls this a crime', codes };
     if (base === 'none') return { kind: 'fine', crime: 'none', label: '', why: '', codes };
     // the story's own law: this act, on someone like them, by someone like you
-    const sl = t ? lawFor(laws, def.id, t.kinds ?? [], roles, selfText) : undefined;
+    const sl = t ? lawFor(laws, def.id, t.kinds ?? [], roles, selfText, !!t.willing) : undefined;
     if (sl && sl.counts === 'minor' && SEV[base] > 1) return { kind: 'crime', crime: 'minor', label: `minor: ${sl.name}`, why: `${sl.name} makes it a minor offense`, codes, law: sl };
     if (sl) return { kind: 'legal', crime: 'none', label: `legal: ${sl.name}`, why: `${sl.name}${sl.note ? `: ${sl.note}` : ' allows it'}`, codes, law: sl };
     // someone who trusts you lets you drink: no crime (the Masquerade still says who may see)
@@ -115,6 +115,8 @@ export interface StoryLaw {
     who: string[];
     /** 'legal', or 'minor' (a lesser offense: a disturbance at most). */
     counts: 'legal' | 'minor';
+    /** Only when they agree to it: someone who trusts you (or your partner); otherwise the law doesn't cover it. */
+    consent?: boolean;
     /** Who they are handed over to ("Animal Control"), and the reward (in the world's money). */
     handTo?: string; reward?: number;
     /** Who disapproves (words): such witnesses don't report it, but remember it and like you less. */
@@ -139,8 +141,8 @@ export function kindMatches(kinds: string[], about: string[]): boolean {
         || a.split(' ').filter(w => w.length >= 3 && !GENERIC.has(w)).some(w => stems.has(stemWord(w))));
 }
 /** The law that covers this act on someone like them, if you may use it. */
-export function lawFor(laws: StoryLaw[], actId: string, kinds: string[], roles: string[], selfText: string): StoryLaw | undefined {
-    return laws.find(l => l.allows.includes(actId) && kindMatches(kinds, l.about) && (!l.who.length || l.who.some(w => roles.includes(w) || words(selfText).includes(` ${w.toLowerCase()} `))));
+export function lawFor(laws: StoryLaw[], actId: string, kinds: string[], roles: string[], selfText: string, willing = false): StoryLaw | undefined {
+    return laws.find(l => l.allows.includes(actId) && kindMatches(kinds, l.about) && (!l.consent || willing) && (!l.who.length || l.who.some(w => roles.includes(w) || words(selfText).includes(` ${w.toLowerCase()} `))));
 }
 /** A law that is about them, whatever the act (for the menu: "she is covered by the K4 control order"). */
 export const lawsAbout = (laws: StoryLaw[], kinds: string[]) => laws.filter(l => kindMatches(kinds, l.about));

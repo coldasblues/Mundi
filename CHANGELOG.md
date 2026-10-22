@@ -2,6 +2,23 @@
 
 This is a fork of [tjalis/Mundi](https://github.com/tjalis/Mundi) (AGPL-3.0). Changes made in this fork are listed here, with their dates, as the license asks.
 
+## 0.1.0-ps.17 — 2026-10-21
+
+More from the GLM 5.3 run: people the model calls by another name, laws that need consent.
+
+### Fixed
+
+- **Characters the model named differently were dropped.** GLM wrote "Dana Reyes" for the card "Officer Dana Reyes" and "Gordon Hale" for "Mr. Hale", and only exact names or first words were matched. Now a name matches the card that shares the most name words with it, ignoring titles (Officer, Mr., Dr., Captain…).
+- **"none" was kept as something that is not a person** when the model answered that there were none.
+
+### Added
+
+- **Laws that need consent.** A law can now apply only if they agree, like the Kemonomimi Crisis rule that eating a small kemonomimi is legal only with its consent. Someone agrees when they trust you (a bond of 55 or more) or are your partner; otherwise the law doesn't cover it.
+  - Set up from the lore asks the model for this condition.
+  - The law editor in Rough stuff has a checkbox for it.
+  - The story is told about it.
+  - Templates keep it.
+
 ## 0.1.0-ps.16 — 2026-10-21
 
 Set up from the lore, fixed against a real model: GLM 5.3 reading the Kemonomimi Crisis lorebook.

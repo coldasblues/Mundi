@@ -19,7 +19,7 @@ import { keyFor, type Person } from '../sim/roster.js';
 import { icon } from './icons.js';
 import { ACT, INPUT } from './reg.js';
 
-const freshLaw = () => ({ name: '', about: '', allows: ['grab', 'restrain'] as string[], who: '', counts: 'legal' as 'legal' | 'minor', handTo: '', reward: '', objectors: '', note: '' });
+const freshLaw = () => ({ name: '', about: '', allows: ['grab', 'restrain'] as string[], who: '', counts: 'legal' as 'legal' | 'minor', consent: false, handTo: '', reward: '', objectors: '', note: '' });
 export const HX = { open: false, target: '', surrender: false, lawOpen: false, newGroup: '', lead: null as Lead | null, item: '', law: freshLaw(), lawsOpen: false };
 const ctxW = () => { const g = game(); const w = g && getWorld(g.world); return g && w ? { g, w } : null; };
 // the engine's reasons, said to you ("{{user}} is the law" → "You are the law")
@@ -112,7 +112,7 @@ function menuHtml(g: Save, w: WorldDef): string {
 const csvList = (t: string) => String(t ?? '').split(',').map(x => x.trim()).filter(Boolean);
 function lawLine(w: WorldDef, l: StoryLaw) {
     const acts = l.allows.map(a => actsOf(w).find(d => d.id === a)?.name.toLowerCase() ?? a).join(', ');
-    return `${l.who.length ? l.who.join(' or ') : 'Anyone'} may ${acts} ${l.about.join(' or ')}${l.handTo ? `, and hand them to ${l.handTo}${l.reward ? ` (+${moneyText(w, l.reward)})` : ''}` : ''}${l.counts === 'minor' ? ' (a minor offense)' : ''}.`;
+    return `${l.who.length ? l.who.join(' or ') : 'Anyone'} may ${acts} ${l.about.join(' or ')}${l.handTo ? `, and hand them to ${l.handTo}${l.reward ? ` (+${moneyText(w, l.reward)})` : ''}` : ''}${l.consent ? ', if they agree' : ''}${l.counts === 'minor' ? ' (a minor offense)' : ''}.`;
 }
 function lawsHtml(g: Save, w: WorldDef): string {
     const own = hs(g).laws, world = ((w as any).laws ?? []) as StoryLaw[];
@@ -128,6 +128,7 @@ function lawsHtml(g: Save, w: WorldDef): string {
             <div class="mu-row2"><label class="mu-field"><span>It counts as</span><select data-input="hx-ld" data-k="counts"><option value="legal" ${d.counts === 'legal' ? 'selected' : ''}>Legal</option><option value="minor" ${d.counts === 'minor' ? 'selected' : ''}>A minor offense</option></select></label>
                 <label class="mu-field"><span>Hand them over to</span><input type="text" data-input="hx-ld" data-k="handTo" maxlength="60" placeholder="Animal Control" value="${esc(d.handTo)}"></label>
                 <label class="mu-field"><span>Reward</span><input type="number" min="0" data-input="hx-ld" data-k="reward" value="${esc(d.reward)}"></label></div>
+            <label class="mu-check"><input type="checkbox" data-input="hx-ld-consent" ${d.consent ? 'checked' : ''}><span>Only if they agree<small>Someone who trusts you, or your partner. Otherwise the law doesn't cover it.</small></span></label>
             <label class="mu-field"><span>Who disapproves (they won't report it, but they remember)</span><input type="text" data-input="hx-ld" data-k="objectors" maxlength="120" placeholder="kemonomimi, cat, fox" value="${esc(d.objectors)}"></label>
             <label class="mu-field"><span>Note for the story</span><input type="text" data-input="hx-ld" data-k="note" maxlength="160" placeholder="Mouse kemonomimi breed fast; the state pays per head." value="${esc(d.note)}"></label>
             <button class="mu-primary" data-act="hx-law-add">Add the law</button></div></details></div>`;
@@ -314,7 +315,7 @@ Object.assign(ACT, {
     'hx-law-add': () => {
         const g = game(); if (!g) return; const d = HX.law;
         if (!d.name.trim() || !csvList(d.about).length || !d.allows.length) { toast('A law needs a name, who it is about, and at least one act.', 'info'); return; }
-        hs(g).laws.push({ id: `l${Date.now().toString(36)}`, name: d.name.trim(), about: csvList(d.about), allows: [...d.allows], who: csvList(d.who).filter(x => x.toLowerCase() !== 'anyone'), counts: d.counts, ...(d.handTo.trim() ? { handTo: d.handTo.trim() } : {}), ...(Number(d.reward) > 0 ? { reward: Number(d.reward) } : {}), ...(csvList(d.objectors).length ? { objectors: csvList(d.objectors) } : {}), ...(d.note.trim() ? { note: d.note.trim() } : {}) });
+        hs(g).laws.push({ id: `l${Date.now().toString(36)}`, name: d.name.trim(), about: csvList(d.about), allows: [...d.allows], who: csvList(d.who).filter(x => x.toLowerCase() !== 'anyone'), counts: d.counts, ...(d.consent ? { consent: true } : {}), ...(d.handTo.trim() ? { handTo: d.handTo.trim() } : {}), ...(Number(d.reward) > 0 ? { reward: Number(d.reward) } : {}), ...(csvList(d.objectors).length ? { objectors: csvList(d.objectors) } : {}), ...(d.note.trim() ? { note: d.note.trim() } : {}) });
         HX.law = freshLaw(); HX.lawsOpen = false; saveGame();
         void import('../sim/prompt.js').then(m => m.refreshPrompt()); notify();
     },
@@ -354,6 +355,7 @@ Object.assign(INPUT, {
     'hx-newgroup': (el) => { HX.newGroup = el.value; },
     'hx-item': (el) => { HX.item = el.value; },
     'hx-ld': (el) => { (HX.law as any)[el.dataset.k!] = el.value; },
+    'hx-ld-consent': (el) => { HX.law.consent = el.checked; },
     'hx-ld-act': (el) => { const v = el.dataset.v!; HX.law.allows = HX.law.allows.filter(x => x !== v); if (el.checked) HX.law.allows.push(v); },
     'hx-kind': (el) => { const g = game(); if (!g) return; const k = el.dataset.key!; if (el.value.trim()) hs(g).kinds[k] = el.value.trim(); else delete hs(g).kinds[k]; saveGame(); void import('../sim/prompt.js').then(m => m.refreshPrompt()); },
     'hx-role': (el) => {
