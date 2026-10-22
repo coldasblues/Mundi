@@ -2,6 +2,12 @@
 
 This is a fork of [tjalis/Mundi](https://github.com/tjalis/Mundi) (AGPL-3.0). Changes made in this fork are listed here, with their dates, as the license asks.
 
+## 0.1.0-ps.20 — 2026-10-21
+
+### Fixed
+
+- The Rough stuff menu showed a double full stop after a law's note ("…replacing poisons and traps..").
+
 ## 0.1.0-ps.19 — 2026-10-21
 
 ### Fixed

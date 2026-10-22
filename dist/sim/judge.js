@@ -31,7 +31,7 @@ export function judge(def, base, roles, t, youHeld, laws = [], selfText = '') {
     if (sl && sl.counts === 'minor' && SEV[base] > 1)
         return { kind: 'crime', crime: 'minor', label: `minor: ${sl.name}`, why: `${sl.name} makes it a minor offense`, codes, law: sl };
     if (sl)
-        return { kind: 'legal', crime: 'none', label: `legal: ${sl.name}`, why: `${sl.name}${sl.note ? `: ${sl.note}` : ' allows it'}`, codes, law: sl };
+        return { kind: 'legal', crime: 'none', label: `legal: ${sl.name}`, why: `${sl.name}${sl.note ? `: ${sl.note.replace(/[.!\s]+$/, '')}` : ' allows it'}`, codes, law: sl };
     // someone who trusts you lets you drink: no crime (the Masquerade still says who may see)
     if (def.id === 'feed' && t?.willing)
         return { kind: 'fine', crime: 'none', label: 'willing vessel', why: 'they trust {{user}} and let it happen', codes };

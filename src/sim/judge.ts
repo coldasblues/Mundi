@@ -73,7 +73,7 @@ export function judge(def: HostileDef, base: Crime, roles: string[], t: Who | nu
     // the story's own law: this act, on someone like them, by someone like you
     const sl = t ? lawFor(laws, def.id, t.kinds ?? [], roles, selfText, !!t.willing) : undefined;
     if (sl && sl.counts === 'minor' && SEV[base] > 1) return { kind: 'crime', crime: 'minor', label: `minor: ${sl.name}`, why: `${sl.name} makes it a minor offense`, codes, law: sl };
-    if (sl) return { kind: 'legal', crime: 'none', label: `legal: ${sl.name}`, why: `${sl.name}${sl.note ? `: ${sl.note}` : ' allows it'}`, codes, law: sl };
+    if (sl) return { kind: 'legal', crime: 'none', label: `legal: ${sl.name}`, why: `${sl.name}${sl.note ? `: ${sl.note.replace(/[.!\s]+$/, '')}` : ' allows it'}`, codes, law: sl };
     // someone who trusts you lets you drink: no crime (the Masquerade still says who may see)
     if (def.id === 'feed' && t?.willing) return { kind: 'fine', crime: 'none', label: 'willing vessel', why: 'they trust {{user}} and let it happen', codes };
     // the law, doing its job: someone wanted, or someone attacking you

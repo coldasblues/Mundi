@@ -8,7 +8,7 @@
     "js": "dist/index.js",
     "css": "style.css",
     "author": "Thales (player state fork: coldasblues)",
-    "version": "0.1.0-ps.19",
+    "version": "0.1.0-ps.20",
     "homePage": "https://github.com/coldasblues/Mundi",
     "auto_update": false,
     "description": "Mundi: an open-world RPG creator for SillyTavern. Worlds with maps, time, routines, needs and a full visual-novel scene, built on SillyTavern's own cards, personas, lorebooks and group chats. This fork adds player state (when you can leave, walk-ons, endings) and sprite packs made with ComfyUI."
