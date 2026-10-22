@@ -76,9 +76,18 @@ export function kindMatches(kinds, about) {
     return about.map(a => words(a).trim()).filter(Boolean).some(a => k.some(x => x.includes(` ${a} `) || x.includes(` ${a}s `))
         || a.split(' ').filter(w => w.length >= 3 && !GENERIC.has(w)).some(w => stems.has(stemWord(w))));
 }
-/** The law that covers this act on someone like them, if you may use it. */
+/** The lesser acts a law covers when it allows a worse one: a law that lets you kill them lets you grab them. */
+const LESSER = {
+    kill: ['knockout', 'restrain', 'grab', 'punch', 'kick', 'shove', 'threaten'],
+    knockout: ['restrain', 'grab', 'punch', 'kick', 'shove', 'threaten'],
+    restrain: ['grab', 'shove', 'threaten'], grab: ['shove', 'threaten'],
+    punch: ['shove', 'threaten'], kick: ['shove', 'threaten'],
+};
+export const coversAct = (allows, actId) => allows.includes(actId) || allows.some(a => LESSER[a]?.includes(actId));
+/** The law that covers this act on someone like them, if you may use it (one naming the act itself comes first). */
 export function lawFor(laws, actId, kinds, roles, selfText, willing = false) {
-    return laws.find(l => l.allows.includes(actId) && kindMatches(kinds, l.about) && (!l.consent || willing) && (!l.who.length || l.who.some(w => roles.includes(w) || words(selfText).includes(` ${w.toLowerCase()} `))));
+    const usable = (l) => kindMatches(kinds, l.about) && (!l.consent || willing) && (!l.who.length || l.who.some(w => roles.includes(w) || words(selfText).includes(` ${w.toLowerCase()} `)));
+    return laws.find(l => l.allows.includes(actId) && usable(l)) ?? laws.find(l => coversAct(l.allows, actId) && usable(l));
 }
 /** A law that is about them, whatever the act (for the menu: "she is covered by the K4 control order"). */
 export const lawsAbout = (laws, kinds) => laws.filter(l => kindMatches(kinds, l.about));

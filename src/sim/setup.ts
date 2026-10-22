@@ -246,7 +246,8 @@ export function applyPlan(g: Save, w: WorldDef, plan: Plan): string {
         st.groups[id] = { id, name: gr.name, members: have?.members ?? [], ...(gr.base ? { base: gr.base } : have?.base ? { base: have.base } : {}) };
         ids[gr.name.toLowerCase()] = id;
     }
-    if (plan.groups.some(x => x.keep)) done.push(`${plan.groups.filter(x => x.keep).length} groups`);
+    const many = (n: number, one: string, more: string) => `${n} ${n === 1 ? one : more}`;
+    if (plan.groups.some(x => x.keep)) done.push(many(plan.groups.filter(x => x.keep).length, 'group', 'groups'));
     let n = 0;
     for (const p of plan.people.filter(x => x.keep)) {
         if (p.kind) st.kinds[p.key] = p.kind;
@@ -256,12 +257,12 @@ export function applyPlan(g: Save, w: WorldDef, plan: Plan): string {
         if (gid) st.groups[gid].members.push(p.key);
         n++;
     }
-    if (n) done.push(`${n} people`);
+    if (n) done.push(many(n, 'person', 'people'));
     for (const l of plan.laws.filter(x => x.keep)) {
         const { keep: _k, ...law } = l; void _k;
         st.laws = [...st.laws.filter(x => x.name.toLowerCase() !== law.name.toLowerCase()), law];
     }
-    if (plan.laws.some(x => x.keep)) done.push(`${plan.laws.filter(x => x.keep).length} laws`);
+    if (plan.laws.some(x => x.keep)) done.push(many(plan.laws.filter(x => x.keep).length, 'law', 'laws'));
     if (plan.police?.keep) { st.law.mode = plan.police.exists ? 'on' : 'off'; if (plan.police.exists && plan.police.name) st.law.name = plan.police.name; done.push(plan.police.exists ? `the law: ${plan.police.name || 'yes'}` : 'no law'); }
     const np = plan.notPeople.filter(x => x.keep).map(x => x.word);
     if (np.length) { (st as any).notPeople = [...new Set([...((st as any).notPeople ?? []), ...np])]; done.push(`not people: ${np.join(', ')}`); }

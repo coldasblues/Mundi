@@ -2,6 +2,17 @@
 
 This is a fork of [tjalis/Mundi](https://github.com/tjalis/Mundi) (AGPL-3.0). Changes made in this fork are listed here, with their dates, as the license asks.
 
+## 0.1.0-ps.18 — 2026-10-21
+
+### Fixed
+
+- **A law that allows the worst act now covers the lesser ones on the same people.** Several Kemonomimi Crisis laws make killing a mouse kemonomimi legal and say nothing about grabbing one, so Mundi called a grab assault and a killing legal.
+  - Killing covers knocking out, tying up, grabbing, hitting, kicking, shoving and threatening.
+  - Knocking out covers the ones below it, and so on down.
+  - It never goes the other way: a law that allows grabbing does not allow killing.
+  - A law that names the act itself still comes first.
+- "Applied: 1 groups · 10 laws" now reads "1 group".
+
 ## 0.1.0-ps.17 — 2026-10-21
 
 More from the GLM 5.3 run: people the model calls by another name, laws that need consent.

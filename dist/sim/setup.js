@@ -286,8 +286,9 @@ export function applyPlan(g, w, plan) {
         st.groups[id] = { id, name: gr.name, members: have?.members ?? [], ...(gr.base ? { base: gr.base } : have?.base ? { base: have.base } : {}) };
         ids[gr.name.toLowerCase()] = id;
     }
+    const many = (n, one, more) => `${n} ${n === 1 ? one : more}`;
     if (plan.groups.some(x => x.keep))
-        done.push(`${plan.groups.filter(x => x.keep).length} groups`);
+        done.push(many(plan.groups.filter(x => x.keep).length, 'group', 'groups'));
     let n = 0;
     for (const p of plan.people.filter(x => x.keep)) {
         if (p.kind)
@@ -303,14 +304,14 @@ export function applyPlan(g, w, plan) {
         n++;
     }
     if (n)
-        done.push(`${n} people`);
+        done.push(many(n, 'person', 'people'));
     for (const l of plan.laws.filter(x => x.keep)) {
         const { keep: _k, ...law } = l;
         void _k;
         st.laws = [...st.laws.filter(x => x.name.toLowerCase() !== law.name.toLowerCase()), law];
     }
     if (plan.laws.some(x => x.keep))
-        done.push(`${plan.laws.filter(x => x.keep).length} laws`);
+        done.push(many(plan.laws.filter(x => x.keep).length, 'law', 'laws'));
     if (plan.police?.keep) {
         st.law.mode = plan.police.exists ? 'on' : 'off';
         if (plan.police.exists && plan.police.name)
