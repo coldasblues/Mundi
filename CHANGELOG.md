@@ -2,6 +2,12 @@
 
 This is a fork of [tjalis/Mundi](https://github.com/tjalis/Mundi) (AGPL-3.0). Changes made in this fork are listed here, with their dates, as the license asks.
 
+## 0.1.0-ps.19 — 2026-10-21
+
+### Fixed
+
+- **Unnamed people left out of the scene.** In a GLM 5.3 test, the player wrote a mouse kemonomimi girl into the hotel lobby. The narrator described her well, but its state block said nobody was present, so she couldn't be targeted or talked to. The state block now asks for people without a name too, each in a few words ("a mouse girl", "the waiter", "two guards"), however small or unimportant.
+
 ## 0.1.0-ps.18 — 2026-10-21
 
 ### Fixed
