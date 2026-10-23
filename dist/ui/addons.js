@@ -1,7 +1,7 @@
 // Add-ons: SillyTavern extensions Mundi knows how to use. Mundi finds out by itself whether each one is
 // installed (and turned on); when it is, its button shows up in Mundi's scene. Each can be hidden in Settings.
 import { state, notify, esc, settings, saveSettings, toast, ROOT_ID } from '../core/store.js';
-import { ctx, chat } from '../st/bridge.js';
+import { ctx, chat, scriptText, scriptQuoted } from '../st/bridge.js';
 import { icon } from './icons.js';
 import { ACT, INPUT } from './reg.js';
 const ext = () => (ctx().extensionSettings ?? {});
@@ -142,11 +142,11 @@ const focusComposer = () => document.getElementById(ROOT_ID)?.querySelector('[da
 /* ---------- TTS: read a line aloud ---------- */
 // Reads any text aloud (the diary): in your persona's voice, or TTS's default voice when you have none.
 export async function speakText(text, voice = '') {
-    const t = text.replace(/<[^>]+>/g, '').replace(/\|/g, '/').replace(/\s+/g, ' ').trim();
+    const t = scriptText(text.replace(/<[^>]+>/g, '')).replace(/\s+/g, ' ').trim();
     if (!t)
         return;
     try {
-        await ctx().executeSlashCommandsWithOptions(voice ? `/speak voice="${voice.replace(/"/g, '')}" ${t}` : `/speak ${t}`);
+        await ctx().executeSlashCommandsWithOptions(voice ? `/speak voice="${scriptQuoted(voice)}" ${t}` : `/speak ${t}`);
     }
     catch {
         if (voice) {
@@ -168,7 +168,7 @@ Object.assign(ACT, {
         SD.open = false;
         notify();
         try {
-            await ctx().executeSlashCommandsWithOptions(`/sd ${el.dataset.v}`);
+            await ctx().executeSlashCommandsWithOptions(`/sd ${scriptText(el.dataset.v)}`);
         }
         catch (e) {
             toast(String(e?.message ?? e), 'error');
@@ -192,11 +192,11 @@ Object.assign(ACT, {
         const m = chat()[Number(el.dataset.i)];
         if (!m)
             return;
-        const text = String(m.mes ?? '').replace(/<[^>]+>/g, '').replace(/\|/g, '/').trim();
+        const text = scriptText(String(m.mes ?? '').replace(/<[^>]+>/g, '')).trim();
         if (!text)
             return;
         try {
-            await ctx().executeSlashCommandsWithOptions(`/speak voice="${String(m.name ?? '').replace(/"/g, '')}" ${text}`);
+            await ctx().executeSlashCommandsWithOptions(`/speak voice="${scriptQuoted(m.name)}" ${text}`);
         }
         catch (e) {
             toast(String(e?.message ?? e), 'error');

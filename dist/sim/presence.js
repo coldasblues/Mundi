@@ -47,7 +47,7 @@ export function presenceLine(g, w, here) {
     return parts.join(' ');
 }
 /* ---------- who you talk with: the narrator says when it changes ---------- */
-/** "Zack turns to talk with Mona alone", "…brings Dev into the conversation", "…turns back to everyone". */
+/** "Alex turns to talk with Mona alone", "…brings Dev into the conversation", "…turns back to everyone". */
 export function talkNotice(g, before, after, me) {
     const n = (a) => g.cast[a]?.met ? g.cast[a].name : 'someone';
     if (!after.length)

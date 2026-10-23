@@ -26,7 +26,7 @@ export function talkButtons(g, avatar) {
         return `<button data-act="talk-add" data-who="${esc(avatar)}">${icon('users')}<span>Bring them into the conversation</span></button>`;
     return `${t.length > 1 ? `<button data-act="talk-drop" data-who="${esc(avatar)}">${icon('x')}<span>Leave them out of it</span></button>` : ''}<button data-act="solo-off">${icon('users')}<span>Talk with everyone again</span></button>`;
 }
-/** Changes who you talk with, and the narrator says so ("Zack turns to talk with Mona alone"). */
+/** Changes who you talk with, and the narrator says so ("Alex turns to talk with Mona alone"). */
 export async function talkWith(list) {
     const g = game();
     if (!g)

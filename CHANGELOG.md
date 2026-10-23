@@ -2,6 +2,18 @@
 
 This is a fork of [tjalis/Mundi](https://github.com/tjalis/Mundi) (AGPL-3.0). Changes made in this fork are listed here, with their dates, as the license asks.
 
+## 0.1.0-ps.21 — 2026-10-22
+
+Security fixes from a review of the fork.
+
+### Fixed
+
+- **Text could run SillyTavern commands.** Mundi sends some text through SillyTavern's slash commands. It neutralized "|", which starts another command. But SillyTavern also runs a block written as `{: /command :}()` on the spot, so a model's reply, a card or walk-on name, a law name or a lorebook name could carry a command that ran by itself.
+  - Commands that carried such text: narrator lines (`/sys`), your own lines (`/send`), greetings (`/sendas`), Chirp pictures (`/sd`, which runs automatically on model text), reading aloud (`/speak`) and lorebooks (`/world`).
+  - All of them now break those markers apart ("{ :", ": }"), which reads the same.
+  - Speaker names and voices, which go in quotes, were already safe and are now cleaned the same way.
+- **Importing a world could make the browser fetch any address.** A world file's pictures were downloaded from whatever addresses the file listed. Exported worlds carry their pictures inside the file, so imports now accept only those (embedded images and sounds) and skip anything else.
+
 ## 0.1.0-ps.20 — 2026-10-21
 
 ### Fixed
@@ -209,7 +221,7 @@ Talking with one or a few people: the scene says so, and the people on the side 
 
 ### Added
 
-- **The narrator says who you turn to.** Choosing "Talk only with them", bringing someone into the conversation, leaving someone out, or going back to everyone posts one line in the scene: "Zack turns to talk with Mona alone; the others give them some space.", "Zack brings Dev into the conversation.", "Zack turns back to everyone." The narrator's line is part of the chat the AI reads, so it knows who the conversation is with.
+- **The narrator says who you turn to.** Choosing "Talk only with them", bringing someone into the conversation, leaving someone out, or going back to everyone posts one line in the scene: "Alex turns to talk with Mona alone; the others give them some space.", "Alex brings Dev into the conversation.", "Alex turns back to everyone." The narrator's line is part of the chat the AI reads, so it knows who the conversation is with.
 - **Cutting in, as a mechanic.** While you talk with some of the people here, the others stay quiet, but after each of your lines the engine may let one of them cut in:
   - nearly always when your line speaks to them ("Dev, what do you think?"), and often when it names them;
   - more likely when they have a crush on, or are dating, someone you are talking with, or when they are close to you;

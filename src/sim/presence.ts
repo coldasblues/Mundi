@@ -47,7 +47,7 @@ export function presenceLine(g: Save, w: WorldDef, here: Resident[]): string {
 
 /* ---------- who you talk with: the narrator says when it changes ---------- */
 
-/** "Zack turns to talk with Mona alone", "…brings Dev into the conversation", "…turns back to everyone". */
+/** "Alex turns to talk with Mona alone", "…brings Dev into the conversation", "…turns back to everyone". */
 export function talkNotice(g: Save, before: string[], after: string[], me: string): string {
     const n = (a: string) => g.cast[a]?.met ? g.cast[a].name : 'someone';
     if (!after.length) return before.length ? `${me} turns back to everyone.` : '';

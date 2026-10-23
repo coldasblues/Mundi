@@ -658,7 +658,7 @@ export function homeOf(r: Resident): string {
 }
 const bare = (t: string) => String(t ?? '').toLowerCase().replace(/[^a-z0-9' ]/g, ' ').replace(/\b(the|a|an)\b/g, ' ').replace(/\s+/g, ' ').trim();
 /**
- * The place a reply names ("the docks", "her place", "Zack's apartment", "the Waterfront bar") as one of the map's.
+ * The place a reply names ("the docks", "her place", "Alex's apartment", "the Waterfront bar") as one of the map's.
  * `leaderKey`: who is taking you ("her place" is theirs). '' when the map has no such place.
  */
 export function resolvePlace(g: Save, w: WorldDef, text: string, leaderKey = ''): string {

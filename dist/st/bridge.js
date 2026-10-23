@@ -415,11 +415,18 @@ export function editMessage(index, text) {
     return true;
 }
 export const deleteMessageAt = (index) => deleteMessage(index, undefined, false); // Mundi asks first, in its own screen
+/**
+ * Text made safe to put after a slash command: a "|" would start another command, and "{: … :}()" is a block that
+ * SillyTavern runs on the spot, so text from a model, a card or a shared file could run commands of its own. Both are
+ * broken apart ("{ :", ": }"), which reads the same.
+ */
+export const scriptText = (s) => String(s ?? '').replace(/\|/g, '/').replace(/\{:/g, '{ :').replace(/:\}/g, ': }');
+/** A value for a quoted named argument (name="…"): no quote to break out of, and no block either. */
+export const scriptQuoted = (s) => scriptText(s).replace(/"/g, '');
 // Writes a line as a character (a greeting when you first meet her). Marked as Mundi's own.
 export async function sendAs(name, text) {
     const before = chat().length;
-    const clean = String(text).replace(/\|/g, '/');
-    await ctx().executeSlashCommandsWithOptions(`/sendas name="${name.replace(/"/g, '')}" ${clean}`);
+    await ctx().executeSlashCommandsWithOptions(`/sendas name="${scriptQuoted(name)}" ${scriptText(text)}`);
     for (let i = before; i < chat().length; i++)
         chat()[i].extra = { ...(chat()[i].extra ?? {}), mundi: true };
     saveChatDebounced();
@@ -433,11 +440,11 @@ export async function replyAs(avatar) {
     await ctx().generate('normal', { force_chid: i });
 }
 export async function addUserLine(text) {
-    await ctx().executeSlashCommandsWithOptions(`/send ${String(text).replace(/\|/g, '/')}`);
+    await ctx().executeSlashCommandsWithOptions(`/send ${scriptText(text)}`);
 }
 export async function narratorLine(text) {
     const before = chat().length;
-    await ctx().executeSlashCommandsWithOptions(`/sys ${String(text).replace(/\|/g, '/')}`);
+    await ctx().executeSlashCommandsWithOptions(`/sys ${scriptText(text)}`);
     for (let i = before; i < chat().length; i++)
         chat()[i].extra = { ...(chat()[i].extra ?? {}), mundi: true, mundi_narrator: true };
     saveChatDebounced();
@@ -776,7 +783,7 @@ export async function setGlobalLore(name, on) {
     if (globalLore().includes(name) === on)
         return;
     try {
-        await ctx().executeSlashCommandsWithOptions(`/world state=${on ? 'on' : 'off'} silent=true ${name.replace(/\|/g, ' ')}`);
+        await ctx().executeSlashCommandsWithOptions(`/world state=${on ? 'on' : 'off'} silent=true ${scriptText(name.replace(/\|/g, ' '))}`);
     }
     catch (e) {
         console.warn('[Mundi] world info', e);

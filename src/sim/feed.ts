@@ -3,7 +3,7 @@
 import { romanceBlocked } from './family.js';
 import { nowAbs, settings, type Save, type Resident } from '../core/store.js';
 import { styleOf, type WorldDef } from '../core/world.js';
-import { ctx, charOf, personaName, sayLine } from '../st/bridge.js';
+import { ctx, charOf, personaName, sayLine, scriptText } from '../st/bridge.js';
 import { aiLangName } from '../core/i18n.js';
 import { hm, weekday } from './time.js';
 import { placeOf } from './places.js';
@@ -39,7 +39,7 @@ const about = (r: Resident) => String(charOf(r.avatar)?.description ?? '').repla
 async function picture(prompt: string): Promise<string | undefined> {
     if (!feedPrefs().images) return undefined;
     try {
-        const r = await ctx().executeSlashCommandsWithOptions(`/sd quiet=true ${prompt.replace(/\|/g, ' ')}`);
+        const r = await ctx().executeSlashCommandsWithOptions(`/sd quiet=true ${scriptText(prompt.replace(/\|/g, ' '))}`);
         const url = String(r?.pipe ?? '').trim();
         return url && !url.startsWith('Error') ? url : undefined;
     } catch { return undefined; }

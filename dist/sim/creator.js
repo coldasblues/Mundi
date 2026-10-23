@@ -161,6 +161,10 @@ export async function importWorld(text) {
     w.id = newId(`w_${slug(w.name)}`);
     let json = JSON.stringify(w);
     for (const [path, url] of Object.entries(files)) {
+        // only the pictures and sounds an export carries inside it: a shared file must not make the browser fetch
+        // addresses of its choosing (on the internet or your own network)
+        if (typeof url !== 'string' || !/^data:(image|audio)\/[a-z0-9.+-]+(;[a-z0-9=.+-]+)*(;base64)?,/i.test(url))
+            continue;
         const blob = await (await fetch(url)).blob();
         const name = path.split('/').pop().replace(`mundi-${oldId}`, `mundi-${w.id}`);
         const saved = `/${await uploadUserFile(name, blob)}`;
