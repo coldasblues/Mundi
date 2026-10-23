@@ -5,7 +5,7 @@ import { nativeHost } from './native.js';
 import { lockScene } from '../sim/life.js';
 import { judgeLine, judgeReaction } from '../sim/mood.js';
 import { state, notify, esc, game, toast, ROOT_ID, saveGame } from '../core/store.js';
-import { getWorld, worldFile } from '../core/world.js';
+import { getWorld, bgOf, num } from '../core/world.js';
 import { chat, speakerOf, thumb, sendText, replyAs, regenerate, continueLast, impersonate, stop, swipeLeft, swipeRight, editMessage, deleteMessageAt, expressionOf, fetchSprites, saveChat, me, currentCharacter, charOf, characters, bgList, bgThumb, ctx, addUserLine, narratorLine, personaName, quiet, lorebooks, chatLore, bindChatLore, scenarioOpen, scenarioCast, scenarioTitle, addToScenario, removeFromScenario, setChatBackground, newScenarioChat, persona, personas, personaThumb, usePersona, } from '../st/bridge.js';
 import { placeOf } from '../sim/places.js';
 import { presentAt } from '../sim/people.js';
@@ -111,12 +111,12 @@ function background(g, w) {
     if (p.home) {
         const kind = w.homes.kinds[p.id === 'home:player' ? g.player.home.kind : (w.homes.zones.find(z => z.id === g.cast[p.id.slice(5)]?.home.zone)?.kind ?? 'apartment')];
         if (kind?.image)
-            return `background-image:url('${worldFile(w, kind.image)}');background-size:cover;background-position:center`;
+            return `${bgOf(w, kind.image)};background-size:cover;background-position:center`;
     }
     if (p.bg)
-        return `background-image:url('${worldFile(w, p.bg)}');background-size:cover;background-position:center`;
+        return `${bgOf(w, p.bg)};background-size:cover;background-position:center`;
     const map = w.maps.find(m => m.id === p.map) ?? w.maps[0];
-    return `background-image:url('${worldFile(w, map.image)}');background-size:420% auto;background-position:${p.x}% ${p.y}%`;
+    return `${bgOf(w, map.image)};background-size:420% auto;background-position:${num(p.x, 50)}% ${num(p.y, 50)}%`;
 }
 import { fullPicOf as fullPic } from './chatlook.js';
 // SillyTavern's own formatting (Markdown, code blocks, regex scripts of your presets), with Mundi's as a fallback.
@@ -166,7 +166,7 @@ export function sceneHtml() {
         return `<figure class="mu-sprite ${isWith(g, r.avatar) ? 'is-with' : ''}" style="--i:${k};--n:${here.length}" title="${esc(r.name)}">${src ? `<img src="${esc(src)}" alt="">` : `<span class="is-avatar mu-zoomable"><img src="${esc(avatarUrl(r.avatar))}" alt="" draggable="false"></span>`}<figcaption>${esc(r.met ? r.name : 'Someone')}</figcaption></figure>`;
     }).join('');
     return `<div class="mu-scene">
-        <div class="mu-scene-bg" style="${background(g, w)}"></div>
+        <div class="mu-scene-bg" style="${esc(background(g, w))}"></div>
         <div class="mu-sprites">${sprites}</div>
         
         <section class="mu-dialog">

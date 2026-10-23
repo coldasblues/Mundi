@@ -428,7 +428,7 @@ function loreDetail(name) {
     return `${head}<p class="mu-muted">${list.length} entries</p>${extractButton('lorebook', name)}<ul class="mu-entries">${list.map(e => {
         const open = L.entry === String(e.uid);
         return `<li class="mu-entry ${open ? 'is-open' : ''} ${e.disable ? 'is-off' : ''}">
-            <button class="mu-entry-head" data-act="lib-entry" data-uid="${e.uid}"><b data-notr>${esc(entryTitle(e))}</b>
+            <button class="mu-entry-head" data-act="lib-entry" data-uid="${esc(e.uid)}"><b data-notr>${esc(entryTitle(e))}</b>
                 <small>${e.constant ? '<span class="mu-tag">Always on</span>' : ''}${e.disable ? '<span class="mu-tag is-off">Off</span>' : ''}<span data-notr>${esc((e.key ?? []).join(', '))}</span></small></button>
             ${open ? (L.edit ? entryForm(e) : `<div class="mu-entry-body" data-notr>${esc(e.content ?? '')}</div>`) : ''}
         </li>`;

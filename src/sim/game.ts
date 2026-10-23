@@ -1,6 +1,6 @@
 // Games and saves. A new game creates native SillyTavern objects: the cast's cards (when the world's example
 // cast is used), the player's persona, the world's lorebook and a group chat. The save lives in that chat.
-import { worldFile } from '../core/world.js';
+import { worldFile, cssUrl } from '../core/world.js';
 import { DIFFICULTIES, type Difficulty } from './bills.js';
 import { placeOf as placeOf2 } from './places.js';
 import { TUT, settings as settings2 } from '../core/store.js';
@@ -345,7 +345,7 @@ function followBackground(g: Save, w: WorldDef) {
     let img = p.bg ?? '';
     if (!img && p.home) img = w.homes.kinds[p.id === 'home:player' ? g.player.home.kind : (w.homes.zones.find(z => z.id === g.cast[p.id.slice(5)]?.home.zone)?.kind ?? '')]?.image ?? '';
     if (!img) return;
-    const url = `url("${worldFile(w, img)}")`;
+    const url = cssUrl(worldFile(w, img)); if (!url) return;
     const m = ctx().chatMetadata;
     if (m.custom_background === url) return;
     m.custom_background = url; ctx().saveMetadataDebounced();

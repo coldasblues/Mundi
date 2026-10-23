@@ -2,7 +2,7 @@
 // A world starts from a base (a copy of Porto Alto, or the Modern rules with an empty map) and is saved as a
 // JSON file in SillyTavern's user files. Inputs bind to the draft by path: data-path="statuses.2.name".
 import { state, notify, esc, toast, busy } from '../core/store.js';
-import { getWorld, worldFile, worlds, styleOf, isCustom, gameMode, GAME_MODES } from '../core/world.js';
+import { getWorld, bgOf, worlds, styleOf, isCustom, gameMode, GAME_MODES } from '../core/world.js';
 import { STYLES, inWorld } from './styles.js';
 import { SKINS } from './skins.js';
 import { tr, setWorldDicts } from '../core/tr.js';
@@ -66,7 +66,7 @@ function tabGeneral(w) {
     return `<div class="mu-cw-grid">
         <section class="mu-cw-sec">${txt('Name', 'name')}${area('Short description (shown when choosing a world)', 'description', 3)}
             ${area('Setting (what the AI always knows about this world)', 'setting', 5)}</section>
-        <section class="mu-cw-sec"><h4>Cover</h4><div class="mu-cw-cover" style="${w.cover ? `background-image:url('${esc(worldFile(w, w.cover))}')` : ''}">${w.cover ? '' : '<span>No cover</span>'}</div>
+        <section class="mu-cw-sec"><h4>Cover</h4><div class="mu-cw-cover" style="${esc(bgOf(w, w.cover))}">${w.cover ? '' : '<span>No cover</span>'}</div>
             <div class="mu-row"><button data-act="cw-cover">${icon('upload')}<span>Choose a picture</span></button>${w.maps[0] ? `<button class="mu-ghost" data-act="cw-cover-map">Use the first map</button>` : ''}</div></section>
         <section class="mu-cw-sec"><h4>Look: style and skin</h4>
             ${sel('Style (the words of the game and the device)', 'style', STYLES.filter(x => x.ready).map(x => [x.id, x.name]))}
@@ -168,7 +168,7 @@ function tabHomes(w) {
                     <button data-act="cw-homes-map" data-i="${i}">${icon('map')}<span>Place the homes on the map</span></button>`;
     }, 'zone', 'No housing areas yet.')}</section>
         <section class="mu-cw-sec"><h4>Kinds of home</h4>
-            ${kinds.map(([id, k]) => `<div class="mu-cw-kind"><div class="mu-cw-cover is-small" style="${k.image ? `background-image:url('${esc(worldFile(w, k.image))}')` : ''}"></div>
+            ${kinds.map(([id, k]) => `<div class="mu-cw-kind"><div class="mu-cw-cover is-small" style="${esc(bgOf(w, k.image))}"></div>
                 <div>${txt('Name', `homes.kinds.${id}.name`)}${area('Description', `homes.kinds.${id}.desc`, 2)}
                 <div class="mu-row"><button class="mu-ghost" data-act="cw-kind-img" data-id="${esc(id)}">${icon('image')}<span>Inside picture (scene)</span></button>
                 ${kinds.length > 1 ? `<button class="mu-ghost" data-act="cw-del" data-path="homes.kinds.${id}">${icon('trash')}</button>` : ''}</div></div></div>`).join('')}
@@ -296,7 +296,7 @@ function startPage() {
             <h3>Start from</h3>
             <p class="mu-muted">A preset is a ready world: you get a copy of it to change as you like (the original stays as it is).</p>
             <div class="mu-cards">${presets.map(w => `<button class="mu-worldcard ${s.mode === 'copy' && s.base === w.id ? 'is-on' : ''}" data-act="cw-start-preset" data-id="${esc(w.id)}">
-                    <span class="mu-worldart" style="${w.cover ? `background-image:url('${worldFile(w, w.cover)}')` : ''}"><em class="mu-style-tag is-${esc(st.id)}">Preset</em></span>
+                    <span class="mu-worldart" style="${esc(bgOf(w, w.cover))}"><em class="mu-style-tag is-${esc(st.id)}">Preset</em></span>
                     <b data-notr>${esc(inWorld(w, w.name))}</b><small>${isCustom(w.id) ? 'Made by you' : 'Ready world'}</small><p data-notr>${esc(inWorld(w, w.description))}</p></button>`).join('')}
                 <button class="mu-worldcard is-new ${s.mode === 'empty' ? 'is-on' : ''}" data-act="cw-start-empty"><span class="mu-worldart">${icon('map')}</span><b>Start from nothing</b><small>Only the ${esc(st.name)} rules</small><p>Needs, things to do, the device and the character sheet of this style; you draw the maps, places and people.</p></button>
                 <button class="mu-worldcard is-new is-later" aria-disabled="true"><span class="mu-worldart">${icon('book')}</span><b>From lorebooks</b><small>Coming soon</small><p>Your AI reads lorebooks you choose and builds the world from them.</p></button></div>

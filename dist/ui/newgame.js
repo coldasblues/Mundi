@@ -3,7 +3,7 @@
 import { state, notify, esc, toast, game, saveGame } from '../core/store.js';
 import { templates, templateById, saveInto, isEmptySetup, setupSummary, startSummary } from '../sim/templates.js';
 import { DIFFICULTIES } from '../sim/bills.js';
-import { worlds, getWorld, worldFile, isCustom, exampleTag, styleOf, gameMode, GAME_MODES, worldLocked } from '../core/world.js';
+import { worlds, getWorld, bgOf, isCustom, exampleTag, styleOf, gameMode, GAME_MODES, worldLocked } from '../core/world.js';
 import { openCreatorNew, openCreatorEdit, importWorldFile } from './creator.js';
 import { setWorldDicts } from '../core/tr.js';
 import { characters, thumb, personas, personaThumb, persona, openCharacter, usePersona, charLorebooks, charOf } from '../st/bridge.js';
@@ -42,7 +42,7 @@ function stepWorld() {
         wz.world = open[0]?.id ?? wz.world;
     return `${templatePickHtml()}<h3>World</h3><div class="mu-cards">${[...open, ...locked].map(w => `
             <div class="mu-worldcard-wrap ${worldLocked(w) ? 'is-locked' : ''}"><button class="mu-worldcard ${wz.world === w.id ? 'is-on' : ''}" data-act="ng-world" data-id="${esc(w.id)}" ${worldLocked(w) ? `aria-disabled="true" title="${esc(LOCKED_NOTE)}"` : ''}>
-                <span class="mu-worldart" style="${w.cover ? `background-image:url('${worldFile(w, w.cover)}')` : ''}"><em class="mu-style-tag is-${esc(styleOf(w))}">${esc(styleName(styleOf(w)))}</em>${worldLocked(w) ? `<span class="mu-lockbadge">${icon('pin')}<b>Next update</b><small>with the new RPG mode</small></span>` : ''}</span>
+                <span class="mu-worldart" style="${esc(bgOf(w, w.cover))}"><em class="mu-style-tag is-${esc(styleOf(w))}">${esc(styleName(styleOf(w)))}</em>${worldLocked(w) ? `<span class="mu-lockbadge">${icon('pin')}<b>Next update</b><small>with the new RPG mode</small></span>` : ''}</span>
                 <b data-notr>${esc(inWorld(w, w.name))}</b><small>${GAME_MODES.find(m => m.id === gameMode(w)).name}${isCustom(w.id) ? ' · Made by you' : ''}</small><p data-notr>${esc(inWorld(w, w.description))}</p>
             </button>${isCustom(w.id) ? `<button class="mu-ghost mu-ibtn mu-world-edit" data-act="ng-world-edit" data-id="${esc(w.id)}" title="Edit this world">${icon('edit')}</button>` : ''}</div>`).join('')}
             <button class="mu-worldcard is-new" data-act="ng-world-new"><span class="mu-worldart">${icon('plus')}</span><b>Create a world</b><small>With the world creator</small><p>Choose a style, start from a ready world or from nothing, and change everything.</p></button>

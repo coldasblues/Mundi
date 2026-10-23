@@ -10,7 +10,7 @@ import { maybeBump } from './bump.js';
 import { rollAction, gradeName } from '../sim/dice.js';
 import { setPrompt } from '../st/bridge.js';
 import { beforeTravel, beforeSleep } from '../sim/plans.js';
-import { getWorld, worldFile } from '../core/world.js';
+import { getWorld, bgOf, num } from '../core/world.js';
 import { thumb } from '../st/bridge.js';
 import { pins, placeOf, travelMinutes, playerHomeId } from '../sim/places.js';
 import { presentAt } from '../sim/people.js';
@@ -44,8 +44,8 @@ function pinsHtml(g, w) {
         const here = presentAt(g, w, p.id);
         const known = here.filter(r => r.met), strangers = here.length - known.length + walkOnsHere(g, w, p.id).length;
         if (p.link)
-            return `<button class="mu-pin is-link" data-act="pin" data-loc="${esc(p.id)}" style="left:${p.x}%;top:${p.y}%" aria-label="${esc(p.name)}"><span class="dot">${icon('map')}</span><span class="label">${esc(p.name)}</span></button>`;
-        return `<button class="mu-pin ${p.home ? 'is-home' : ''} ${p.id === sel ? 'is-sel' : ''} ${p.id === g.player.loc ? 'is-you' : ''}" data-act="pin" data-loc="${esc(p.id)}" style="left:${p.x}%;top:${p.y}%" aria-label="${esc(p.name)}">
+            return `<button class="mu-pin is-link" data-act="pin" data-loc="${esc(p.id)}" style="left:${num(p.x)}%;top:${num(p.y)}%" aria-label="${esc(p.name)}"><span class="dot">${icon('map')}</span><span class="label">${esc(p.name)}</span></button>`;
+        return `<button class="mu-pin ${p.home ? 'is-home' : ''} ${p.id === sel ? 'is-sel' : ''} ${p.id === g.player.loc ? 'is-you' : ''}" data-act="pin" data-loc="${esc(p.id)}" style="left:${num(p.x)}%;top:${num(p.y)}%" aria-label="${esc(p.name)}">
             <span class="dot"></span><span class="label">${esc(p.name)}</span>
             ${here.length || strangers ? `<span class="faces">${known.slice(0, 3).map(r => `<img draggable="false" src="${esc(thumb(r.avatar))}" alt="" title="${esc(r.name)}">`).join('')}${strangers || known.length > 3 ? `<i>+${strangers + Math.max(0, known.length - 3)}</i>` : ''}</span>` : ''}
         </button>`;
@@ -168,7 +168,7 @@ export function mapHtml() {
         ${away ? `<button data-act="open-map" data-map="">${icon('pin')}<span>Back to where you are</span></button>` : ''}<b data-notr>${esc(map.name)}</b></div>` : '';
     return `<div class="mu-map">${nav}
         <div class="mu-stage" data-stage>
-            <div class="mu-mapimg" style="--r:${map.ratio};background-image:url('${esc(worldFile(w, map.image))}')">${pinsHtml(g, w)}</div>
+            <div class="mu-mapimg" style="${esc(`--r:${num(map.ratio, 1.7914)};${bgOf(w, map.image)}`)}">${pinsHtml(g, w)}</div>
             <div class="mu-zoom">
                 <button data-act="zoom" data-d="in" title="Zoom in">+</button>
                 <button data-act="zoom" data-d="out" title="Zoom out">−</button>

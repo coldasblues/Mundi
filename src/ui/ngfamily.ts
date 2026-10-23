@@ -1,7 +1,7 @@
 // New game, like The Sims: households (people who share a home, with how they are related), your own household
 // (who lives with you), and choosing your home on the map. Everyone left over gets a home of their own at random.
 import { state, notify, esc, toast, busy } from '../core/store.js';
-import { getWorld, worldFile, type WorldDef } from '../core/world.js';
+import { getWorld, bgOf, num, cssUrl, type WorldDef } from '../core/world.js';
 import { characters, thumb, charOf, createCharacter } from '../st/bridge.js';
 import { pickFile } from './cropper.js';
 import { TIE_TYPES, TIE_TONES, type TieType, type TieTone } from '../sim/living.js';
@@ -71,7 +71,7 @@ export function yourHouseholdHtml(): string {
 interface NewChar { name: string; desc: string; url?: string; blob?: Blob }
 function newCharForm(n: NewChar): string {
     return `<div class="mu-ngfam-new">
-        <button class="mu-ngfam-pic" data-act="ngf-new-pic" title="Choose a picture" style="${n.url ? `background-image:url('${esc(n.url)}')` : ''}">${n.url ? '' : `${icon('image')}<small>Picture</small>`}</button>
+        <button class="mu-ngfam-pic" data-act="ngf-new-pic" title="Choose a picture" style="${n.url ? esc(`background-image:${cssUrl(n.url)}`) : ''}">${n.url ? '' : `${icon('image')}<small>Picture</small>`}</button>
         <div class="mu-ngfam-newf">
             <input type="text" data-input="ngf-new-f" data-f="name" data-focus="ngfnew-name" maxlength="40" placeholder="Name" value="${esc(n.name)}">
             <textarea rows="3" data-input="ngf-new-f" data-f="desc" data-focus="ngfnew-desc" placeholder="Who they are: looks, personality, what they do (optional)">${esc(n.desc)}</textarea>
@@ -91,10 +91,10 @@ export function stepHome(): string {
     return `<h3>Choose your home</h3>
         <p class="mu-muted">Click a home on the map. The others are given to the people of the world after you choose.${familyOf().length ? ' Your household moves in with you.' : ''}</p>
         ${maps.length > 1 ? `<div class="mu-chips">${maps.map(x => `<button class="mu-chip ${x.id === mapId ? 'is-on' : ''}" data-act="ngm-map" data-id="${esc(x.id)}">${esc(x.name)}</button>`).join('')}</div>` : ''}
-        ${m ? `<div class="mu-nghome-map" style="aspect-ratio:${m.ratio};background-image:url('${esc(worldFile(w, m.image))}')">
+        ${m ? `<div class="mu-nghome-map" style="${esc(`aspect-ratio:${num(m.ratio, 1.7914)};${bgOf(w, m.image)}`)}">
             ${w.homes.zones.filter(zn => zn.map === m.id).map(zn => zn.spots.map(([x, y], k) => {
                 const on = home && home.zone === zn.id && home.x === x && home.y === y;
-                return `<button class="mu-nghome-spot ${on ? 'is-on' : ''}" style="left:${x}%;top:${y}%" data-act="ngm-pick" data-zone="${esc(zn.id)}" data-k="${k}" title="${esc(zn.name)} · ${zn.kind === 'house' ? 'House' : 'Apartment'} ${k + 1} · rent ${zn.rent}">${icon('home')}</button>`;
+                return `<button class="mu-nghome-spot ${on ? 'is-on' : ''}" style="left:${num(x)}%;top:${num(y)}%" data-act="ngm-pick" data-zone="${esc(zn.id)}" data-k="${k}" title="${esc(zn.name)} · ${zn.kind === 'house' ? 'House' : 'Apartment'} ${k + 1} · rent ${zn.rent}">${icon('home')}</button>`;
             }).join('')).join('')}</div>` : ''}
         <p class="mu-nghome-pick">${zone && home ? `${icon('home')} <b>${esc(zone.name)}, ${zone.kind === 'house' ? 'House' : 'Apartment'} ${home.n}</b> · ${esc(w.homes.kinds[zone.kind]?.name ?? zone.kind)} · rent ${zone.rent}` : '<span class="mu-muted">No home chosen yet: one is given by your origin.</span>'}</p>`;
 }

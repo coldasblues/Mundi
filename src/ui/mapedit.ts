@@ -2,7 +2,7 @@
 // the region map) or homes. Pins can be dragged. A place gets a name, a description, tags and a background
 // (one of SillyTavern's backgrounds, or a picture you upload).
 import { notify, esc, toast, ROOT_ID } from '../core/store.js';
-import { worldFile, type WorldDef, type Place, type MapDef } from '../core/world.js';
+import { worldFile, bgOf, num, cssUrl, type WorldDef, type Place, type MapDef } from '../core/world.js';
 import { bgList, bgThumb } from '../st/bridge.js';
 import { uploadWorldPicture, imageRatio, newId } from '../sim/creator.js';
 import { pickFile } from './cropper.js';
@@ -41,7 +41,7 @@ function placeForm(w: WorldDef): string {
         <div class="mu-me-pfcol"><div class="mu-field"><span>Tags</span><div class="mu-chips">${TAGS.map(t => `<button class="mu-chip ${(p.tags ?? []).includes(t) ? 'is-on' : ''}" data-act="cw-chip" data-path="${path}.tags" data-v="${t}">${TAG_NAMES[t]}</button>`).join('')}</div>
             <small class="mu-muted">Leisure: people spend free time here. Food and Shopping: what can be bought. Work: jobs can be here.</small></div></div>
         <div class="mu-me-pfcol"><div class="mu-field"><span>Background of the scene</span>
-            <div class="mu-cw-cover is-small" style="${bg ? `background-image:url('${esc(bg)}')` : ''}">${bg ? '' : '<span>The map around it</span>'}</div>
+            <div class="mu-cw-cover is-small" style="${bg ? esc(`background-image:${cssUrl(bg)}`) : ''}">${bg ? '' : '<span>The map around it</span>'}</div>
             <div class="mu-row"><button data-act="me-bg-pick">${icon('image')}<span>From Backgrounds</span></button><button class="mu-ghost" data-act="me-bg-upload">${icon('upload')}<span>Upload</span></button>${bg ? `<button class="mu-ghost" data-act="me-bg-clear">${icon('x')}</button>` : ''}</div></div>
         <button class="mu-danger" data-act="me-del-pin">${icon('trash')}<span>Remove this place</span></button></div></div>`;
 }
@@ -76,7 +76,7 @@ export function mapEditorHtml(w: WorldDef): string {
         <span class="mu-me-zoom"><button data-act="me-zoom" data-d="-1">−</button><button data-act="me-zoom" data-d="1">+</button></span></div>`;
     return `<div class="mu-me">${maps}
         <div class="mu-me-center">${tools}
-            <div class="mu-me-stage is-${ME.mode}" data-keep="me-stage"><div class="mu-me-img" data-me-img style="width:${ME.zoom * 100}%;aspect-ratio:${m.ratio};background-image:url('${esc(worldFile(w, m.image))}')">
+            <div class="mu-me-stage is-${ME.mode}" data-keep="me-stage"><div class="mu-me-img" data-me-img style="${esc(`width:${num(ME.zoom, 1) * 100}%;aspect-ratio:${num(m.ratio, 1.7914)};${bgOf(w, m.image)}`)}">
                 ${homesHtml(w, m)}${w.places.filter(p => p.map === m.id).map(p => pinHtml(w, p)).join('')}</div></div></div>
         <aside class="mu-me-side" data-keep="me-side">${placeForm(w)}</aside></div>${bgPicker()}`;
 }

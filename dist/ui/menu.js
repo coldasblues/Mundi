@@ -3,7 +3,7 @@ import { fmtDateTime } from '../core/fmt.js';
 // (each save is a chat of a game's group).
 import { state, notify, settings, saveSettings, esc, busy, game, toast } from '../core/store.js';
 import { tutorialTarget } from './tutorial.js';
-import { worlds, worldFile, loadAllWorlds, getWorld } from '../core/world.js';
+import { worlds, worldFile, cssUrl, loadAllWorlds, getWorld } from '../core/world.js';
 import { groupOf, charOf, thumb, openChat, openChatRef, personaThumb } from '../st/bridge.js';
 import { enterGame, listSaves, deleteSave, gameEntry } from '../sim/game.js';
 import { cardFor, playFromSlot } from '../sim/saves.js';
@@ -98,7 +98,7 @@ const subHead = (title) => `<div class="mu-subhead"><button data-act="menu-view"
 export function menuHtml() {
     const tab = state.menuTab;
     return `<div class="mu-menu">
-        <div class="mu-menu-bg" style="background-image:url('${cover()}')"></div>
+        <div class="mu-menu-bg" style="${esc(cover() ? `background-image:${cssUrl(cover())}` : '')}"></div>
         <div class="mu-menu-shade"></div>
         <header class="mu-brand"><h1>Mundi</h1><p>Open worlds inside SillyTavern</p></header>
         <div class="mu-menu-body">${tab === 'load' ? loadView() : mainView()}</div>

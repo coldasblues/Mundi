@@ -2,6 +2,20 @@
 
 This is a fork of [tjalis/Mundi](https://github.com/tjalis/Mundi) (AGPL-3.0). Changes made in this fork are listed here, with their dates, as the license asks.
 
+## 0.1.0-ps.22 — 2026-10-22
+
+More security fixes from the review: HTML and CSS injection through world files.
+
+### Fixed
+
+- **A world file could run script in SillyTavern.** World pictures (the cover, a place's background, home pictures, the maps) and map numbers (place and spot coordinates, the map's proportions) went into style attributes without escaping. An imported `.mundi-world.json` could put a quote and an HTML tag in one and run script when its card, map or scene was shown. Now:
+  - Pictures go through one safe `url()` builder. It allows only paths, http(s), `blob:` and `data:image` addresses, and percent-encodes anything that could end the url() or the attribute.
+  - Every coordinate and proportion is forced to be a number.
+  - The style attributes are escaped as well.
+  - Affected screens: the new-game world cards, the world creator, the map and its pins, the scene background, the Homes app, the home picker, the map editor and the main menu.
+- **A lorebook entry's id** was put in an attribute without escaping (Library → Lorebooks). It is escaped now.
+- **The @-mention list** escaped only "<" in names. It uses the full escape now.
+
 ## 0.1.0-ps.21 — 2026-10-22
 
 Security fixes from a review of the fork.

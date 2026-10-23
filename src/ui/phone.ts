@@ -13,7 +13,7 @@ import { relBar } from './relui.js';
 import { note } from '../sim/facts.js';
 import { notify, esc, game, toast, saveGame, settings, saveSettings } from '../core/store.js';
 import { galleryPictures, photosOf } from './gallery.js';
-import { getWorld, styleOf, worldFile, type WorldDef } from '../core/world.js';
+import { getWorld, styleOf, bgOf, cssUrl as cssUrlSafe, type WorldDef } from '../core/world.js';
 import { upcoming } from '../sim/plans.js';
 import { lex } from '../core/lexicon.js';
 import { whenText } from './plans.js';
@@ -83,7 +83,7 @@ Object.assign(ACT, {
 });
 Object.assign(INPUT, { 'ph-nick': (el) => { NICK.text = el.value; } });
 const wallpaper = () => String((settings() as any).phoneBg ?? '');
-const cssUrl = (u: string) => `url("${u.replace(/["\\\n]/g, '')}")`;
+const cssUrl = (u: string) => cssUrlSafe(u) || 'none';
 // The pictures of the chat being played (Image Generation, attachments, links), newest first.
 const chatPictures = (): string[] => [...new Set(chat().flatMap((m: any, i: number) => photosOf(m, i).map(p => p.url)))].reverse();
 function settingsApp() {
@@ -220,7 +220,7 @@ function bankApp(g: Save, w: WorldDef) {
 }
 
 function homesApp(g: Save, w: WorldDef) {
-    const pic = (kind: string) => { const im = w.homes.kinds[kind]?.image; return im ? `style="background-image:url('${esc(worldFile(w, im))}')"` : ''; };
+    const pic = (kind: string) => { const im = w.homes.kinds[kind]?.image; return im ? `style="${esc(bgOf(w, im))}"` : ''; };
     const mine = w.homes.zones.find(z => z.id === g.player.home.zone);
     const billBtn = (b: typeof BILLS[number]) => {
         const amount = billAmount(g, w, b.id); if (!amount) return '';
