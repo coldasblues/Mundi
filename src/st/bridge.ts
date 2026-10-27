@@ -151,7 +151,7 @@ export async function removeFromScenario(avatar: string) {
 }
 // The chat's own background (SillyTavern's "lock background to this chat").
 export function setChatBackground(file: string) {
-    const url = `url("backgrounds/${encodeURIComponent(file)}")`;
+    const url = file.includes('/') ? `url("${file}")` : `url("backgrounds/${encodeURIComponent(file)}")`;   // a Mundi picture: its path
     ctx().chatMetadata['custom_background'] = url;
     ctx().saveMetadataDebounced();
     const bg = document.getElementById('bg1');
@@ -494,6 +494,11 @@ export async function sayLine(transcript: string, speaker: string, names: string
 }
 
 export const setPrompt = (key: string, text: string, depth = 0) => ctx().setExtensionPrompt(key, text, 0, depth);   // 0 = in the prompt, after the story string
+// The engine's word on what was just asked (an invitation, a question), for the next reply only: a newer ask replaces
+// it, and the old one's timer never clears the newer one (asking three times in a row used to leave the AI answering the first).
+let askSeq = 0;
+export function setAsk(text: string, ms = 60000) { const my = ++askSeq; setPrompt('mundi_ask', text, 0); setTimeout(() => { if (askSeq === my) setPrompt('mundi_ask', ''); }, ms); }
+export const clearAsk = () => { askSeq++; setPrompt('mundi_ask', ''); };
 
 /* ---------- lorebooks ---------- */
 
@@ -542,8 +547,27 @@ export const spriteFolder = (avatar: string) => {
     const o = ctx().extensionSettings?.expressionOverrides?.find((e: any) => e.name == key);
     return o?.path || charOf(avatar)?.name || key;
 };
-export async function fetchSprites(avatar: string, outfit = ''): Promise<any[]> {
-    const name = outfit ? `${spriteFolder(avatar)}/${outfit}` : spriteFolder(avatar);
+// The character's own Expressions folder (without the outfit worn now).
+export const baseSpriteFolder = (avatar: string) => String(charOf(avatar)?.name || avatar.replace(/\.png$/i, ''));
+// Outfits: subfolders of the Expressions folder ("Frieren/pajamas"). Wearing one is SillyTavern's own costume
+// override (what /costume sets), so the Expressions extension shows it too.
+export function outfitOf(avatar: string): string {
+    const base = baseSpriteFolder(avatar), cur = spriteFolder(avatar);
+    return cur.toLowerCase().startsWith(`${base.toLowerCase()}/`) ? cur.slice(base.length + 1) : '';
+}
+export function wearOutfit(avatar: string, outfit: string) {
+    const es = ctx().extensionSettings as any; if (!es) return;
+    const key = avatar.replace(/\.png$/i, '');
+    const list: any[] = (es.expressionOverrides ??= []);
+    const i = list.findIndex(e => e.name == key);
+    if (!outfit) { if (i >= 0) list.splice(i, 1); }
+    else if (i >= 0) list[i].path = `${baseSpriteFolder(avatar)}/${outfit}`;
+    else list.push({ name: key, path: `${baseSpriteFolder(avatar)}/${outfit}` });
+    ctx().saveSettingsDebounced();
+}
+// `outfit`: left out, what they wear now; '' their usual sprites; a name, that outfit.
+export async function fetchSprites(avatar: string, outfit?: string): Promise<any[]> {
+    const name = outfit === undefined ? spriteFolder(avatar) : outfit ? `${baseSpriteFolder(avatar)}/${outfit}` : baseSpriteFolder(avatar);
     try {
         const r = await fetch(`/api/sprites/get?name=${encodeURIComponent(name)}`, { headers: headers() });
         const list = r.ok ? await r.json() : [];
@@ -613,7 +637,27 @@ export async function savePersona(file: string, p: Partial<Omit<PersonaRow, 'fil
 }
 
 export const loadLore = async (name: string): Promise<any> => (await loadWorldInfo(name)) ?? { entries: {} };
-export async function saveLore(name: string, data: any) { await saveWorldInfo(name, data, true); }
+export async function saveLore(name: string, data: any) { await saveWorldInfo(name, data, true); loreCounts.set(name, Object.keys(data?.entries ?? {}).length); }
+// How many entries each lorebook has (read once, in the background, one book at a time).
+const loreCounts = new Map<string, number>();
+const countQueue: string[] = []; let counting = false;
+export function loreCount(name: string, onReady: () => void): number | undefined {
+    if (loreCounts.has(name)) return loreCounts.get(name);
+    if (!countQueue.includes(name)) countQueue.push(name);
+    if (!counting) {
+        counting = true;
+        void (async () => {
+            let n = 0;
+            while (countQueue.length) {
+                const b = countQueue.shift()!;
+                try { loreCounts.set(b, Object.keys((await loadWorldInfo(b))?.entries ?? {}).length); } catch { loreCounts.set(b, 0); }
+                if (++n % 8 === 0 || !countQueue.length) onReady();
+            }
+            counting = false;
+        })();
+    }
+    return undefined;
+}
 export const newLoreEntry = (name: string, data: any) => createWorldInfoEntry(name, data);
 /* ---------- importing files (SillyTavern's own importers) ---------- */
 
@@ -663,6 +707,16 @@ export async function setGlobalLore(name: string, on: boolean) {
     try { await ctx().executeSlashCommandsWithOptions(`/world state=${on ? 'on' : 'off'} silent=true ${scriptText(name.replace(/\|/g, ' '))}`); } catch (e) { console.warn('[Mundi] world info', e); }
 }
 export const chatLore = () => String(ctx().chatMetadata?.[METADATA_KEY] ?? '');
+// Several lorebooks for one chat: SillyTavern keeps one "chat lore"; the others are kept with the chat and switched on
+// (as global lorebooks) by Mundi while the chat is open.
+export const chatLoreExtra = (): string[] => { const x = ctx().chatMetadata?.mundi_lore; return Array.isArray(x) ? x.filter((n: any) => typeof n === 'string' && n) : []; };
+export const chatLores = () => [chatLore(), ...chatLoreExtra()].filter((n, i, a) => n && a.indexOf(n) === i);
+export async function setChatLores(names: string[]) {
+    const list = names.filter((n, i, a) => n && a.indexOf(n) === i);
+    ctx().chatMetadata[METADATA_KEY] = list[0] ?? '';
+    ctx().chatMetadata.mundi_lore = list.slice(1);
+    await ctx().saveMetadata();
+}
 
 /* ---------- folders (SillyTavern's folder tags), favorites, deleting ---------- */
 
@@ -671,6 +725,8 @@ export const folders = (): Folder[] => (tags as any[]).filter(t => t.folder_type
 export const tagIdsOf = (avatar: string): string[] => (tag_map[avatar] ?? []).map(String);
 export const allTags = (): Folder[] => (tags as any[]).filter(t => !t.folder_type || t.folder_type === 'NONE').map(t => ({ id: String(t.id), name: String(t.name) })).sort((x, y) => x.name.localeCompare(y.name));
 const tagById = (id: string) => (tags as any[]).find(t => String(t.id) === id);
+export function renameFolder(id: string, name: string) { const t = tagById(id); if (!t) return; t.name = name; ctx().saveSettingsDebounced(); }
+export const folderMade = (id: string) => Number(tagById(id)?.create_date) || 0;
 
 // A folder is a tag of the "folder" kind, exactly like the ones made in SillyTavern's tag manager.
 export function newFolder(name: string): Folder {
@@ -701,11 +757,15 @@ export function setPersonaLore(file: string, name: string) {
     const d = (power_user.persona_descriptions[file] ??= { description: '', position: 0 });
     d.lorebook = name; ctx().saveSettingsDebounced();
 }
-// Exports a character card as PNG or JSON (SillyTavern's own export).
-export async function exportCharacter(avatar: string, format: 'png' | 'json') {
+// A character card as PNG or JSON (SillyTavern's own export).
+export async function cardFile(avatar: string, format: 'png' | 'json'): Promise<Blob> {
     const res = await fetch('/api/characters/export', { method: 'POST', headers: headers(), body: JSON.stringify({ format, avatar_url: avatar }) });
     if (!res.ok) throw new Error('Could not export.');
-    const blob = await res.blob();
+    return res.blob();
+}
+export const fileNameOf = (s: string) => s.replace(/[\\/:*?"<>|]+/g, '').trim() || 'untitled';
+export async function exportCharacter(avatar: string, format: 'png' | 'json') {
+    const blob = await cardFile(avatar, format);
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${String(charOf(avatar)?.name ?? 'character').replace(/[^\w -]/g, '')}.${format}`; a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 5000);
 }
@@ -729,6 +789,16 @@ export async function characterChats(avatar: string): Promise<{ file: string; co
         return (Array.isArray(data) ? data : Object.values(data ?? {})).map((c: any) => ({ file: String(c.file_name ?? ''), count: Number(c.chat_items ?? 0), last: String(c.last_mes ?? '') }));
     } catch { return []; }
 }
+// A character's tags (SillyTavern's own tags, the same as in its tag manager; folders are left out).
+export const charTags = (avatar: string): Folder[] => { const fs = new Set(folders().map(f => f.id)); return tagIdsOf(avatar).filter(id => !fs.has(id)).map(id => tagById(id)).filter(Boolean).map((t: any) => ({ id: String(t.id), name: String(t.name) })); };
+export const tagColor = (id: string) => String(tagById(id)?.color || '');
+export function tagCharacter(avatar: string, name: string): boolean {
+    const clean = name.trim(); if (!clean) return false;
+    let t = (tags as any[]).find(x => String(x.name).toLowerCase() === clean.toLowerCase());
+    if (!t) { t = { id: `${Date.now()}${Math.floor(Math.random() * 1000)}`, name: clean, folder_type: 'NONE', filter_state: 'UNDEFINED', sort_order: tags.length, color: '', color2: '', create_date: Date.now() }; tags.push(t); }
+    addTagsToEntity(t, [avatar]); ctx().saveSettingsDebounced(); return true;
+}
+export function untagCharacter(avatar: string, id: string) { const t = tagById(id); if (!t) return; removeTagFromEntity(t, [avatar]); ctx().saveSettingsDebounced(); }
 export function putInFolder(folderId: string, avatars: string[], on: boolean) {
     const t = tagById(folderId);
     if (!t || !avatars.length) return;
@@ -787,6 +857,14 @@ export async function deleteLorebooks(names: string[]): Promise<number> {
     return n;
 }
 
+// A save's state without opening it (the chat's metadata: where Mundi keeps the game).
+export async function readChatMeta(chatId: string): Promise<any> {
+    if (chatId === currentChatId()) return ctx().chatMetadata;
+    const res = await fetch('/api/chats/group/get', { method: 'POST', headers: headers(), body: JSON.stringify({ id: chatId }) });
+    if (!res.ok) return null;
+    const list = await res.json();
+    return Array.isArray(list) ? list.find((m: any) => m && m.chat_metadata)?.chat_metadata ?? null : null;
+}
 // A save's messages without opening it (the open save comes from memory, with unsaved changes).
 export async function readChat(chatId: string): Promise<any[]> {
     if (chatId === currentChatId()) return chat();
@@ -934,17 +1012,18 @@ export async function bgFolderPut(id: string, files: string[], on: boolean) {
 
 export const DEFAULT_EXPRESSIONS = ['admiration', 'amusement', 'anger', 'annoyance', 'approval', 'caring', 'confusion', 'curiosity', 'desire', 'disappointment', 'disapproval', 'disgust', 'embarrassment', 'excitement', 'fear', 'gratitude', 'grief', 'joy', 'love', 'nervousness', 'optimism', 'pride', 'realization', 'relief', 'remorse', 'sadness', 'surprise', 'neutral'];
 export const expressionLabels = (): string[] => [...new Set([...DEFAULT_EXPRESSIONS, ...(ctx().extensionSettings?.expressions?.custom ?? [])])];
-export async function uploadSprite(avatar: string, label: string, file: Blob, spriteName = label) {
+export async function uploadSprite(avatar: string, label: string, file: Blob, spriteName = label, outfit?: string) {
     const form = new FormData();
-    form.append('name', spriteFolder(avatar));
+    form.append('name', outfit === undefined ? spriteFolder(avatar) : outfit ? `${baseSpriteFolder(avatar)}/${outfit}` : baseSpriteFolder(avatar));
     form.append('label', label);
     form.append('avatar', file, `${spriteName}.png`);
     form.append('spriteName', spriteName);
     const res = await fetch('/api/sprites/upload', { method: 'POST', headers: headers(false), body: form });
     if (!res.ok) throw new Error('Could not upload the image.');
 }
-export async function deleteSprite(avatar: string, label: string, spriteName: string) {
-    const res = await fetch('/api/sprites/delete', { method: 'POST', headers: headers(), body: JSON.stringify({ name: spriteFolder(avatar), label, spriteName }) });
+export async function deleteSprite(avatar: string, label: string, spriteName: string, outfit?: string) {
+    const name = outfit === undefined ? spriteFolder(avatar) : outfit ? `${baseSpriteFolder(avatar)}/${outfit}` : baseSpriteFolder(avatar);
+    const res = await fetch('/api/sprites/delete', { method: 'POST', headers: headers(), body: JSON.stringify({ name, label, spriteName }) });
     if (!res.ok) throw new Error('Could not delete the image.');
 }
 

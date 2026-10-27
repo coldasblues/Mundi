@@ -26,6 +26,10 @@
 #mundi-root .mu-lib-item.is-on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); }
 #mundi-root .mu-lib-item img, #mundi-root .mu-lib-item i { width: 36px; height: 36px; border-radius: 8px; object-fit: cover; flex: none; display: grid; place-items: center; font-style: normal; background: var(--bg2); }
 #mundi-root .mu-lib-item span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#mundi-root .mu-lib-list:not(.is-grid) .mu-lib-item { min-width: 0; width: 100%; }
+#mundi-root .mu-lib-list:not(.is-grid) .mu-lib-item > span { flex: 1 1 auto; min-width: 0; }
+#mundi-root .mu-lib-item .mu-lib-count { margin-left: auto; flex: none; min-width: 26px; padding: 1px 7px; border-radius: 99px; text-align: center; font-size: 11px; color: var(--muted); background: rgba(255, 255, 255, .06); font-variant-numeric: tabular-nums; }
+#mundi-root .mu-lib-item .mu-fav + .mu-lib-count { margin-left: 4px; }
 
 #mundi-root .mu-lib-detail { overflow: auto; padding: 18px; display: grid; gap: 16px; align-content: start; min-height: 0; }
 #mundi-root .mu-lib-back { display: none; justify-self: start; }
@@ -142,3 +146,6 @@
 #mundi-root .mu-altg-item header { display: flex; align-items: center; justify-content: space-between; }
 #mundi-root .mu-altg-item header b { font-size: 12px; opacity: .75; }
 #mundi-root .mu-altg > .mu-btn, #mundi-root .mu-altg > button { justify-self: start; }
+/* Scrolling panels: a row is always as tall as its content. Without this, a child with min-height: 0 (the
+   character picker) was squeezed when the panel overflowed, and what came after it was drawn on top of it. */
+#mundi-root .mu-lib-detail, #mundi-root .mu-settings-body, #mundi-root .mu-wizard-body { grid-auto-rows: max-content; }

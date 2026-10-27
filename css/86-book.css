@@ -1,6 +1,6 @@
 /* ---------- the medieval journal: an open book over the game ---------- */
 #mundi-root .mu-bk-wrap {
-    position: absolute; inset: 0; z-index: 30; display: grid; place-items: center; padding: 70px 16px 16px;
+    position: absolute; inset: 0; z-index: 30; display: grid; place-items: center; padding: 20px 16px;
     background: radial-gradient(ellipse at center, rgba(20, 12, 4, .45), rgba(10, 6, 2, .78));
 }
 #mundi-root .mu-bk-wrap.is-opening { animation: mu-bk-fade .25s ease both; animation-delay: var(--open-delay, 0ms); }
@@ -9,23 +9,23 @@
 #mundi-root .mu-book {
     /* ink on paper, whatever the theme */
     --fg: #3a2817; --muted: #6e5434; --line: rgba(110, 76, 38, .28); --bg: transparent; --bg2: rgba(255, 248, 228, .55); --panel: transparent;
-    position: relative; width: min(1180px, calc(100vw - 32px), calc((100vh - 90px) * 1.3212)); aspect-ratio: 1600 / 1211;
-    background: url("assets/medieval/book.png") center / 100% 100% no-repeat; filter: drop-shadow(0 30px 40px rgba(0, 0, 0, .6));
-    color: var(--fg); font-family: "EB Garamond", Georgia, serif; font-size: clamp(13px, 1.35vw, 16px);
+    position: relative; width: min(1560px, calc(100vw - 32px), calc((100vh - 40px) * 1.3605)); aspect-ratio: 1800 / 1323;
+    background: url("assets/medieval/book-open.webp") center / 100% 100% no-repeat; filter: drop-shadow(0 30px 40px rgba(0, 0, 0, .6));
+    color: var(--fg); font-family: "EB Garamond", Georgia, serif; font-size: clamp(13px, 1.25vw, 18px);
     perspective: 2200px;
 }
 @keyframes mu-bk-open { from { transform: translateY(24px) scale(.94); opacity: 0; } }
 
 /* the two pages (measured on the picture) */
-#mundi-root .mu-bk-page { position: absolute; top: 13.2%; height: 72.5%; width: 36.6%; overflow: auto; padding: 2% 2.2%; scrollbar-width: thin; scrollbar-color: rgba(110, 76, 38, .4) transparent; }
-#mundi-root .mu-bk-page.is-left { left: 12%; }
-#mundi-root .mu-bk-page.is-right { left: 51.6%; display: block; border-radius: 0; background: none; color: var(--fg); }
+#mundi-root .mu-bk-page { position: absolute; top: 7%; height: 83%; width: 36.5%; overflow: auto; padding: 1.5% 1.8%; scrollbar-width: thin; scrollbar-color: rgba(110, 76, 38, .4) transparent; }
+#mundi-root .mu-bk-page.is-left { left: 10%; }
+#mundi-root .mu-bk-page.is-right { left: 53.5%; display: block; border-radius: 0; background: none; color: var(--fg); }
 #mundi-root .mu-bk-page.is-right.is-turning { animation: mu-bk-ink .65s ease both; animation-delay: var(--turn-delay, 0ms); }
 @keyframes mu-bk-ink { 0%, 45% { opacity: 0; } 100% { opacity: 1; } }
 
 /* the page turning: a sheet lifting from the right page over the spine (or back) */
 #mundi-root .mu-bk-leaf {
-    position: absolute; top: 11.5%; height: 76%; left: 50.3%; width: 38.5%; transform-origin: left center; pointer-events: none;
+    position: absolute; top: 3.5%; height: 90%; left: 50%; width: 43%; transform-origin: left center; pointer-events: none;
     background: linear-gradient(90deg, #e9d6ad, #f4e6c6 40%, #e2cb9c); box-shadow: 0 0 22px rgba(60, 35, 10, .35); border-radius: 0 6px 6px 0;
     animation: mu-bk-turn .65s cubic-bezier(.45, .05, .35, 1) both; backface-visibility: visible; z-index: 3;
 }
@@ -56,11 +56,13 @@
     background: radial-gradient(circle at 40% 35%, #c0453a, #7a1d14); color: #f6d98f; font-size: 11px; font-style: normal; font-weight: 700;
 }
 
-/* the ribbons: one per section, painted on the picture; hovering shows its name */
+/* the ribbons: one cloth bookmark per section, sticking out of the right edge; hovering shows its name */
 #mundi-root .mu-bk-ribbons { position: absolute; inset: 0; pointer-events: none; }
 #mundi-root .mu-bk-ribbon, #mundi-root .mu-bk-ribbon:hover:not(:disabled) {
-    pointer-events: auto; position: absolute; left: 89.6%; width: 9.6%; height: 3.7%; padding: 0 0 0 1.2%; justify-content: flex-start; gap: 6px;
-    background: none !important; border: 0 !important; box-shadow: none !important; color: rgba(255, 244, 214, .92) !important;
+    pointer-events: auto; position: absolute; left: 97.6%; width: 5.4%; height: 6.2%; padding: 0 0 0 .9%; justify-content: flex-start; gap: 6px;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--rb, #8b2e1f) 80%, #fff 20%), var(--rb, #8b2e1f) 45%, color-mix(in srgb, var(--rb, #8b2e1f) 70%, #000)) !important;
+    clip-path: polygon(0 0, 100% 0, 82% 50%, 100% 100%, 0 100%); border: 0 !important; border-radius: 0 !important;
+    box-shadow: inset 0 2px 0 rgba(255, 255, 255, .18), inset 0 -2px 0 rgba(0, 0, 0, .25) !important; color: rgba(255, 244, 214, .95) !important;
     font-family: "Cinzel", serif; font-size: .62em; font-weight: 700; white-space: nowrap; overflow: visible; transition: filter .15s;
 }
 #mundi-root .mu-bk-ribbon .mu-ic { width: 1.5em; height: 1.5em; flex: none; filter: drop-shadow(0 1px 0 rgba(0, 0, 0, .5)); }
@@ -172,3 +174,173 @@
 #mundi-root .mu-book .mu-sp-match h2::after { content: "❦"; display: block; margin-top: 6px; font-size: .8em; color: rgba(139, 46, 31, .55); }
 #mundi-root .mu-book .mu-sp-match p { font-size: 1.1em; font-style: italic; margin: 0; }
 #mundi-root .mu-book .mu-sp-pair img { border: 3px solid #b48d52; box-shadow: 0 3px 8px rgba(60, 35, 10, .35); }
+
+/* cloth colors of the ribbons */
+#mundi-root .mu-bk-ribbon:nth-child(8n+1) { --rb: #8b2e1f; } #mundi-root .mu-bk-ribbon:nth-child(8n+2) { --rb: #3f6b3a; }
+#mundi-root .mu-bk-ribbon:nth-child(8n+3) { --rb: #2f4a7a; } #mundi-root .mu-bk-ribbon:nth-child(8n+4) { --rb: #9a6a1c; }
+#mundi-root .mu-bk-ribbon:nth-child(8n+5) { --rb: #5b3a24; } #mundi-root .mu-bk-ribbon:nth-child(8n+6) { --rb: #6a2f5e; }
+#mundi-root .mu-bk-ribbon:nth-child(8n+7) { --rb: #24665f; } #mundi-root .mu-bk-ribbon:nth-child(8n+8) { --rb: #4b4b55; }
+#mundi-root .mu-bk-ribbon.is-here { width: 6.4%; }
+#mundi-root .mu-bk-ribbon.is-here::before { display: none; }
+@media (max-width: 760px) { #mundi-root .mu-bk-ribbon, #mundi-root .mu-bk-ribbon:hover:not(:disabled) { clip-path: none; width: auto; } }
+
+/* the page is paper, whatever the phone's theme says (84-hud.css paints every phone screen dark) */
+#mundi-root .mu-book .mu-ph-screen, #mundi-root .mu-book .mu-ph-screen:has(.mu-ph-apps) {
+    background: none !important; border-radius: 0 !important; color: #3a2817 !important;
+    --fg: #3a2817; --muted: #6e5434; --line: rgba(110, 76, 38, .28); --bg2: rgba(255, 248, 228, .55); --panel: transparent;
+}
+#mundi-root .mu-book .mu-ph-head { background: none !important; -webkit-backdrop-filter: none; backdrop-filter: none; border-bottom: 1px solid rgba(110, 76, 38, .28) !important; }
+#mundi-root .mu-book .mu-ph-head b { font-size: 1.15em; font-weight: 700; letter-spacing: .08em; }
+
+/* ---------- notes pinned in the book: job offers, bills and homes to let are slips of paper you click ---------- */
+#mundi-root .mu-book :is(.mu-ph-job, .mu-bill, .mu-home-card, .mu-ph-card) {
+    position: relative; background: linear-gradient(170deg, #fdf6e1, #f1e2bd) !important; color: #3a2817 !important;
+    border: 1px solid rgba(140, 100, 50, .35) !important; border-radius: 2px !important;
+    box-shadow: 0 2px 0 rgba(255, 255, 255, .6) inset, 0 6px 12px rgba(60, 35, 10, .22), 0 1px 2px rgba(60, 35, 10, .3) !important;
+    transition: transform .15s, box-shadow .15s;
+}
+#mundi-root .mu-book :is(.mu-ph-job, .mu-bill, .mu-home-card)::before {   /* the pin */
+    content: ""; position: absolute; z-index: 2; top: -6px; left: 50%; width: 12px; height: 12px; margin-left: -6px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #e7a08f, #a3271b 55%, #5c120b); box-shadow: 0 2px 3px rgba(0, 0, 0, .45);
+}
+#mundi-root .mu-book :is(.mu-ph-job, .mu-bill, .mu-home-card):nth-child(odd) { transform: rotate(-.8deg); }
+#mundi-root .mu-book :is(.mu-ph-job, .mu-bill, .mu-home-card):nth-child(even) { transform: rotate(.7deg); }
+#mundi-root .mu-book :is(.mu-ph-job, .mu-bill, .mu-home-card):hover { transform: rotate(0) translateY(-2px); box-shadow: 0 10px 18px rgba(60, 35, 10, .28) !important; }
+
+/* a job offer: the whole slip is the button */
+#mundi-root .mu-book .mu-ph-job { display: block; margin: 14px 4px 6px; padding: 12px 14px 10px; border-bottom: 1px solid rgba(140, 100, 50, .35) !important; }
+#mundi-root .mu-book .mu-ph-job > span { display: grid; gap: 2px; }
+#mundi-root .mu-book .mu-ph-job b { font-family: "Cinzel", serif; font-size: 1.08em; color: #5a2a14; }
+#mundi-root .mu-book .mu-ph-job button, #mundi-root .mu-book .mu-ph-job button:hover:not(:disabled) {
+    position: static; margin-top: 6px; padding: 0; background: none !important; border: 0 !important; box-shadow: none !important;
+    color: #8b2e1f !important; text-shadow: none !important; font-family: "Cinzel", serif; font-weight: 700; font-size: .92em; letter-spacing: .04em;
+}
+#mundi-root .mu-book .mu-ph-job button::before { content: "✒ "; }
+#mundi-root .mu-book .mu-ph-job button::after { content: ""; position: absolute; inset: 0; cursor: pointer; }
+#mundi-root .mu-book .mu-ph-job:has(button[aria-disabled="true"]) { opacity: .62; filter: saturate(.6); }
+#mundi-root .mu-book .mu-ph-job:has(button[aria-disabled="true"]) button::after { cursor: not-allowed; }
+
+/* bills: receipts; one that is due gets a red stamp */
+#mundi-root .mu-book .mu-bills { gap: 16px 12px; padding-top: 6px; }
+#mundi-root .mu-book .mu-bill, #mundi-root .mu-book .mu-bill:hover:not(:disabled) { padding: 14px 10px 10px; text-shadow: none !important; }
+#mundi-root .mu-book .mu-bill * { color: #3a2817 !important; }
+#mundi-root .mu-book .mu-bill i { color: #7a5230 !important; background: none !important; box-shadow: none !important; }
+#mundi-root .mu-book .mu-bill b { font-family: "Cinzel", serif; }
+#mundi-root .mu-book .mu-bill.is-paid { opacity: .7; }
+#mundi-root .mu-book .mu-bill.is-due::after, #mundi-root .mu-book .mu-bill.is-cut::after {
+    content: "DUE"; position: absolute; right: 6px; bottom: 8px; padding: 1px 6px; transform: rotate(-12deg);
+    border: 2px solid #a3271b; border-radius: 3px; color: #a3271b; font: 700 .78em "Cinzel", serif; letter-spacing: .1em; opacity: .85;
+}
+#mundi-root .mu-book .mu-bill.is-cut::after { content: "STOPPED"; }
+#mundi-root .mu-book .mu-bill.is-due small, #mundi-root .mu-book .mu-bill.is-cut small { color: #a3271b !important; font-weight: 700; }
+
+/* homes: notices of lodgings to let */
+#mundi-root .mu-book .mu-home-card { margin: 10px 4px; overflow: visible; }
+#mundi-root .mu-book .mu-home-pic { margin: 10px 10px 0; aspect-ratio: 16 / 8; border: 1px solid rgba(110, 76, 38, .4); filter: sepia(.35); }
+#mundi-root .mu-book .mu-home-info b { font-family: "Cinzel", serif; text-transform: none; color: #5a2a14; }
+#mundi-root .mu-book .mu-home-info small { color: #6e5434 !important; }
+#mundi-root .mu-book .mu-home-move, #mundi-root .mu-book .mu-home-move:hover:not(:disabled) {
+    background: none !important; border: 0 !important; box-shadow: none !important; color: #8b2e1f !important; text-shadow: none !important; font: 700 .95em "Cinzel", serif;
+}
+#mundi-root .mu-book .mu-home-move::after { content: ""; position: absolute; inset: 0; cursor: pointer; }
+#mundi-root .mu-book .mu-home-card.is-mine::before { display: none; }
+
+/* ---------- the closed book on the HUD ---------- */
+#mundi-root .mh-bookbtn, #mundi-root .mh-bookbtn:hover:not(:disabled), #mundi-root button.mh-bookbtn.mh-glass:hover:not(:disabled):not([aria-disabled="true"]) {
+    width: 86px; height: 86px; padding: 0; border: 0 !important; border-radius: 0 !important; box-shadow: none !important;
+    background: url("assets/medieval/book-closed.webp") center / contain no-repeat !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+    filter: drop-shadow(0 8px 10px rgba(0, 0, 0, .55)); transition: transform .15s, filter .15s;
+}
+#mundi-root .mh-bookbtn:hover:not(:disabled) { transform: translateY(-3px) rotate(-3deg); filter: drop-shadow(0 12px 14px rgba(0, 0, 0, .6)) brightness(1.08); }
+#mundi-root .mh-bookbtn .mu-ic { display: none; }
+#mundi-root .mh-bookbtn em { top: 4px; right: 2px; }
+#mundi-root .mu-book .mu-bill.is-due::after, #mundi-root .mu-book .mu-bill.is-cut::after { right: 4px; top: 8px; bottom: auto; transform: rotate(14deg); font-size: .66em; }
+/* buttons written on the page: a red leather tab with gold letters */
+#mundi-root .mu-book .mu-primary, #mundi-root .mu-book .mu-primary:hover:not(:disabled) {
+    background: linear-gradient(180deg, #a3392a, #7a2216 60%, #5c170e) !important; border: 1px solid #3e0f08 !important; border-radius: 4px !important;
+    color: #f6d98f !important; text-shadow: 0 1px 0 rgba(0, 0, 0, .5) !important; font-family: "Cinzel", serif; letter-spacing: .04em;
+    box-shadow: inset 0 1px 0 rgba(255, 210, 160, .35), 0 3px 6px rgba(60, 20, 10, .35) !important;
+}
+#mundi-root .mu-book .mu-primary:hover:not(:disabled) { filter: brightness(1.1); }
+#mundi-root .mu-book .mu-good { color: #2f6b2a !important; }
+#mundi-root .mu-book .mu-bad { color: #a3271b !important; }
+
+/* no bookmarks on the big book: the contents page is the way around (on a phone they stay, as the row of tabs) */
+@media (min-width: 761px) { #mundi-root .mu-bk-ribbons { display: none; } }
+
+/* the closed book on the HUD, a bit bigger */
+#mundi-root .mh-bookbtn, #mundi-root .mh-bookbtn:hover:not(:disabled), #mundi-root button.mh-bookbtn.mh-glass:hover:not(:disabled):not([aria-disabled="true"]) { width: 104px; height: 104px; }
+
+/* the journal's calendar in a book: ink on parchment, a wax seal on the chosen day */
+#mundi-root .mu-book .mu-jcal.is-book { background: rgba(120, 82, 40, .06); border: 1px solid rgba(110, 76, 38, .35); border-radius: 4px; box-shadow: inset 0 0 18px rgba(110, 76, 38, .12); }
+#mundi-root .mu-book .mu-jcal.is-book .mu-jc-head b { font-family: "Cinzel", serif; color: #8b2e1f; letter-spacing: .04em; }
+#mundi-root .mu-book .mu-jcal.is-book .mu-jc-head b small { font-family: inherit; color: #7a5230; font-style: italic; text-transform: none; }
+#mundi-root .mu-book .mu-jcal.is-book .mu-jc-week small { font-family: "Cinzel", serif; color: #7a5230; font-size: 10px; letter-spacing: .02em; }
+#mundi-root .mu-book .mu-jcal.is-book .mu-jc-cell { border-radius: 2px !important; border: 1px solid rgba(110, 76, 38, .25) !important; background: rgba(255, 248, 230, .35) !important; color: #4a3220 !important; box-shadow: none !important; }
+#mundi-root .mu-book .mu-jcal.is-book .mu-jc-cell b { font-family: "Cinzel", serif; font-size: 12px; font-weight: 600; }
+#mundi-root .mu-book .mu-jcal.is-book .mu-jc-cell.is-blank { background: none !important; border-color: transparent !important; }
+#mundi-root .mu-book .mu-jcal.is-book .mu-jc-cell.is-today { border: 2px solid #8b2e1f !important; }
+#mundi-root .mu-book .mu-jcal.is-book .mu-jc-cell.is-sel { background: radial-gradient(circle at 40% 35%, #c2412d, #8b2e1f 60%, #5e1c12) !important; color: #f6d98f !important; border-color: #5e1c12 !important; border-radius: 50% !important; box-shadow: 0 2px 4px rgba(60, 20, 10, .45) !important; }
+#mundi-root .mu-book .mu-jcal.is-book .mu-jc-cell i { background: transparent !important; width: auto; height: auto; margin-left: 0; translate: -50% 0; bottom: 1px; font-style: normal; font-size: 9px; line-height: 1; }
+#mundi-root .mu-book .mu-jcal.is-book .mu-jc-cell.has-entry i::before { content: "✒"; color: #8b2e1f; }
+#mundi-root .mu-book .mu-jcal.is-book .mu-jc-cell.is-sel.has-entry i::before { color: #f6d98f; }
+#mundi-root .mu-book .mu-jcal.is-book .mu-jc-cell.has-notes i::before { content: "·"; color: #7a5230; font-size: 14px; }
+#mundi-root .mu-book .mu-jcal.is-book .mu-jc-cell.is-future { opacity: .35; }
+/* plain (ghost) buttons written on the page: ink, not gold */
+#mundi-root .mu-book .mu-bk-page.is-right button.mu-ghost:not(.mu-ibtn):not(.mu-chip), #mundi-root .mu-book button.mu-ghost.mu-jr-btn, #mundi-root .mu-book button.mu-ghost.mu-jr-notes-btn { color: #8b2e1f !important; text-shadow: none !important; background: transparent !important; border: 1px dashed rgba(139, 46, 31, .45) !important; box-shadow: none !important; }
+/* selects on the page */
+#mundi-root .mu-book select { background: rgba(255, 248, 230, .7) !important; color: #4a3220 !important; border: 1px solid rgba(110, 76, 38, .5) !important; font-family: inherit; }
+#mundi-root .mu-book select option { background: #f6ecd6; color: #4a3220; }
+#mundi-root .mh-bookbtn, #mundi-root .mh-bookbtn:hover:not(:disabled), #mundi-root button.mh-bookbtn.mh-glass:hover:not(:disabled):not([aria-disabled="true"]) { width: 140px; height: 140px; }
+#mundi-root[data-mobile] .mh-bookbtn { width: 100px !important; height: 100px !important; }
+
+/* the market: each ware is a slip pinned to the page; the whole slip buys it */
+#mundi-root .mu-book .mu-shop { gap: 16px; padding-top: 8px; }
+#mundi-root .mu-book .mu-shop-item { position: relative; display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 12px; align-items: center; margin: 4px; padding: 14px 14px 12px;
+    background: linear-gradient(170deg, #fdf6e1, #f1e2bd) !important; color: #3a2817 !important; border: 1px solid rgba(140, 100, 50, .35) !important; border-radius: 2px !important;
+    box-shadow: 0 2px 0 rgba(255, 255, 255, .6) inset, 0 6px 12px rgba(60, 35, 10, .22), 0 1px 2px rgba(60, 35, 10, .3) !important; transition: transform .15s, box-shadow .15s; }
+#mundi-root .mu-book .mu-shop-item:nth-child(odd) { transform: rotate(-.8deg); }
+#mundi-root .mu-book .mu-shop-item:nth-child(even) { transform: rotate(.7deg); }
+#mundi-root .mu-book .mu-shop-item:hover { transform: rotate(0) translateY(-2px); box-shadow: 0 10px 18px rgba(60, 35, 10, .28) !important; }
+#mundi-root .mu-book .mu-shop-item::before { content: ""; position: absolute; z-index: 2; top: -6px; left: 50%; width: 12px; height: 12px; margin-left: -6px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #e7a08f, #a3271b 55%, #5c120b); box-shadow: 0 2px 3px rgba(0, 0, 0, .45); }
+#mundi-root .mu-book .mu-shop-item > i { font-style: normal; font-size: 26px; text-align: center; }
+#mundi-root .mu-book .mu-shop-item b { font-family: "Cinzel", serif; font-size: 1.05em; color: #5a2a14; }
+#mundi-root .mu-book .mu-shop-item small { color: #6e5434; }
+#mundi-root .mu-book .mu-shop-item .mu-shop-price { color: #8b2e1f !important; font-family: "Cinzel", serif; font-weight: 700; }
+#mundi-root .mu-book .mu-shop-item button, #mundi-root .mu-book .mu-shop-item button:hover:not(:disabled) { position: static; padding: 0 !important; background: none !important; border: 0 !important; box-shadow: none !important;
+    color: #8b2e1f !important; text-shadow: none !important; font-family: "Cinzel", serif; font-weight: 700; font-size: .95em; letter-spacing: .04em; }
+#mundi-root .mu-book .mu-shop-item button::before { content: "✒ "; }
+#mundi-root .mu-book .mu-shop-item button::after { content: ""; position: absolute; inset: 0; cursor: pointer; }
+#mundi-root .mu-book .mu-shop-item:has(button[aria-disabled="true"]) { opacity: .6; filter: saturate(.6); }
+#mundi-root .mu-book .mu-shop-item:has(button[aria-disabled="true"]) button::after { cursor: not-allowed; }
+#mundi-root .mu-book .mu-shop-item > em { font-style: italic; color: #4f6b2a; font-family: "Cinzel", serif; font-weight: 700; transform: rotate(-6deg); border: 2px solid rgba(79, 107, 42, .6); padding: 2px 8px; border-radius: 4px; }
+
+/* ---------- the profile, factions and bars in a book: ink, wax and parchment ---------- */
+#mundi-root .mu-book .mu-pf-cover { background: linear-gradient(180deg, #8b2e1f, #6e2418) !important; height: 56px; border-radius: 2px !important; box-shadow: inset 0 -6px 10px rgba(0, 0, 0, .25);
+    clip-path: polygon(0 0, 100% 0, 100% 78%, 50% 100%, 0 78%); }
+#mundi-root .mu-book .mu-pf-top img { box-shadow: 0 0 0 4px #e9d8b0, 0 0 0 6px #8b6a3a, 0 6px 12px rgba(60, 35, 10, .35) !important; }
+#mundi-root .mu-book .mu-pf-top b { font-family: "Cinzel", serif; color: #3a2817; }
+#mundi-root .mu-book .mu-pf-stats b { font-family: "Cinzel", serif; color: #5a2a14; }
+#mundi-root .mu-book .mu-pf-group h4, #mundi-root .mu-book .mu-profile h4 { font-family: "Cinzel", serif; color: #8b2e1f; border-bottom: 1px solid rgba(110, 76, 38, .28); padding-bottom: 3px; }
+#mundi-root .mu-book .mu-pf-group h4 .mu-ic, #mundi-root .mu-book .mu-profile h4 .mu-ic { color: #8b2e1f; }
+/* bars: a thin ink line filled with dye */
+#mundi-root .mu-book :is(.mu-lp-bar, .mu-lp-rep, .mu-bond) { background: rgba(110, 76, 38, .18) !important; border: 1px solid rgba(110, 76, 38, .35); border-radius: 2px !important; height: 7px; box-shadow: none !important; }
+#mundi-root .mu-book :is(.mu-lp-bar, .mu-bond) > i { background: linear-gradient(90deg, #a3392a, #7a2216) !important; border-radius: 0 !important; }
+#mundi-root .mu-book .mu-lp-bar.is-power > i { background: linear-gradient(90deg, #b08a3e, #8b6a2a) !important; }
+#mundi-root .mu-book .mu-lp-rep > i.is-good { background: #4f6b2a !important; border-radius: 0 !important; }
+#mundi-root .mu-book .mu-lp-rep > i.is-bad { background: #a3271b !important; border-radius: 0 !important; }
+/* a faction: a charter pinned to the page */
+#mundi-root .mu-book .mu-fac { position: relative; padding: 14px 14px 12px !important; background: linear-gradient(170deg, #fdf6e1, #f1e2bd) !important; border: 1px solid rgba(140, 100, 50, .35) !important; border-radius: 2px !important;
+    box-shadow: 0 2px 0 rgba(255, 255, 255, .6) inset, 0 6px 12px rgba(60, 35, 10, .22) !important; color: #3a2817 !important; }
+#mundi-root .mu-book .mu-fac::before { content: ""; position: absolute; top: -6px; left: 50%; width: 12px; height: 12px; margin-left: -6px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #e7a08f, #a3271b 55%, #5c120b); box-shadow: 0 2px 3px rgba(0, 0, 0, .45); }
+#mundi-root .mu-book .mu-fac header b { font-family: "Cinzel", serif; color: #5a2a14; }
+#mundi-root .mu-book .mu-fac.is-member { box-shadow: 0 0 0 2px rgba(139, 46, 31, .45), 0 6px 12px rgba(60, 35, 10, .22) !important; }
+#mundi-root .mu-book .mu-fac .mu-lp-row { border: 0 !important; }
+/* plain buttons anywhere in the book: written in red ink, a quill before them */
+#mundi-root .mu-book button.mu-ghost:not(.mu-ibtn):not(.mu-chip):not(.mu-icon-btn), #mundi-root .mu-book button.mu-ghost:not(.mu-ibtn):not(.mu-chip):not(.mu-icon-btn):hover:not(:disabled) {
+    color: #8b2e1f !important; text-shadow: none !important; background: transparent !important; border: 1px dashed rgba(139, 46, 31, .45) !important; box-shadow: none !important; font-family: "Cinzel", serif; font-weight: 700; }
+#mundi-root .mu-book button.mu-ghost[aria-disabled="true"] { opacity: .55; }
+/* a lodging with no picture yet: a sketch frame */
+#mundi-root .mu-book .mu-home-pic:not([style]) { background: repeating-linear-gradient(45deg, rgba(110, 76, 38, .08) 0 8px, transparent 8px 16px), #efe0bd !important; border: 1px solid rgba(110, 76, 38, .3); }
+#mundi-root .mu-book .mu-homes-cities { margin: 4px 0 6px; }

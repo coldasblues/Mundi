@@ -2,29 +2,13 @@
 // that style's rules with an empty map; it is saved as a JSON file in SillyTavern's user files; it can be
 // exported (with its pictures inside) and imported back.
 import { settings, saveSettings } from '../core/store.js';
-import { loadWorld, getWorld, worldFile, customWorlds, registerWorld, forgetWorld, type WorldDef, type AppDef } from '../core/world.js';
+import { loadWorld, getWorld, worldFile, customWorlds, registerWorld, forgetWorld, appsOf, systemOn, type WorldDef, type SystemId } from '../core/world.js';
 import { uploadUserFile, deleteUserFile } from '../st/bridge.js';
 import { uiLang } from '../core/i18n.js';
 
-// The phone's apps, as the Modern style has them (a world can rename them, change icons or turn them off).
-export const DEFAULT_APPS: AppDef[] = [
-    { id: 'messages', name: 'Messages', icon: 'chat', color: '#34c759', on: true },
-    { id: 'people', name: 'People', icon: 'users', color: '#ff9f0a', on: true },
-    { id: 'jobs', name: 'Jobs', icon: 'briefcase', color: '#0a84ff', on: true },
-    { id: 'bank', name: 'Bank', icon: 'wallet', color: '#5e5ce6', on: true },
-    { id: 'homes', name: 'Homes', icon: 'home', color: '#ff375f', on: true },
-    { id: 'social', name: 'Chirp', icon: 'at', color: '#1d9bf0', on: true },
-    { id: 'dating', name: 'Spark', icon: 'flame', color: '#ff4f6d', on: true },
-    { id: 'plans', name: 'Calendar', icon: 'calendar', color: '#ff9500', on: true },
-    { id: 'journal', name: 'Journal', icon: 'book', color: '#8e6cf0', on: true },
-    { id: 'shop', name: 'Shop', icon: 'wallet', color: '#16c79a', on: true },
-    { id: 'goals', name: 'Goals', icon: 'star', color: '#ffb02e', on: true },
-];
-export const appsOf = (w: WorldDef): AppDef[] => {
-    const own = w.features?.apps ?? [];
-    return DEFAULT_APPS.map(d => ({ ...d, ...(own.find(a => a.id === d.id) ?? {}) }));
-};
-export const featureOn = (w: WorldDef, f: 'jobs' | 'plans') => w.features?.[f] !== false;
+// The phone's apps live in core/world.ts (the Lexicon names them too); re-exported here for the creator.
+export { DEFAULT_APPS, appsOf } from '../core/world.js';
+export const featureOn = (w: WorldDef, f: SystemId) => systemOn(w, f);
 
 // Fields whose text is shown to people (translated when a world is copied in another language).
 const TEXT = new Set(['name', 'label', 'desc', 'description', 'setting', 'text', 'event', 'content']);
@@ -40,9 +24,11 @@ function absolutize(w: WorldDef, src: WorldDef) {
     const abs = (f?: string) => (f ? worldFile(src, f) : f);
     w.cover = abs(w.cover);
     if (w.music) for (const k of Object.keys(w.music)) w.music[k] = abs(w.music[k])!;
-    for (const m of w.maps) m.image = abs(m.image)!;
-    for (const k of Object.values(w.homes.kinds)) if (k.image) k.image = abs(k.image);
-    for (const p of w.places) if (p.bg) p.bg = abs(p.bg);
+    const absAll = (o?: Record<string, string>) => { if (o) for (const k of Object.keys(o)) o[k] = abs(o[k])!; };
+    for (const m of w.maps) { m.image = abs(m.image)!; absAll(m.images); }
+    for (const k of Object.values(w.homes.kinds)) { if (k.image) k.image = abs(k.image); absAll(k.images); }
+    for (const p of w.places) { if (p.bg) p.bg = abs(p.bg); absAll(p.bgs); }
+    for (const f of w.plan?.floors ?? []) { if (f.image) f.image = abs(f.image); absAll(f.images); }
 }
 
 export const slug = (s: string) => s.toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '').slice(0, 30) || 'world';
@@ -108,7 +94,8 @@ export async function uploadWorldPicture(w: WorldDef, file: Blob, what: string):
 export const imageRatio = (url: string) => new Promise<number>(ok => { const i = new Image(); i.onload = () => ok(+(i.naturalWidth / i.naturalHeight).toFixed(4) || 1.6); i.onerror = () => ok(1.6); i.src = url; });
 
 function assetsOf(w: WorldDef): string[] {
-    return [w.cover, ...Object.values(w.music ?? {}), ...w.maps.map(m => m.image), ...Object.values(w.homes.kinds).map(k => k.image), ...w.places.map(p => p.bg)].filter((x): x is string => !!x);
+    const parts = (o?: Record<string, string>) => Object.values(o ?? {});   // the pictures for each part of the day
+    return [w.cover, ...Object.values(w.music ?? {}), ...w.maps.flatMap(m => [m.image, ...parts(m.images)]), ...Object.values(w.homes.kinds).flatMap(k => [k.image, ...parts(k.images)]), ...w.places.flatMap(p => [p.bg, ...parts(p.bgs)]), ...(w.plan?.floors ?? []).flatMap(f => [f.image, ...parts(f.images)])].filter((x): x is string => !!x);
 }
 
 /* ---------- export and import ---------- */

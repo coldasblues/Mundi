@@ -3,13 +3,14 @@
 // The traits you have are what the d20 rolls use (each matching trait is +2), so learning one helps everywhere.
 import { nowAbs, type Save } from '../core/store.js';
 import type { WorldDef, Occupation } from '../core/world.js';
+import { systemOn, isScenario } from '../core/world.js';
 import { note } from './facts.js';
 import { book } from './ledger.js';
 import { priceOf } from './bills.js';
 import { playerHomeId, placeOf } from './places.js';
 
 export interface Course { id: string; name: string; area: string; days: number; cost: number; grants: string[]; icon: string; desc: string }
-export const coursesOf = (w: WorldDef): Course[] => ((w.catalogs as any).courses ?? []) as Course[];
+export const coursesOf = (w: WorldDef): Course[] => (systemOn(w, 'courses') ? (w.catalogs as any).courses ?? [] : []) as Course[];
 interface Learning { current?: string; progress: Record<string, number>; lastDay: Record<string, number>; done: string[]; count: Record<string, number>; interviews: Record<string, number>; earned: string[] }
 export function learning(g: Save): Learning {
     const p = g.player as any;
@@ -36,7 +37,7 @@ export function gainTrait(g: Save, trait: string, from: 'course' | 'goal'): bool
 
 export const courseOf = (w: WorldDef, id?: string) => coursesOf(w).find(c => c.id === id);
 export const hasCourse = (g: Save, id: string) => learning(g).done.includes(id);
-export const canStudyHere = (g: Save, w: WorldDef) => g.player.loc === playerHomeId || (placeOf(g, w, g.player.loc)?.tags ?? []).includes('study');
+export const canStudyHere = (g: Save, w: WorldDef) => isScenario(w) || g.player.loc === playerHomeId || (placeOf(g, w, g.player.loc)?.tags ?? []).includes('study');
 export const studiedToday = (g: Save, id: string) => learning(g).lastDay[id] === g.day;
 
 export function enroll(g: Save, w: WorldDef, id: string): string {
@@ -67,7 +68,8 @@ export function studySession(g: Save, w: WorldDef): string[] {
 
 /* ---------- the job interview ---------- */
 
-export const missingCourses = (g: Save, w: WorldDef, o: Occupation) => ((o as any).courses ?? []).filter((id: string) => !hasCourse(g, id)).map((id: string) => courseOf(w, id)?.name ?? id);
+// (a course the world no longer offers is not asked for: the job would be out of reach forever)
+export const missingCourses = (g: Save, w: WorldDef, o: Occupation) => ((o as any).courses ?? []).filter((id: string) => !!courseOf(w, id) && !hasCourse(g, id)).map((id: string) => courseOf(w, id)?.name ?? id);
 export function interviewDc(o: Occupation) { const top = o.ranks.at(-1)?.pay ?? 0; return 9 + (o.needs?.length ? 3 : 0) + (top >= 50 ? 2 : 0); }
 export function interviewBonus(g: Save, o: Occupation, traits: string[]) {
     let b = 0;

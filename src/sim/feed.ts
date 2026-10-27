@@ -1,8 +1,8 @@
 // The social network (short posts, like Twitter/X) and the dating app. Posts are written by the AI in one batch
 // call; who posts and whether posts get a picture are options in the game settings.
 import { romanceBlocked } from './family.js';
-import { nowAbs, settings, type Save, type Resident } from '../core/store.js';
-import { styleOf, type WorldDef } from '../core/world.js';
+import { nowAbs, settings, saveSettings, type Save, type Resident } from '../core/store.js';
+import { appsOf, socialKind, aiVoice, systemOn, type WorldDef } from '../core/world.js';
 import { ctx, charOf, personaName, sayLine, scriptText } from '../st/bridge.js';
 import { aiLangName } from '../core/i18n.js';
 import { hm, weekday } from './time.js';
@@ -23,7 +23,7 @@ export type FeedMode = 'button' | 'auto' | 'open' | 'react';
 // Default: new posts only when you tap "New posts". (Saves from before had "open" as the default: moved once.)
 export const feedPrefs = () => {
     const s = settings() as any; s.social ??= {};
-    if (!s.social.v2) { if (!s.social.mode || s.social.mode === 'open') s.social.mode = 'button'; s.social.v2 = true; }
+    if (!s.social.v2) { if (!s.social.mode || s.social.mode === 'open') s.social.mode = 'button'; s.social.v2 = true; saveSettings(); }
     s.social.mode ??= 'button'; s.social.images ??= false;
     return s.social as { mode: FeedMode; images: boolean };
 };
@@ -45,12 +45,15 @@ async function picture(prompt: string): Promise<string | undefined> {
     } catch { return undefined; }
 }
 
-const header = (g: Save, w: WorldDef) => styleOf(w) === 'medieval'
-    ? `[The notice board in the market square of ${w.name}: people pin short notices, rumors, offers and requests, and others scribble answers below. ${weekday(g.day)}, ${hm(g.minutes)}. Notices and answers are short (one or two sentences), written in ${aiLangName(g.lang)}, in the voice of the time (no modern things). An answer replies to the notice above it.]`
-    : `[Chirp, the Twitter-like social network of ${w.name}. ${weekday(g.day)}, ${hm(g.minutes)}. Posts and replies are short (one or two sentences), casual, written in ${aiLangName(g.lang)}; emoji and hashtags are fine. A reply answers the message right above it.]`;
+// The feed as the AI sees it: a social network or a notice board (the world's socialKind), in the world's voice.
+const appTitle = (w: WorldDef) => appsOf(w).find(a => a.id === 'social')?.name ?? 'Chirp';
+const header = (g: Save, w: WorldDef) => socialKind(w) === 'board'
+    ? `[The ${appTitle(w)} of ${w.name}: people pin short notices, rumors, offers and requests, and others scribble answers below. ${weekday(g.day)}, ${hm(g.minutes)}. Notices and answers are short (one or two sentences), written in ${aiLangName(g.lang)}, ${aiVoice(w)}. An answer replies to the notice above it.]`
+    : `[${appTitle(w)}, the Twitter-like social network of ${w.name}. ${weekday(g.day)}, ${hm(g.minutes)}. Posts and replies are short (one or two sentences), written in ${aiLangName(g.lang)}; ${aiVoice(w)}. A reply answers the message right above it.]`;
 
 // A few residents post about their day (one short AI call each, written as the next line of a feed).
 export async function generatePosts(g: Save, w: WorldDef, count = 2): Promise<number> {   // two people post at a time
+    if (!systemOn(w, 'social')) return 0;
     const now = nowAbs(g);
     const pool = residents(g).sort((a, b) => hash(`${a.avatar}|${now}`) - hash(`${b.avatar}|${now}`)).slice(0, count);
     const f = feed(g);
@@ -82,6 +85,7 @@ function threadOf(g: Save, w: WorldDef, post: Post, aboutWho: Resident[]) {
 }
 
 // When to post on their own: "auto" every few game hours (called by the clock), "open" when the app opens.
+// "button" (the default) and "react" never post on their own: only the "New posts" button (forced) makes new posts.
 export const shouldPost = (g: Save, mode: FeedMode) => feedPrefs().mode === mode && nowAbs(g) - feed(g).last >= (mode === 'auto' ? 180 : 120);
 
 /* ---------- the player posts, likes and replies ---------- */

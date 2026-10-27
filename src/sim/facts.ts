@@ -8,6 +8,8 @@ import { nowAbs, type Save } from '../core/store.js';
 import type { WorldDef } from '../core/world.js';
 import { placeOf, playerHomeId } from './places.js';
 import { personaName } from '../st/bridge.js';
+import { seenAs } from './hooks.js';
+export { seenAs };
 
 export interface Fact { id: string; at: number; place: string; who: string[]; t: string; a?: string[]; kind?: string; u?: string }   // u: who "{u}" was (the one being played then)
 
@@ -16,7 +18,7 @@ export const facts = (g: Save): Fact[] => (((g as any).facts ??= []) as Fact[]);
 
 // Writes a fact. `who`: the people it is about (their avatars); `place`: where it happened (by default, here).
 export function note(g: Save, t: string, a: string[] = [], who: string[] = [], place = g.player.loc, kind = 'event'): Fact {
-    const f: Fact = { id: `f${nowAbs(g)}_${facts(g).length}`, at: nowAbs(g), place, who: [...new Set(who)], t, a, kind, u: personaName() };
+    const f: Fact = { id: `f${nowAbs(g)}_${facts(g).length}`, at: nowAbs(g), place, who: [...new Set(who)], t, a, kind, u: seenAs.map(f => f(g)).find(Boolean) || personaName() };
     const list = facts(g);
     // the same thing twice in a row (two clicks) is one fact
     const last = list.at(-1);
@@ -29,7 +31,7 @@ export function note(g: Save, t: string, a: string[] = [], who: string[] = [], p
 export const fill = (t: string, a: string[] = [], u = 'You') => t.replace(/\{u\}/g, u).replace(/\{(\d)\}/g, (_, n) => a[Number(n)] ?? '');
 // someone else (an earlier character you played) did it: their name, not yours
 export const factText = (f: Fact, u = 'You') => fill(f.t, f.a, f.u && f.u !== personaName() ? f.u : u);
-export const placeName = (g: Save, w: WorldDef, id: string) => (id === playerHomeId ? 'home' : placeOf(g, w, id)?.name ?? id);
+export const placeName = (g: Save, w: WorldDef, id: string) => (id === playerHomeId ? 'home' : id === 'out' ? 'out of the house' : placeOf(g, w, id)?.name ?? id);
 
 export const factsOf = (g: Save, avatar: string, n = 6) => facts(g).filter(f => f.who.includes(avatar)).slice(-n);
 export const factsAt = (g: Save, place: string, n = 3) => facts(g).filter(f => f.place === place).slice(-n);

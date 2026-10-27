@@ -2,7 +2,7 @@
 // way to end it (they say goodbye and tell you what they thought) and, at a home, to spend the night together.
 import { esc, game, notify, saveGame, toast, nowAbs, state, type Save } from '../core/store.js';
 import type { WorldDef } from '../core/world.js';
-import { setPrompt, sendCanned, chat } from '../st/bridge.js';
+import { setPrompt, sendCanned, chat, setAsk } from '../st/bridge.js';
 import { social, bondOf, isPartner, isWith } from '../sim/social.js';
 import { letGo } from '../sim/plans.js';
 import { romOf } from '../sim/romance.js';
@@ -82,9 +82,8 @@ Object.assign(ACT, {
             note(g, where === 'mine' ? '{0} stayed the night at {u}\'s place.' : '{u} stayed the night at {0}\'s place.', [r.name], [who]);
         }
         saveGame();
-        setPrompt('mundi_ask', `[{{user}} asks ${r.name} ${where === 'mine' ? 'to stay the night' : 'to sleep at their place tonight'}. ${ans.ok ? `${r.name} says yes (it is decided), in their own way.` : `${r.name} says no, kindly: ${ans.why}`} Write ${r.name}'s reply.]`, 0);
+        setAsk(`[{{user}} asks ${r.name} ${where === 'mine' ? 'to stay the night' : 'to sleep at their place tonight'}. ${ans.ok ? `${r.name} says yes (it is decided), in their own way.` : `${r.name} says no, kindly: ${ans.why}`} Write ${r.name}'s reply.]`);
         sendCanned(where === 'mine' ? `"Do you want to stay the night?"` : `"Can I stay here tonight?"`);
-        setTimeout(() => setPrompt('mundi_ask', ''), 60000);
         toast(ans.ok ? `${r.name} is staying the night.` : ans.why, ans.ok ? 'success' : 'info');
         notify();
     },

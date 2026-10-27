@@ -1,0 +1,194 @@
+/* A scenario's floor plan: a blueprint (or the picture of the plan) with the rooms on it */
+#mundi-root .mu-map.is-plan { background: radial-gradient(ellipse at 50% 40%, #13233f 0%, #0a1426 70%); overflow: hidden; }
+#mundi-root .mu-plan-stage { position: absolute; inset: 120px 24px 96px; display: grid; place-items: center; }
+#mundi-root .mu-plan { position: relative; aspect-ratio: var(--r, 1.6); width: min(100%, calc((100vh - 230px) * var(--r, 1.6))); max-height: 100%;
+    border-radius: 14px; border: 2px solid rgba(160, 200, 255, .45); box-shadow: 0 20px 60px rgba(0, 0, 0, .45), inset 0 0 0 1px rgba(255, 255, 255, .05);
+    background-color: #10203a; background-size: cover; background-position: center;
+    background-image: linear-gradient(rgba(160, 200, 255, .09) 1px, transparent 1px), linear-gradient(90deg, rgba(160, 200, 255, .09) 1px, transparent 1px); }
+#mundi-root .mu-plan:not(.has-pic) { background-size: 4% 6.4%, 4% 6.4%; }
+#mundi-root .mu-plan-room { position: absolute; display: grid; align-content: end; justify-items: start; gap: 4px; padding: 8px 10px !important; overflow: hidden; text-align: left;
+    border-radius: 6px !important; border: 2px solid rgba(190, 220, 255, .7) !important; background: rgba(20, 40, 70, .55) !important; color: #fff; box-shadow: none !important;
+    transition: border-color .15s, background .15s, transform .15s; min-width: 0; font: inherit; }
+#mundi-root .mu-plan.has-pic .mu-plan-room { background: rgba(10, 20, 40, .35) !important; }
+#mundi-root .mu-plan-room > i { position: absolute; inset: 0; background: center / cover; opacity: .38; transition: opacity .2s; pointer-events: none; }
+#mundi-root .mu-plan-room > b { position: relative; font-size: clamp(10px, 1vw, 14px); line-height: 1.15; text-shadow: 0 1px 3px rgba(0, 0, 0, .8); overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+#mundi-root .mu-plan-room > .faces { position: relative; display: flex; }
+#mundi-root .mu-plan-room > .faces img { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #fff; margin-right: -6px; object-fit: cover; }
+#mundi-root .mu-plan-room > .faces i { font-style: normal; font-size: 11px; margin-left: 9px; align-self: center; }
+#mundi-root .mu-plan-room > em { position: absolute; top: 6px; right: 6px; display: inline-flex; align-items: center; gap: 3px; font-style: normal; font-size: 11px; font-weight: 700;
+    padding: 2px 7px; border-radius: 99px; background: var(--accent); color: #fff; }
+#mundi-root .mu-plan-room > em .mu-ic { width: 11px; height: 11px; }
+#mundi-root button.mu-plan-room:hover { border-color: #fff !important; background: rgba(40, 80, 140, .6) !important; z-index: 2; }
+#mundi-root button.mu-plan-room:hover > i { opacity: .7; }
+#mundi-root .mu-plan-room.is-you { border-color: var(--accent) !important; box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 45%, transparent), 0 0 24px color-mix(in srgb, var(--accent) 40%, transparent) !important; z-index: 1; }
+#mundi-root .mu-plan-room.is-you > i { opacity: .6; }
+#mundi-root .mu-plan-room.is-off { border-style: dashed !important; opacity: .55; cursor: default; }
+#mundi-root .mu-plan-bar { position: absolute; left: 20px; bottom: 20px; display: grid; gap: 8px; justify-items: start; max-width: min(60%, 720px); z-index: 3; }
+#mundi-root .mu-plan-floors { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px; border-radius: 16px; background: rgba(12, 18, 32, .6); border: 1px solid rgba(255, 255, 255, .14); backdrop-filter: blur(12px); }
+#mundi-root .mu-plan-floors button { display: inline-flex; align-items: center; gap: 5px; padding: 7px 14px !important; border-radius: 11px !important; font-size: 13px; font-weight: 700; }
+#mundi-root .mu-plan-floors button .mu-ic { width: 13px; height: 13px; }
+#mundi-root .mu-plan-lost { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 6px 8px; border-radius: 14px; background: rgba(12, 18, 32, .6); border: 1px solid rgba(255, 90, 90, .35); backdrop-filter: blur(12px); }
+#mundi-root .mu-plan-lost > small { font-size: 11px; opacity: .8; padding: 0 4px; }
+#mundi-root .mu-plan-lost button { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px 4px 4px !important; border-radius: 99px !important; font-size: 12px; }
+#mundi-root .mu-plan-bang { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: #e5484d; color: #fff; font-size: 12px; font-weight: 900; line-height: 1; flex: none; }
+#mundi-root[data-mobile] .mu-plan-stage { inset: calc(var(--m-gap, 10px) + 150px) 8px 120px; }
+#mundi-root[data-mobile] .mu-plan { width: min(100%, calc((100vh - 290px) * var(--r, 1.6))); }
+
+/* World creator: the house map of a scenario (rooms or floor plan) */
+#mundi-root .mu-pe-wrap { display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 10px; height: 100%; min-height: 0; }
+#mundi-root .mu-pe-seg { display: inline-flex; justify-self: start; gap: 4px; padding: 4px; border-radius: 12px; background: rgba(255, 255, 255, .05); border: 1px solid var(--line); }
+#mundi-root .mu-pe-seg button { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px !important; border-radius: 9px !important; font-size: 13px; background: transparent !important; border: 0 !important; box-shadow: none !important; }
+#mundi-root .mu-pe-seg button.is-on { background: var(--accent) !important; color: #fff; }
+#mundi-root .mu-pe-seg .mu-ic { width: 14px; height: 14px; }
+#mundi-root .mu-pe { display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 10px; min-height: 0; }
+#mundi-root .mu-pe.is-empty { place-items: center; }
+#mundi-root .mu-pe-intro { max-width: 520px; text-align: center; display: grid; gap: 10px; justify-items: center; padding: 40px 20px; }
+#mundi-root .mu-pe-top { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
+#mundi-root .mu-pe-floors { display: flex; flex-wrap: wrap; gap: 6px; }
+#mundi-root .mu-pe-floors button { padding: 6px 14px !important; border-radius: 10px !important; font-size: 13px; }
+#mundi-root .mu-pe-floors button.is-on { background: var(--accent) !important; color: #fff; }
+#mundi-root .mu-pe-main { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 14px; min-height: 0; }
+#mundi-root .mu-pe-stage { display: grid; place-items: start center; align-content: start; min-height: 0; overflow: auto; padding: 4px; }
+#mundi-root .mu-pe-plan { position: relative; width: 100%; max-width: calc((100vh - 330px) * var(--r, 1.6)); aspect-ratio: var(--r, 1.6); border-radius: 12px; border: 2px solid rgba(160, 200, 255, .45);
+    background-color: #10203a; background-size: cover; background-position: center; user-select: none; touch-action: none;
+    background-image: linear-gradient(rgba(160, 200, 255, .1) 1px, transparent 1px), linear-gradient(90deg, rgba(160, 200, 255, .1) 1px, transparent 1px); }
+#mundi-root .mu-pe-plan:not(.has-pic) { background-size: 4% 6.4%, 4% 6.4%; }
+#mundi-root .mu-pe-hint { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; color: rgba(255, 255, 255, .6); pointer-events: none; }
+#mundi-root .mu-pe-room { position: absolute; border: 2px solid rgba(190, 220, 255, .75); border-radius: 6px; background: rgba(40, 80, 140, .45); cursor: move; display: flex; align-items: flex-end; padding: 6px 8px; overflow: hidden; }
+#mundi-root .mu-pe-room.is-bed { background: rgba(120, 70, 150, .42); border-color: rgba(230, 200, 255, .75); }
+#mundi-root .mu-pe-room.is-sel { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 45%, transparent); z-index: 2; }
+#mundi-root .mu-pe-room > b { font-size: 12px; color: #fff; text-shadow: 0 1px 3px rgba(0, 0, 0, .8); pointer-events: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#mundi-root .mu-pe-handle { position: absolute; right: 0; bottom: 0; width: 14px; height: 14px; cursor: nwse-resize; background: linear-gradient(135deg, transparent 50%, rgba(255, 255, 255, .85) 50%); border-bottom-right-radius: 4px; }
+#mundi-root .mu-pe-side { display: grid; align-content: start; gap: 10px; min-height: 0; overflow: auto; }
+#mundi-root .mu-pe-card { display: grid; gap: 8px; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--line); background: color-mix(in srgb, var(--panel) 92%, transparent); }
+#mundi-root .mu-pe-card.is-sel { border-color: color-mix(in srgb, var(--accent) 60%, transparent); }
+#mundi-root .mu-pe-card h4 { margin: 0; display: flex; align-items: center; gap: 8px; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--accent); }
+#mundi-root .mu-pe-lostn { display: inline-flex; align-items: center; gap: 4px; font-style: normal; color: #ff8a8a; }
+#mundi-root .mu-pe-list { display: grid; gap: 3px; }
+#mundi-root .mu-pe-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px !important; border-radius: 8px !important; text-align: left; font-size: 13px; background: transparent !important; border: 1px solid transparent !important; box-shadow: none !important; }
+#mundi-root .mu-pe-item:hover { background: rgba(255, 255, 255, .06) !important; }
+#mundi-root .mu-pe-item.is-on { background: color-mix(in srgb, var(--accent) 18%, transparent) !important; border-color: color-mix(in srgb, var(--accent) 50%, transparent) !important; }
+#mundi-root .mu-pe-item > span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#mundi-root .mu-pe-item > small { opacity: .65; font-size: 11px; }
+#mundi-root .mu-pe-dot { width: 8px; height: 8px; border-radius: 50%; background: #3fd07a; margin: 0 5px; flex: none; }
+@media (max-width: 1000px) { #mundi-root .mu-pe-main { grid-template-columns: 1fr; } }
+
+/* Home settings: the housemates' jobs */
+#mundi-root .mu-homejobs { display: grid; gap: 6px; margin: 6px 0; }
+#mundi-root .mu-homejob { display: grid; grid-template-columns: 32px 110px minmax(0, 1fr) 200px 150px; gap: 8px; align-items: center; }
+#mundi-root .mu-homejob img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
+#mundi-root .mu-homejob b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 900px) { #mundi-root .mu-homejob { grid-template-columns: 32px minmax(0, 1fr); } #mundi-root .mu-homejob > :nth-child(n+3) { grid-column: 1 / -1; } }
+
+/* Home: going out */
+#mundi-root .mu-rooms-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+#mundi-root .mu-rooms-head button:not(.mh-mapbtn) { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px !important; font-weight: 700; }
+#mundi-root .mu-plan-out { position: absolute; right: 20px; top: 84px; z-index: 21; display: grid; gap: 8px; justify-items: end; }
+#mundi-root .mu-plan-out > .mh-mapbtn, #mundi-root .mu-rooms-head .mh-mapbtn { height: 48px; border-radius: 16px !important; }
+#mundi-root .mu-outdlg { width: min(1080px, calc(100vw - 32px)); max-height: calc(100vh - 48px); display: grid; gap: 12px; align-content: start; overflow: auto; }
+#mundi-root .mu-outdlg header h3 { display: inline-flex; align-items: center; gap: 8px; }
+#mundi-root .mu-out-people { display: flex; flex-wrap: wrap; gap: 6px; }
+#mundi-root .mu-out-people .mu-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px 4px 4px !important; }
+#mundi-root .mu-out-people img { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; }
+#mundi-root .mu-out-bgs { max-height: max(260px, calc(100vh - 470px)); overflow: auto; }
+#mundi-root .mu-out-nobg { display: grid; place-items: center; aspect-ratio: 16 / 9; width: 100%; border-radius: 8px; background: rgba(255, 255, 255, .06); }
+#mundi-root .mu-outback { width: min(420px, calc(100vw - 32px)); position: fixed; left: 50%; top: 50%; translate: -50% -50%; z-index: 60; display: grid; gap: 10px; padding: 20px 22px; }
+#mundi-root .mu-outback h3 { margin: 0; }
+#mundi-root .mh-menu-pop button > span:has(> small) { display: grid; text-align: left; }
+#mundi-root .mh-menu-pop button > span > small { font-size: 11px; opacity: .7; font-weight: 500; }
+#mundi-root .mh-menu-pop .mh-drawer-mew { display: inline-grid; place-items: center; width: 22px; height: 22px; }
+#mundi-root .mh-menu-pop .mh-drawer-me { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; }
+
+/* Home: the clock and the place sit at the top left (as on a house plan), the floors at the bottom left */
+#mundi-root:not([data-mobile]) .mh-clock.is-home:not(.is-bar) { left: 20px; transform: none; }
+#mundi-root:not([data-mobile]) .mh-where.is-home { top: 26px !important; padding: 7px 16px; font-size: 15px; }
+#mundi-root .mu-rooms-floor { margin-top: 8px !important; font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--accent); }
+#mundi-root .mu-plan-floors { gap: 14px; padding: 0; background: none; border: 0; backdrop-filter: none; }
+#mundi-root .mu-plan-floors button { min-width: 150px; justify-content: center; padding: 14px 26px !important; border-radius: 12px !important; font-size: 20px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
+    color: #20242c !important; background: linear-gradient(180deg, #f7f7f9, #dcdde2) !important; border: 1px solid rgba(255, 255, 255, .9) !important; box-shadow: 0 6px 18px rgba(0, 0, 0, .35) !important; }
+#mundi-root .mu-plan-floors button.is-on { font-weight: 800; background: linear-gradient(180deg, #ffffff, #fbe9ec) !important; box-shadow: 0 0 0 3px rgba(255, 255, 255, .55), 0 8px 22px rgba(0, 0, 0, .4) !important; }
+#mundi-root .mu-plan-floors button .mu-ic { width: 16px; height: 16px; }
+/* the clock: click it to let time pass */
+#mundi-root .mh-clock[data-act="skip-ask"] { cursor: pointer; pointer-events: auto; transition: box-shadow .15s, transform .15s; }
+#mundi-root .mh-clock[data-act="skip-ask"]:hover { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 55%, transparent), var(--shadow, 0 8px 24px rgba(0,0,0,.3)); }
+/* on a picture of the plan: the rooms are outlines with their name (the plan shows through) */
+#mundi-root .mu-plan.has-pic { border: 0; background-color: transparent; }
+#mundi-root .mu-plan.has-pic .mu-plan-room { background: transparent !important; border: 2px solid rgba(255, 196, 140, .0) !important; align-content: center; justify-items: center; text-align: center; }
+#mundi-root .mu-plan.has-pic .mu-plan-room > i { display: none; }
+#mundi-root .mu-plan.has-pic .mu-plan-room > b { font-size: clamp(12px, 1.15vw, 17px); padding: 3px 10px; border-radius: 8px; background: rgba(10, 14, 24, .55); backdrop-filter: blur(4px); text-shadow: none; }
+#mundi-root .mu-plan.has-pic button.mu-plan-room:hover { border-color: var(--glow, #ffa95c) !important; background: color-mix(in srgb, var(--glow, #ffa95c) 14%, transparent) !important; box-shadow: 0 0 18px color-mix(in srgb, var(--glow, #ffa95c) 60%, transparent), inset 0 0 18px color-mix(in srgb, var(--glow, #ffa95c) 40%, transparent) !important; }
+#mundi-root .mu-plan.has-pic .mu-plan-room.is-you { border-color: var(--accent) !important; background: color-mix(in srgb, var(--accent) 14%, transparent) !important; }
+#mundi-root .mu-plan.has-pic .mu-plan-room.is-off { border: 0 !important; opacity: .7; }
+#mundi-root .mu-plan.has-pic .mu-plan-room > .faces { justify-content: center; }
+#mundi-root .mu-plan.has-pic .mu-plan-room { overflow: visible; }
+#mundi-root .mu-plan.has-pic .mu-plan-room > b { overflow: visible; text-overflow: clip; white-space: nowrap; max-width: none; font-size: clamp(11px, 1vw, 16px); }
+/* New world / Home: "Create" without a name points at the name */
+#mundi-root :is(.mu-cw-new-name, .mu-out-place).is-missing > span { color: #ff8a8a; }
+#mundi-root :is(.mu-cw-new-name, .mu-out-place).is-missing input { border-color: #e5484d !important; box-shadow: 0 0 0 3px rgba(229, 72, 77, .3) !important; animation: mu-miss-shake .4s ease; }
+#mundi-root .mu-miss-note { color: #ff8a8a; font-size: 12px; margin-top: 4px; }
+#mundi-root :is([data-act="cw-start-go"], [data-act="out-go"]).is-dim { opacity: .55; }
+@keyframes mu-miss-shake { 0%, 100% { translate: 0 0; } 25% { translate: -6px 0; } 50% { translate: 5px 0; } 75% { translate: -3px 0; } }
+/* the plan fills the whole screen (cropped at the edges if the screen is shaped differently) */
+#mundi-root:not([data-mobile]) .mu-map.is-plan .mu-plan-stage { inset: 0; display: block; overflow: hidden; container-type: size; }
+#mundi-root:not([data-mobile]) .mu-map.is-plan .mu-plan { position: absolute; left: 50%; top: 50%; translate: -50% -50%; width: max(100cqw, calc(100cqh * var(--r, 1.6))); max-height: none; border-radius: 0; border: 0; box-shadow: none; }
+
+#mundi-root .mu-plan.no-labels .mu-plan-room > b { opacity: 0; transition: opacity .15s; }
+#mundi-root .mu-plan.no-labels .mu-plan-room:hover > b, #mundi-root .mu-plan.no-labels .mu-plan-room.is-you > b { opacity: 1; }
+#mundi-root .mu-rooms-head .mu-row { gap: 8px; }
+/* Home: who lives here */
+#mundi-root .mu-residents { position: fixed; left: 50%; top: 50%; translate: -50% -50%; z-index: 60; width: min(680px, calc(100vw - 32px)); max-height: calc(100vh - 60px); overflow: auto; display: grid; gap: 10px; padding: 18px 20px; }
+#mundi-root .mu-residents header h3 { margin: 0; display: inline-flex; align-items: center; gap: 8px; }
+#mundi-root .mu-res-list { display: grid; grid-template-columns: 34px minmax(0, 1fr) minmax(0, 1.4fr) auto; column-gap: 10px; row-gap: 8px; align-items: center; }
+/* one grid for every row, so the bedroom boxes line up even where there is no Move out button */
+#mundi-root .mu-res-row { display: contents; }
+#mundi-root .mu-res-out { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px !important; font-size: 12px; white-space: nowrap; }
+#mundi-root .mu-res-out:hover { color: #ff8a8a; }
+#mundi-root .mu-residents { width: min(780px, calc(100vw - 32px)); }
+#mundi-root .mu-res-row img, #mundi-root .mu-res-me { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; display: grid; place-items: center; background: rgba(255, 255, 255, .08); }
+#mundi-root .mu-res-row b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* This Home › Dress code */
+#mundi-root .mu-dress { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 6px 16px; }
+#mundi-root .mu-dress-row { display: grid; grid-template-columns: 140px minmax(0, 1fr); gap: 10px; align-items: center; }
+#mundi-root .mu-dress-row b { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* the floor on screen: a small dot above its button */
+#mundi-root .mu-plan-floors button { position: relative; overflow: visible; }
+/* who is on each floor: their faces above its button */
+#mundi-root .mu-plan-floors { padding-top: 40px; }
+#mundi-root .mu-floor-faces { position: absolute; left: 50%; bottom: calc(100% + 6px); translate: -50% 0; display: flex; }
+#mundi-root .mu-floor-faces img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; margin-left: -8px; box-shadow: 0 2px 6px rgba(0, 0, 0, .45); }
+#mundi-root .mu-floor-faces img:first-child { margin-left: 0; }
+#mundi-root .mu-floor-faces i { font-style: normal; font-size: 12px; font-weight: 800; color: #fff; align-self: center; margin-left: 4px; text-shadow: 0 1px 3px rgba(0, 0, 0, .8); letter-spacing: 0; }
+/* New game › Start: two columns, centered */
+#mundi-root .mu-review-wrap { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 20px; max-width: 1400px; margin: 0 auto; width: 100%; align-items: start; }
+#mundi-root .mu-review-wrap > .mu-review { margin: 0 !important; max-width: none !important; }
+#mundi-root .mu-review-wrap > .mu-review > h4:first-child { margin-top: 0; }
+#mundi-root .mu-review-wrap .mu-diff { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+@media (max-width: 1000px) { #mundi-root .mu-review-wrap { grid-template-columns: 1fr; } #mundi-root .mu-review-wrap .mu-diff { grid-template-columns: 1fr !important; } }
+/* Home in a scene: who is here sits right under the place */
+#mundi-root:not([data-mobile]):has(.mh-where.is-home) .mh-here { top: 76px; }
+/* background pickers: the search and the two sources in one row; Mundi's pictures grouped by world */
+#mundi-root .mu-bgsrc-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+#mundi-root .mu-bgsrc-row .mu-search { flex: 1 1 220px; max-width: 360px; margin: 0; }
+#mundi-root .mu-bgsrc { flex: 0 0 auto; margin-left: auto; padding: 3px; border-radius: 12px; background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .1); }
+#mundi-root .mu-bgsrc button { flex: 0 0 auto; padding: 7px 14px !important; border-radius: 9px !important; font-weight: 600; }
+#mundi-root .mu-bg-group { grid-column: 1 / -1; margin: 6px 2px 0; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; opacity: .75; }
+#mundi-root .mu-scpick-grid .mu-bg-group:first-child { margin-top: 0; }
+/* the Home's own windows (let time pass, go out, back home, who lives here, the pickers): the HUD's liquid glass */
+#mundi-root .mu-panel.mu-glassdlg {
+    background: linear-gradient(160deg, rgba(255, 255, 255, .14), rgba(255, 255, 255, .03) 42%, rgba(255, 255, 255, 0) 62%), var(--glass-strong, var(--glass)) !important;
+    -webkit-backdrop-filter: blur(22px) saturate(160%); backdrop-filter: blur(22px) saturate(160%);
+    border: 1px solid var(--glass-edge) !important; border-radius: 24px !important;
+    box-shadow: inset 0 1px 0 var(--glass-shine), inset 0 -1px 0 rgba(255, 255, 255, .06), var(--glass-shadow) !important;
+    color: var(--hud-fg);
+}
+#mundi-root .mu-glassdlg :is(button:not(.mu-primary):not(.mu-danger):not(.is-on):not(:has(> img)):not(.mu-chip), .mu-search, input[type="text"], select) {
+    background: linear-gradient(160deg, rgba(255, 255, 255, .14), rgba(255, 255, 255, .03) 55%), rgba(255, 255, 255, .05) !important;
+    border: 1px solid rgba(255, 255, 255, .16) !important; color: var(--hud-fg) !important;
+}
+#mundi-root .mu-glassdlg button.mu-ghost.mu-ibtn { background: transparent !important; border-color: transparent !important; }
+#mundi-root .mu-glassdlg .mu-scpick-grid button:has(> img) { background: rgba(255, 255, 255, .05) !important; border: 1px solid rgba(255, 255, 255, .1) !important; border-radius: 14px !important; }
+#mundi-root .mu-glassdlg .mu-scpick-grid button.is-on { background: color-mix(in srgb, var(--accent) 40%, rgba(255, 255, 255, .08)) !important; border-color: color-mix(in srgb, var(--accent) 70%, white) !important; }
+#mundi-root .mu-glassdlg .mu-primary { background: linear-gradient(160deg, rgba(255, 255, 255, .34), rgba(255, 255, 255, .08) 55%), color-mix(in srgb, var(--accent) 78%, transparent) !important; border: 1px solid rgba(255, 255, 255, .25) !important; }
+#mundi-root .mu-glassdlg .mu-bgsrc button.is-on { background: linear-gradient(160deg, rgba(255, 255, 255, .3), rgba(255, 255, 255, .06) 55%), color-mix(in srgb, var(--accent) 52%, transparent) !important; }
+#mundi-root .mu-pa footer { gap: 8px; flex-wrap: wrap; }
+#mundi-root .mu-pa .mu-pa-me { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; }

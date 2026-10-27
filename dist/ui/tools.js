@@ -2,7 +2,7 @@
 import { showTransition } from './lifeui.js';
 import { period } from '../sim/time.js';
 import { state, game } from '../core/store.js';
-import { getWorld } from '../core/world.js';
+import { getWorld, isScenario } from '../core/world.js';
 import { toNextPeriod, advance } from '../sim/time.js';
 import { runPlans } from './plans.js';
 import { syncScene } from '../sim/game.js';
@@ -28,6 +28,8 @@ Object.assign(ACT, {
         runPlans();
         saveGame();
         await syncScene();
+        if (isScenario(w))
+            state.view = 'scene'; // Home: back where you were, so the story picks up there
         notify();
     },
     // straight home, into the home scene

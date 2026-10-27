@@ -1,20 +1,27 @@
 // The world map: full screen, zoom and drag, a pin for every place. Hovering a pin opens a small card next to it
 // (what the place is, who is there; at your own place, what you can do). Clicking a pin goes there.
+import { lex, appRef } from '../core/lexicon.js';
 import { showTransition } from './lifeui.js';
 import { lockedOut } from '../sim/bills.js';
-import { afterAction, hasItem, doorAnswer } from '../sim/life.js';
-import { startElevator } from './lifeui.js';
+import { afterAction, doorAnswer, sleepMood } from '../sim/life.js';
+import { hobbyNeed, practice } from '../sim/hobbies.js';
+import { afterEvent } from '../sim/cityevents.js';
+
 import { state, notify, esc, game, toast, saveGame, ROOT_ID, nowAbs, uiZoom } from '../core/store.js';
 import { runPlans } from './plans.js';
 import { maybeBump } from './bump.js';
 import { rollAction, gradeName } from '../sim/dice.js';
 import { setPrompt } from '../st/bridge.js';
 import { beforeTravel, beforeSleep } from '../sim/plans.js';
-import { getWorld, bgOf, num, type WorldDef } from '../core/world.js';
+import { getWorld, worldFile, bgOf, num, systemOn, type WorldDef, isScenario } from '../core/world.js';
+import { openNow, pictureAt } from '../sim/daynight.js';
+import { isRpg, longRest } from '../sim/rpg.js';
+import { journeyOf, travelRoad } from '../sim/journey.js';
 import type { Save } from '../core/store.js';
 import { thumb } from '../st/bridge.js';
-import { pins, placeOf, travelMinutes, playerHomeId } from '../sim/places.js';
-import { presentAt } from '../sim/people.js';
+import { pins, placeOf, travelMinutes, playerHomeId, isOuting, outingName } from '../sim/places.js';
+import { planOn, floorsOn, planTarget, unplaced, floorOf } from '../sim/plan.js';
+import { presentAt, whereNow } from '../sim/people.js';
 import { writeDiary, diaryOn, markDayStart } from '../sim/diary.js';
 import { openWork, diaryWaiting, diaryReady } from './relui.js';
 import { askAboutPlans } from './appts.js';
@@ -23,7 +30,7 @@ import { stayOf } from './events.js';
 import { actionSound, lifeSound } from './sfx.js';
 import { refreshPrompt } from '../sim/prompt.js';
 import { applyAction, canAfford, money, actionsHere, addStatus, tooTired } from '../sim/needs.js';
-import { shiftsToPromote, isOpen, fits, hire } from '../sim/work.js';
+import { shiftsToPromote, isOpen, fits, hire, rankOf, pendingBranch } from '../sim/work.js';
 import { advance, weekday } from '../sim/time.js';
 import { syncScene } from '../sim/game.js';
 import { endVisit } from '../sim/visits.js';
@@ -47,7 +54,8 @@ function pinsHtml(g: Save, w: WorldDef) {
         const here = presentAt(g, w, p.id);
         const known = here.filter(r => r.met), strangers = here.length - known.length + walkOnsHere(g, w, p.id).length;
         if (p.link) return `<button class="mu-pin is-link" data-act="pin" data-loc="${esc(p.id)}" style="left:${num(p.x)}%;top:${num(p.y)}%" aria-label="${esc(p.name)}"><span class="dot">${icon('map')}</span><span class="label">${esc(p.name)}</span></button>`;
-        return `<button class="mu-pin ${p.home ? 'is-home' : ''} ${p.id === sel ? 'is-sel' : ''} ${p.id === g.player.loc ? 'is-you' : ''}" data-act="pin" data-loc="${esc(p.id)}" style="left:${num(p.x)}%;top:${num(p.y)}%" aria-label="${esc(p.name)}">
+        const shut = !p.home && systemOn(w, 'living') && !openNow(g, w, p.id);
+        return `<button class="mu-pin ${p.home ? 'is-home' : ''} ${shut ? 'is-closed' : ''} ${p.id === sel ? 'is-sel' : ''} ${p.id === g.player.loc ? 'is-you' : ''}" data-act="pin" data-loc="${esc(p.id)}" style="left:${num(p.x)}%;top:${num(p.y)}%" aria-label="${esc(p.name)}">
             <span class="dot"></span><span class="label">${esc(p.name)}</span>
             ${here.length || strangers ? `<span class="faces">${known.slice(0, 3).map(r => `<img draggable="false" src="${esc(thumb(r.avatar))}" alt="" title="${esc(r.name)}">`).join('')}${strangers || known.length > 3 ? `<i>+${strangers + Math.max(0, known.length - 3)}</i>` : ''}</span>` : ''}
         </button>`;
@@ -63,13 +71,13 @@ function jobCard(g: Save, w: WorldDef, sel: string, you: boolean) {
     if (mine) {
         const j = g.player.job!; const need = shiftsToPromote(g, mine, j.rank);
         const open = isOpen(g, mine);
-        return `<div class="mu-card"><h4>Work</h4><p><b>${esc(mine.ranks[j.rank].name)}</b> · ${esc(mine.name)}</p>
-            <small class="mu-muted">${money(w, mine.ranks[j.rank].pay)}/h${need !== null ? ` · ${Math.min(99, Math.floor(j.shifts / need * 100))}% to the next rank` : ''}</small>
+        return `<div class="mu-card"><h4>Work</h4><p><b>${esc(rankOf(g, mine).name)}</b> · ${esc(mine.name)}</p>
+            <small class="mu-muted">${money(w, rankOf(g, mine).pay)}/h${pendingBranch(g, mine) ? ` · ${esc(lex(w, 'choosePathTitle'))}` : ''}${need !== null ? ` · ${Math.min(99, Math.floor(j.shifts / need * 100))}% to the next rank` : ''}</small>
             ${you ? `<button class="mu-primary" data-act="work" ${open ? '' : 'aria-disabled="true"'}>Work a shift · ${mine.shift} h</button>${open ? '' : `<small class="mu-muted">Open ${String(mine.hours?.[0] ?? 0).padStart(2, '0')}:00–${String(mine.hours?.[1] ?? 24).padStart(2, '0')}:00</small>`}` : ''}</div>`;
     }
-    return `<div class="mu-card"><h4>Jobs here</h4>${jobs.map(o => `<div class="mu-jobrow"><span><b>${esc(o.name)}</b><small>${money(w, o.ranks[0].pay)}/h · ${o.shift} h${o.needs?.length ? ` · ${esc(o.needs.join(' / '))}` : ''}</small></span>
-        ${you ? `<button data-act="apply" data-id="${esc(o.id)}" ${fits(g, o) ? '' : 'aria-disabled="true"'}>Apply</button>` : ''}</div>`).join('')}
-        ${you ? '' : '<small class="mu-muted">Go there to apply, or use the phone.</small>'}</div>`;
+    return `<div class="mu-card"><h4>${lex(w, 'jobsHere')}</h4>${jobs.map(o => `<div class="mu-jobrow"><span><b>${esc(o.name)}</b><small>${money(w, o.ranks[0].pay)}/h · ${o.shift} h${o.needs?.length ? ` · ${esc(o.needs.join(' / '))}` : ''}${hobbyNeed(g, w, o) ? ` · ${esc(hobbyNeed(g, w, o))}` : ''}</small></span>
+        ${you ? `<button data-act="apply" data-id="${esc(o.id)}" ${fits(g, o) ? '' : 'aria-disabled="true"'}>${lex(w, 'jobApply')}</button>` : ''}</div>`).join('')}
+        ${you ? '' : `<small class="mu-muted">${lex(w, 'applyThere')}</small>`}</div>`;
 }
 
 // The card that opens next to a pin.
@@ -142,6 +150,10 @@ function showPop(pin: HTMLElement, touch: boolean) {
     }
     pop.style.left = `${x}px`; pop.style.top = `${Math.max(t, Math.min(y, bottomEdge - ph))}px`;
     pop.classList.toggle('is-below', !above && below);
+    pop.classList.toggle('is-side', !above && !below);
+    pop.style.setProperty('--ax', `${Math.max(16, Math.min(pw - 16, cx - x))}px`);
+    // a card shown on hover has nothing to click: it never takes the click meant for the pin under it
+    pop.style.pointerEvents = touch || loc === g.player.loc ? '' : 'none';
     pop.style.visibility = '';
 }
 function hidePop(delay = 160) {
@@ -149,16 +161,94 @@ function hidePop(delay = 160) {
     hideTimer = window.setTimeout(() => { document.getElementById(ROOT_ID)?.querySelector('.mu-pop')?.classList.remove('is-open'); popFor = ''; }, delay);
 }
 
+// Who you know is on a map right now (their faces under its name).
+function knownHtml(g: Save, w: WorldDef, mapId: string) {
+    const list = Object.values(g.cast).filter(r => r.met && placeOf(g, w, whereNow(g, w, r))?.map === mapId);
+    if (!list.length) return '';
+    return `<span class="mu-world-known" title="${esc(list.map(r => r.name).join(', '))}">${list.slice(0, 4).map(r => `<img src="${esc(thumb(r.avatar))}" alt="">`).join('')}${list.length > 4 ? `<em>+${list.length - 4}</em>` : ''}</span>`;
+}
+// All the world's maps as round pictures, like choosing a neighborhood in The Sims: click one to look at it.
+let mapsPicker = false;
+function mapsPickerHtml(g: Save, w: WorldDef, shown: string) {
+    const here = youMap(g, w).id;
+    const top = w.maps.filter(m => !m.parent || !w.maps.some(x => x.id === m.parent));
+    const order = top.flatMap(t => [t, ...w.maps.filter(m => m.parent === t.id), ...w.maps.filter(m => m.parent && m.parent !== t.id && w.maps.find(x => x.id === m.parent)?.parent === t.id)]);
+    const list = [...order, ...w.maps.filter(m => !order.includes(m))];
+    return `<div class="mu-worlds-veil" data-act="maps-pick"><section class="mu-worlds mh-glass" role="dialog" aria-label="Maps" data-keep="maps">
+        <header><h3>${icon('home')} ${esc(w.name)}</h3><button class="mu-ibtn mu-ghost" data-act="maps-pick" title="Close">${icon('x')}</button></header>
+        <div class="mu-worlds-grid">${list.map(m => `<button class="mu-world-dot ${m.id === shown ? 'is-on' : ''}" data-act="maps-go" data-map="${esc(m.id)}">
+            <i style="background-image:url('${esc(worldFile(w, pictureAt(w, g.minutes, m.image, m.images)!))}')">${m.id === here ? `<em>${icon('pin')} You</em>` : ''}</i>
+            <b data-notr>${esc(m.name)}</b><small data-notr>${esc(m.area ?? (m.parent ? w.maps.find(x => x.id === m.parent)?.name ?? '' : 'Main map'))}${m.trip ? ` · ${m.trip} min` : ''}</small>${knownHtml(g, w, m.id)}</button>`).join('')}</div></section></div>`;
+}
+
+// A scenario: no floor plan, the rooms of the house as pictures (as they look now); click one to go there.
+function roomsHtml(g: Save, w: WorldDef) {
+    const kindPic = (p: any) => { const k = p.home ? w.homes.kinds[p.id === playerHomeId ? g.player.home.kind : (w.homes.zones.find(z => z.id === g.cast[String(p.id).slice(5)]?.home.zone)?.kind ?? '')] : null; return k ? pictureAt(w, g.minutes, k.image, k.images) : ''; };
+    const list = pins(g, w).filter(p => !p.link);
+    const yours = list.filter(p => p.id === playerHomeId), rooms = list.filter(p => !p.home), beds = list.filter(p => p.home && p.id !== playerHomeId);
+    const card = (p: any) => { const pic = p.home ? kindPic(p) : pictureAt(w, g.minutes, p.bg, p.bgs); const here = presentAt(g, w, p.id); const you = p.id === g.player.loc;
+        return `<button class="mu-room ${you ? 'is-you' : ''}" data-act="go" data-loc="${esc(p.id)}" title="${you ? 'Back to this room' : 'Go here'}"><i style="${pic ? `background-image:url('${esc(worldFile(w, pic))}')` : ''}">${you ? `<em>${icon('pin')} You</em>` : ''}</i>
+            <b data-notr>${esc(p.id === playerHomeId ? 'Your room' : String(p.name).replace(/'s home$/, "'s room"))}</b>${here.length ? `<span class="faces">${here.slice(0, 5).map(r => `<img src="${esc(thumb(r.avatar))}" alt="" title="${esc(r.met ? r.name : 'Someone')}">`).join('')}${here.length > 5 ? `<i>+${here.length - 5}</i>` : ''}</span>` : ''}</button>`; };
+    const head = `<div class="mu-rooms-head"><h3 data-notr>${esc(w.name)}</h3></div>`;
+    // floors set in the creator (no picture of the plan): the rooms floor by floor, one block above the other
+    if (floorsOn(w)) {
+        const all = [...yours, ...rooms, ...beds];
+        // a room not put on any floor is on the first one
+        const first = w.plan.floors[0].id;
+        const blocks = w.plan.floors.map(f => [f.name, all.filter(p => (floorOf(g, w, p.id) || first) === f.id)] as const).filter(([, l]) => l.length);
+        const rest: typeof all = [];
+        return `<div class="mu-map is-rooms"><div class="mu-rooms" data-keep="rooms">${head}
+            ${blocks.map(([name, l]) => `<h4 class="mu-rooms-floor" ${/^Floor \d+$/.test(name) ? '' : 'data-notr'}>${esc(name)}</h4><div class="mu-rooms-grid">${l.map(card).join('')}</div>`).join('')}
+            ${rest.length ? `<h4 class="mu-rooms-floor">Other rooms</h4><div class="mu-rooms-grid">${rest.map(card).join('')}</div>` : ''}</div>${toolsHtml()}</div>`;
+    }
+    return `<div class="mu-map is-rooms"><div class="mu-rooms" data-keep="rooms">${head}
+        <div class="mu-rooms-grid">${[...yours, ...rooms].map(card).join('')}</div>
+        ${beds.length ? `<h4>Bedrooms</h4><div class="mu-rooms-grid">${beds.map(card).join('')}</div>` : ''}</div>${toolsHtml()}</div>`;
+}
+
+// A scenario with a floor plan: the floor you are on, each room where it is (click to go there), the floors at the
+// bottom left, and the rooms not on the plan yet with a red "!".
+export const PV = { floor: '', at: '' };
+function planHtml(g: Save, w: WorldDef & { plan: NonNullable<WorldDef['plan']> }) {
+    const plan = w.plan;
+    if (PV.at !== g.player.loc) { PV.at = g.player.loc; PV.floor = ''; }
+    const floor = plan.floors.find(f => f.id === PV.floor) ?? plan.floors.find(f => f.id === floorOf(g, w, g.player.loc)) ?? plan.floors[0];
+    const kindPic = (loc: string) => { const k = loc === playerHomeId ? w.homes.kinds[g.player.home.kind] : w.homes.kinds[w.homes.zones.find(z => z.id === g.cast[loc.slice(5)]?.home.zone)?.kind ?? '']; return k ? pictureAt(w, g.minutes, k.image, k.images) : ''; };
+    const faces = (loc: string) => { const here = presentAt(g, w, loc); return here.length ? `<span class="faces">${here.slice(0, 4).map(r => `<img src="${esc(thumb(r.avatar))}" alt="" title="${esc(r.met ? r.name : 'Someone')}">`).join('')}${here.length > 4 ? `<i>+${here.length - 4}</i>` : ''}</span>` : ''; };
+    const rooms = plan.rooms.filter(r => r.floor === floor.id).map(r => {
+        const t = planTarget(g, w, r); const box = `left:${r.x}%;top:${r.y}%;width:${r.w}%;height:${r.h}%`;
+        if (!t) return `<div class="mu-plan-room is-off" style="${box}"><b>${esc(r.id.startsWith('spot:') ? 'Empty bedroom' : w.places.find(p => p.id === r.id)?.name ?? '')}</b></div>`;
+        if (!t.known) return `<div class="mu-plan-room is-off" style="${box}" title="You have not met who sleeps here"><b>A bedroom</b></div>`;
+        const p = placeOf(g, w, t.loc); if (!p) return '';
+        const pic = (p as any).home ? kindPic(t.loc) : pictureAt(w, g.minutes, p.bg, p.bgs);
+        const you = t.loc === g.player.loc;
+        const name = t.loc === playerHomeId ? 'Your room' : String(p.name).replace(/'s home$/, "'s room");
+        return `<button class="mu-plan-room ${you ? 'is-you' : ''}" style="${box}" data-act="go" data-loc="${esc(t.loc)}" title="${you ? 'You are here' : `Go to ${esc(name)}`}">
+            <i style="${pic ? `background-image:url('${esc(worldFile(w, pic))}')` : ''}"></i><b data-notr>${esc(name)}</b>${faces(t.loc)}${you ? `<em>${icon('pin')} You</em>` : ''}</button>`;
+    }).join('');
+    const lost = unplaced(g, w);
+    const ratio = floor.ratio ?? 1.6;
+    return `<div class="mu-map is-plan"><div class="mu-plan-stage"><div class="mu-plan ${floor.image ? 'has-pic' : ''} ${plan.labels === false ? 'no-labels' : ''}" style="--r:${ratio};${plan.glow ? `--glow:${esc(plan.glow)};` : ''}${floor.image ? `background-image:url('${esc(worldFile(w, pictureAt(w, g.minutes, floor.image, floor.images) ?? floor.image))}')` : ''}">${rooms}</div></div>
+        <div class="mu-plan-bar">${lost.length ? `<div class="mu-plan-lost"><small>Not on the plan</small>${lost.map(p => { const name = p.id === playerHomeId ? 'Your room' : String(p.name).replace(/'s home$/, "'s room");
+            return `<button data-act="go" data-loc="${esc(p.id)}" class="${p.id === g.player.loc ? 'is-you' : ''}" title="${esc(name)}: where this room is on the floor plan is not set yet (World creator › Maps › Floor plan). Click to go there."><b class="mu-plan-bang">!</b><span data-notr>${esc(name)}</span></button>`; }).join('')}</div>` : ''}
+            ${plan.floors.length > 1 ? `<nav class="mu-plan-floors" aria-label="Floors">${plan.floors.map(f => { const who = Object.values(g.cast).filter(r => r.met && floorOf(g, w, whereNow(g, w, r)) === f.id);
+                return `<button class="${f.id === floor.id ? 'is-on' : ''}" data-act="plan-floor" data-id="${esc(f.id)}">${who.length ? `<span class="mu-floor-faces">${who.slice(0, 5).map(r => `<img src="${esc(thumb(r.avatar))}" alt="" title="${esc(r.name)}">`).join('')}${who.length > 5 ? `<i>+${who.length - 5}</i>` : ''}</span>` : ''}${floorOf(g, w, g.player.loc) === f.id ? icon('pin') : ''}<span ${/^Floor \d+$/.test(f.name) ? '' : 'data-notr'}>${esc(f.name)}</span></button>`; }).join('')}</nav>` : ''}</div>
+        ${toolsHtml()}</div>`;
+}
+
 export function mapHtml() {
     const { g, w } = ctxW();
+    if (planOn(w)) return planHtml(g, w);
+    if (isScenario(w)) return roomsHtml(g, w);
     const map = curMap(g, w);
     const parent = map.parent ? w.maps.find(m => m.id === map.parent) : null;
     const away = map.id !== youMap(g, w).id;
-    const nav = parent || away ? `<div class="mu-mapnav">${parent ? `<button data-act="open-map" data-map="${esc(parent.id)}">${icon('up')}<span>${esc(parent.name)}</span></button>` : ''}
+    const many = w.maps.length > 1;
+    const nav = parent || away || many ? `<div class="mu-mapnav">${many ? `<button data-act="maps-pick" title="All maps">${icon('map')}<span>Maps</span></button>` : ''}${parent ? `<button data-act="open-map" data-map="${esc(parent.id)}">${icon('up')}<span>${esc(parent.name)}</span></button>` : ''}
         ${away ? `<button data-act="open-map" data-map="">${icon('pin')}<span>Back to where you are</span></button>` : ''}<b data-notr>${esc(map.name)}</b></div>` : '';
-    return `<div class="mu-map">${nav}
+    return `<div class="mu-map">${nav}${mapsPicker ? mapsPickerHtml(g, w, map.id) : ''}
         <div class="mu-stage" data-stage>
-            <div class="mu-mapimg" style="${esc(`--r:${num(map.ratio, 1.7914)};${bgOf(w, map.image)}`)}">${pinsHtml(g, w)}</div>
+            <div class="mu-mapimg" style="${esc(`--r:${num(map.ratio, 1.7914)};${bgOf(w, pictureAt(w, g.minutes, map.image, map.images)!)}`)}">${pinsHtml(g, w)}</div>
             <div class="mu-zoom">
                 <button data-act="zoom" data-d="in" title="Zoom in">+</button>
                 <button data-act="zoom" data-d="out" title="Zoom out">−</button>
@@ -288,8 +378,12 @@ export const mapInput = {
 /* ---------- actions ---------- */
 
 // Moves the player: time passes, the scene follows (who is there now), and the screen goes to the scene.
-// `force`: the engine moves you (you already walked out, or got away): no questions asked.
-export async function travelTo(loc: string, opts: { force?: boolean } = {}): Promise<boolean> {
+// A long journey (RPG, between regions): first, how you go (making camp, or pushing on).
+export const JOURNEY = { to: '', minutes: 0, camps: 0 };
+// `force`: the engine moves you (you already walked out, or got away): no questions asked. A string is the road of a
+// long journey ('camp' or 'push').
+export async function travelTo(loc: string, arg: 'camp' | 'push' | { force?: boolean } = {}): Promise<boolean> {
+    const opts = typeof arg === 'string' ? {} : arg, road = typeof arg === 'string' ? arg : undefined;
     const { g, w } = ctxW();
     if (loc === g.player.loc) return false;
     if (state.generating) { toast('Wait until they finish speaking.', 'info'); return false; }   // nobody walks out mid-sentence
@@ -297,10 +391,17 @@ export async function travelTo(loc: string, opts: { force?: boolean } = {}): Pro
     if (!opts.force && !allow('travel', () => { void travelTo(loc, { force: true }).then(() => { state.view = 'scene'; notify(); }); }, loc)) { notify(); return false; }
     PSUI.gotAwayTo = '';
     const mins = travelMinutes(g, w, g.player.loc, loc);
-    await endVisit(g, w);   // the scene you leave closes; the next one starts clean
+    const trip = journeyOf(g, w, g.player.loc, loc, mins);
+    if (trip && trip.camps > 0 && !road) { Object.assign(JOURNEY, { to: loc, minutes: mins, camps: trip.camps }); notify(); return false; }
+    // the scene you leave closes; the next one starts clean. Not in a Home: walking from room to room (often with
+    // the same people) is one long scene, and closing it made them forget what was just said.
+    if (!isScenario(w)) await endVisit(g, w);
     beforeTravel(g, w, loc).forEach(m => toast(m, 'info'));
     const from = g.player.loc;
-    const msgs = advance(g, w, mins);
+    (g as any).traveling = true;   // the trip itself costs no energy (only what you do does)
+    const msgs = road ? travelRoad(g, w, mins, road === 'camp') : advance(g, w, mins);
+    delete (g as any).traveling;
+    JOURNEY.to = '';
     if (g.player.loc === from) g.player.loc = loc;   // unless something on the way moved you (passing out…)
     viewMap = null;
     msgs.forEach(m => toast(m, 'warn'));
@@ -312,15 +413,32 @@ export async function travelTo(loc: string, opts: { force?: boolean } = {}): Pro
     hx.releaseCaptor(g); hx.onArrive(g, w);
     await syncScene();
     state.view = 'scene';   // arriving somewhere opens its scene (with its things to do), even when nobody is there
-    startElevator(g, w, g.player.loc);
+    // (the elevator ride on arriving at an apartment is gone: it only got in the way)
     notify();
     return true;
+}
+
+// The journey dialog: the road takes hours; make camp at night, or push on without rest.
+export function journeyHtml(): string {
+    const g = game(); const w = g && getWorld(g.world);
+    if (!g || !w || !JOURNEY.to) return '';
+    const p = placeOf(g, w, JOURNEY.to); const h = Math.round(JOURNEY.minutes / 60);
+    return `<div class="mu-recap-veil"><section class="mu-recap mh-glass mu-journey" role="dialog" aria-label="Journey">
+        <header><small>${esc(lex(w, 'journey'))}</small><h3>${esc(p?.name ?? '')}</h3></header>
+        <p>${esc(lex(w, 'journeyText', String(h), String(JOURNEY.camps)))}</p>
+        <div class="mu-work-modes">
+            <button class="mu-work-mode" data-act="jr-road" data-v="camp"><i>🏕️</i><b>${esc(lex(w, 'makeCamp'))}</b><small>Rest at night: half your hit points and focus back. A Survival check decides how the night goes.</small></button>
+            <button class="mu-work-mode" data-act="jr-road" data-v="push"><i>🌙</i><b>${esc(lex(w, 'pushOn'))}</b><small>Arrive sooner, but exhausted (no rest).</small></button>
+        </div>
+        <button class="mu-ghost" data-act="jr-cancel">Stay here</button></section></div>`;
 }
 
 // Goes to a place and straight into its scene.
 async function goTo(loc: string) {
     const { g, w } = ctxW();
     popFor = '';
+    // Home: a plan somewhere out of the house: going there is going out (who comes, the background)
+    if (isScenario(w) && isOuting(loc) && loc !== g.player.loc) { const { openGoOut } = await import('./outing.js'); openGoOut(outingName(loc)); return; }
     const door = doorAnswer(g, w, loc);
     if (!door.ok) { toast(door.text, 'info'); notify(); return; }
     if (door.text) toast(door.text, 'info');
@@ -333,7 +451,7 @@ async function sleep() {
     const { g, w } = ctxW();
     const stay = stayOf(g); const away = !!stay && stay.where === g.player.loc && g.player.loc !== playerHomeId;
     if (w.sleep.homeOnly && g.player.loc !== playerHomeId && !away) { toast('You can only sleep at home.', 'info'); return; }
-    if (g.player.loc === playerHomeId && !away && lockedOut(g)) { toast('You are locked out: pay the rent in the Homes app first.', 'warn'); return; }
+    if (g.player.loc === playerHomeId && !away && lockedOut(g)) { toast(lex(w, 'lockedOutGo', appRef(w, 'homes')), 'warn'); return; }
     const until = w.sleep.until;
     const mins = g.minutes < until ? until - g.minutes : 1440 - g.minutes + until;
     const dayEnded = g.day;
@@ -348,18 +466,20 @@ async function sleep() {
         g.player.stats[id] = Math.min(d.max, (id === 'energy' ? v : (g.player.stats[id] ?? d.start) + v));
         if (d.decay?.awakeOnly) g.tick[`decay:${id}`] = nowAbs(g);   // the waking day starts counting now
     }
+    if (isRpg(w)) longRest(g, w);   // RPG: a long rest (hit points, focus, preparing spells)
     // a night's sleep leaves you hungry, thirsty and in need of a wash; a good bed lifts the mood
     for (const [id, v] of Object.entries({ hunger: -20, thirst: -25, hygiene: -25 })) addStatus(g, w, id, v);
-    if (hasItem(g, 'bed')) addStatus(g, w, 'mood', 10);
+    { const m = sleepMood(g, w); if (m) addStatus(g, w, 'mood', m); }   // a good bed…
     msgs.forEach(m => toast(m, 'warn'));
     runPlans();
     saveGame();
     await syncScene();
     lifeSound('sleep');
+    if (isScenario(w)) state.view = 'scene';   // Home: you wake up where you were
     showTransition(`Day ${g.day}`, weekday(g.day), 'night');
     notify();
     // the day becomes a diary entry (one AI call), while the night passes on screen
-    if (diaryOn()) {
+    if (diaryOn() && systemOn(w, 'diary')) {
         setTimeout(() => diaryWaiting(dayEnded), 2600);   // after the night: "writing your diary…" until it is done
         writeDiary(g, w, dayEnded)
             .then(res => { markDayStart(g); saveGame(); refreshPrompt(); if (res.ok) toast(`Diary updated — day ${dayEnded}. Read it in the Journal.`, 'success'); diaryReady(dayEnded, res.changes, res.ok); })
@@ -378,6 +498,11 @@ export async function finishWork(msgs: string[], jobName: string) {
 }
 
 Object.assign(ACT, {
+    'plan-floor': (el) => { PV.floor = el.dataset.id ?? ''; notify(); },
+    'jr-road': async (el) => { const to = JOURNEY.to; if (!to) return; await travelTo(to, el.dataset.v as 'camp' | 'push'); },
+    'jr-cancel': () => { JOURNEY.to = ''; notify(); },
+});
+Object.assign(ACT, {
     work: async () => {
         if (!allow('work', () => { passOnce(); void ACT.work(document.body, new Event('click')); })) return;
         const { g, w } = ctxW();
@@ -389,11 +514,13 @@ Object.assign(ACT, {
     },
     apply: (el) => {
         const { g, w } = ctxW();
-        if (g.player.job && !el.dataset.force) { toast('You already have a job. Quit it first in the phone.', 'info'); return; }
+        if (g.player.job && !el.dataset.force) { toast(lex(w, 'quitFirst'), 'info'); return; }
         const r = hire(g, w, el.dataset.id!);
         toast(r.text, r.ok ? 'success' : 'warn'); saveGame(); notify();
     },
     // a click goes to the place (on a touch screen the first tap shows its card, with a "Go here" button)
+    'maps-pick': (el, e) => { if (e && el.classList.contains('mu-worlds-veil') && (e.target as HTMLElement).closest('.mu-worlds')) return; mapsPicker = !mapsPicker; notify(); },
+    'maps-go': (el) => { mapsPicker = false; const { g, w } = ctxW(); viewMap = el.dataset.map === youMap(g, w).id ? null : el.dataset.map || null; popFor = ''; state.mapView = {} as any; notify(); setTimeout(() => applyMapView(true), 0); },
     'open-map': (el) => { viewMap = el.dataset.map || null; popFor = ''; state.mapView = {} as any; notify(); setTimeout(() => applyMapView(true), 0); },
     pin: (el, e) => {
         if (moved) return;
@@ -427,6 +554,8 @@ Object.assign(ACT, {
         advance(g, w, a.minutes).forEach(m => toast(m, 'warn'));
         const roll = rollAction(g, w, a);
         afterAction(g, w, a, roll ? roll.grade.includes('success') : null).forEach(m => toast(m, 'success'));
+        afterEvent(g, w, a);
+        practice(g, w, a, roll ? roll.grade.includes('success') : null, roll?.grade === 'critical-success').forEach(m => toast(m, 'success'));
         runPlans();
         saveGame();
         await syncScene();
@@ -434,7 +563,10 @@ Object.assign(ACT, {
             toast(`${gradeName(roll.grade)} — ${roll.text}`, roll.grade.includes('success') ? 'success' : 'warn');
             // the AI only tells the story of the result the engine decided
             if (state.view === 'scene') setPrompt('mundi_roll', `[Just now {{user}} tried to ${a.label.toLowerCase()}: ${gradeName(roll.grade).toLowerCase()}. ${roll.text} Narrate it in that light if it comes up.]`);
-        } else toast(`${a.name}: done.`, 'success');
+        } else {
+            toast(`${a.name}: done.`, 'success');
+            if (isScenario(w) && state.view === 'scene') setPrompt('mundi_roll', `[Just now {{user}} chose to ${a.label.toLowerCase()}. Narrate how it goes, in the scene.]`);
+        }
         maybeBump(g, w);
         notify();
     },

@@ -1,0 +1,35 @@
+/* City events (Calendar) and hobbies (Profile) */
+#mundi-root .mu-city-row { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 9px 10px; margin: 6px 0; border-radius: 12px;
+    background: rgba(255, 255, 255, .05); border: 1px solid rgba(255, 255, 255, .08); }
+#mundi-root .mu-city-row > i { font-style: normal; font-size: 22px; text-align: center; }
+#mundi-root .mu-city-row > span { display: grid; gap: 2px; min-width: 0; }
+#mundi-root .mu-city-row > span small { font-size: 12px; opacity: .85; }
+#mundi-root .mu-city-row > button { white-space: nowrap; font-size: 12px; padding: 6px 10px !important; }
+#mundi-root .mu-city-row > em { font-style: normal; font-size: 12px; }
+#mundi-root .mu-city-row.is-going { border-color: color-mix(in srgb, var(--accent, #3b82f6) 55%, transparent); }
+#mundi-root .mu-city-row.is-live { background: color-mix(in srgb, var(--accent, #3b82f6) 14%, rgba(255, 255, 255, .04)); }
+#mundi-root .mu-hobby b { display: flex; align-items: center; gap: 8px; }
+#mundi-root .mu-hobby b em { font-style: normal; font-size: 11px; padding: 1px 7px; border-radius: 99px; background: rgba(255, 255, 255, .1); }
+#mundi-root .mu-hobbies .mu-pf-row + .mu-pf-row { margin-top: 6px; }
+
+/* Radial menu around a sprite */
+#mundi-root .mu-sprite { position: relative; }
+#mundi-root .mu-sprite[data-act="spr-menu"] > img, #mundi-root .mu-sprite[data-act="spr-menu"] > .is-avatar { pointer-events: auto; cursor: pointer; }
+#mundi-root .mu-sprite.is-menu > img { filter: drop-shadow(0 0 14px color-mix(in srgb, var(--accent, #3b82f6) 70%, transparent)) drop-shadow(0 10px 18px rgba(0, 0, 0, .45)); }
+#mundi-root .mu-radial { position: absolute; inset: 0; pointer-events: none; }
+#mundi-root .mu-rad-side > button { position: absolute; top: calc(31% + 30% * sin(var(--a))); pointer-events: auto; display: inline-flex; align-items: center; gap: 7px; white-space: nowrap;
+    padding: 7px 13px !important; border-radius: 999px !important; font-size: 13px; color: #fff;
+    background: rgba(18, 24, 38, .62) !important; border: 1px solid rgba(255, 255, 255, .22) !important; box-shadow: 0 6px 20px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .18);
+    backdrop-filter: blur(14px) saturate(1.4); -webkit-backdrop-filter: blur(14px) saturate(1.4);
+    animation: mu-rad-in .22s cubic-bezier(.2, .9, .3, 1.3) both; animation-delay: calc(var(--k) * 28ms); }
+#mundi-root .mu-rad-side.is-right > button { left: calc(50% + 30% * cos(var(--a)) + 14px); transform: translateY(-50%); transform-origin: left center; }
+#mundi-root .mu-rad-side.is-left > button { right: calc(50% + 30% * cos(var(--a)) + 14px); transform: translateY(-50%); transform-origin: right center; }
+#mundi-root .mu-rad-side > button:hover { background: color-mix(in srgb, var(--accent, #3b82f6) 55%, rgba(18, 24, 38, .7)) !important; }
+#mundi-root .mu-rad-side > button.is-on { background: color-mix(in srgb, var(--accent, #3b82f6) 70%, rgba(18, 24, 38, .5)) !important; border-color: rgba(255, 255, 255, .5) !important; }
+#mundi-root .mu-rad-side > button[aria-disabled="true"] { opacity: .5; }
+#mundi-root .mu-rad-side > button .mu-ic { width: 15px; height: 15px; }
+@keyframes mu-rad-in { from { opacity: 0; scale: .6; } }
+#mundi-root[data-mobile] .mu-rad-side > button { font-size: 11px; padding: 5px 9px !important; }
+#mundi-root .mu-outfits { display: grid; gap: 8px; margin: 4px 0 14px; padding: 10px 12px; border-radius: 12px; background: rgba(255, 255, 255, .04); border: 1px solid rgba(255, 255, 255, .08); }
+#mundi-root .mu-outfits .mu-chip-wrap { display: inline-flex; align-items: center; }
+#mundi-root .mu-outfits .mu-chip-wrap .mu-ibtn { padding: 2px !important; min-width: 0; }

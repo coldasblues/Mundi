@@ -1,17 +1,21 @@
+import { festivalsHtml } from './lifeplus.js';
+import { cityEventsHtml, cityBadge } from './cityui.js';
 import { romanceButtons, relBar } from './relui.js';
+import { lex } from '../core/lexicon.js';
 import { stayButton, tidyEvent } from './events.js';
 import { friendTier, romanceTier } from '../sim/romance.js';
 // Plans on screen: the card of a person in the scene ("come with me", "make plans"), the plan form and the
 // Calendar app on the phone, and the toasts the clock produces (reminders, arrivals, missed plans).
-import { partyForm } from './lifeui.js';
+import { housePartyHtml, partyForm } from './lifeui.js';
 import { notify, esc, game, toast, saveGame, nowAbs, state } from '../core/store.js';
-import { getWorld, type WorldDef } from '../core/world.js';
+import { getWorld, type WorldDef, isScenario, styleOf } from '../core/world.js';
+import { outingId } from '../sim/places.js';
 import type { Save } from '../core/store.js';
 import { tr } from '../core/tr.js';
-import { thumb, setPrompt, sendCanned, addUserLine, replyAs, personaName } from '../st/bridge.js';
+import { thumb, sendCanned, addUserLine, replyAs, personaName, setAsk } from '../st/bridge.js';
 import { weekday } from '../sim/time.js';
 import { fmtClock as hm } from '../core/fmt.js';
-import { placeOf, playerHomeId } from '../sim/places.js';
+import { placeOf, playerHomeId, pins } from '../sim/places.js';
 import { bondOf, isPartner, social, isWith, type PlanKind } from '../sim/social.js';
 import { invite, inviteFace, callOver, askAlong, letGo, cancelPlan, upcoming, planTick, earliest, isWorking, ALONG_BOND, HANGOUT_BOND, DATE_BOND } from '../sim/plans.js';
 import { whereNow } from '../sim/people.js';
@@ -21,7 +25,10 @@ import { featureOn } from '../sim/creator.js';
 import { ACT, INPUT } from './reg.js';
 import { talkButtons, loveButtons } from './matchui.js';
 
-export const PL = { card: '', kind: 'hangout' as PlanKind, place: '', day: 0, time: 0, busy: '', face: '', title: '' };
+export const PL = { card: '', kind: 'hangout' as PlanKind, place: '', day: 0, time: 0, busy: '', face: '', title: '', out: '' };
+// Home: a plan can be somewhere out of the house, in your words ("__out" in the list, then the place you type)
+const OUT_PICK = '__out';
+const planPlace = () => (PL.place === OUT_PICK ? (PL.out.trim() ? outingId(PL.out) : '') : PL.place);
 
 // A sentence in the interface language, with its variable parts filled in afterwards (they are already translated).
 const fmt = (t: string, ...a: string[]) => tr(t).replace(/\{(\d)\}/g, (_, n) => a[Number(n)] ?? '');
@@ -29,7 +36,7 @@ export function whenText(g: Save, at: number) {
     const d = Math.floor(at / 1440);
     return d === g.day ? fmt('today at {0}', hm(at % 1440)) : d === g.day + 1 ? fmt('tomorrow at {0}', hm(at % 1440)) : fmt('on {0} at {1}', tr(weekday(d)), hm(at % 1440));
 }
-const placeName = (g: Save, w: WorldDef, id: string) => (id === playerHomeId ? tr('your home') : tr(placeOf(g, w, id)?.name ?? ''));
+const placeName = (g: Save, w: WorldDef, id: string) => (id === playerHomeId ? tr(isScenario(w) ? 'your room' : 'your home') : tr(placeOf(g, w, id)?.name ?? ''));
 
 /* ---------- the clock ---------- */
 
@@ -65,7 +72,7 @@ export function sceneCard(g: Save, w: WorldDef): string {
         ${stayButton(r.avatar)}
         ${romanceButtons(r.avatar)}
         ${loveButtons(g, w, r.avatar)}
-        ${along || isPartner(g, r.avatar) || b >= 60 ? `<button class="mu-ghost" data-act="swap-to" data-who="${esc(r.avatar)}">${icon('user')}<span>Play as them</span></button>` : ''}
+        ${!isScenario(getWorld(g.world)) && (along || isPartner(g, r.avatar) || b >= 60) ? `<button class="mu-ghost" data-act="swap-to" data-who="${esc(r.avatar)}">${icon('user')}<span>Play as them</span></button>` : ''}
     </div>`;
 }
 
@@ -85,8 +92,10 @@ export function planForm(g: Save, w: WorldDef, avatar: string, face = false): st
     if (b < HANGOUT_BOND && !isPartner(g, avatar) && !dating(g).matches.includes(avatar))
         return `<section><h4>Plans</h4><p class="mu-muted">${esc(fmt('Get closer before making plans ({0}/{1}).', String(b), String(HANGOUT_BOND)))}</p></section>`;
     if (PL.kind === 'date' && !canDate) PL.kind = 'hangout';
-    const places = [...w.places.filter(p => !p.link), ...(placeOf(g, w, playerHomeId) ? [{ id: playerHomeId, name: 'Your home' }] : [])];
-    if (!places.some(p => p.id === PL.place)) PL.place = w.places.find(p => (p.tags ?? []).includes('leisure'))?.id ?? places[0]?.id ?? '';
+    // a scenario: plans are made in a room of the house (the rooms of this game, and your room)
+    const places = isScenario(w) ? [...pins(g, w).filter(p => !p.link && !p.home), { id: playerHomeId, name: 'Your room' }, { id: OUT_PICK, name: 'Somewhere out… (write where)' }]
+        : [...w.places.filter(p => !p.link), ...(placeOf(g, w, playerHomeId) ? [{ id: playerHomeId, name: 'Your home' }] : [])];
+    if (!places.some(p => p.id === PL.place)) PL.place = places.find(p => ((p as any).tags ?? []).includes('leisure'))?.id ?? places[0]?.id ?? '';
     const times = slots(g);
     while (!times.length && PL.day < 6) { PL.day++; times.push(...slots(g)); }
     if (!times.includes((g.day + PL.day) * 1440 + PL.time)) PL.time = (times[0] ?? 0) % 1440;
@@ -95,9 +104,10 @@ export function planForm(g: Save, w: WorldDef, avatar: string, face = false): st
     const plans = upcoming(g, avatar);
     return `<section class="mu-ph-plan"><h4>Make plans</h4>
             <div class="mu-chips"><button class="mu-chip ${PL.kind === 'hangout' ? 'is-on' : ''}" data-act="pl-kind" data-v="hangout">Hang out</button>
-                <button class="mu-chip ${PL.kind === 'date' ? 'is-on' : ''}" data-act="pl-kind" data-v="date" ${canDate ? '' : `aria-disabled="true" title="${esc(fmt('A date needs a closer bond ({0}/{1}) or a Spark match.', String(b), String(DATE_BOND)))}"`}>Date</button></div>
-            <label class="mu-field"><span>Name (optional)</span><input type="text" maxlength="80" data-input="pl-title" data-focus="pltitle" placeholder="${esc(tr('e.g. Movie night, Her birthday dinner'))}" value="${esc(PL.title)}"><small class="mu-muted">Tells the story what this event is about.</small></label>
+                <button class="mu-chip ${PL.kind === 'date' ? 'is-on' : ''}" data-act="pl-kind" data-v="date" ${canDate ? '' : `aria-disabled="true" title="${esc(lex(w, 'dateNeeds', String(b), String(DATE_BOND)))}"`}>Date</button></div>
+            <label class="mu-field"><span>Name (optional)</span><input type="text" maxlength="80" data-input="pl-title" data-focus="pltitle" placeholder="${esc(tr(lex(w, 'planTitleEg')))}" value="${esc(PL.title)}"><small class="mu-muted">Tells the story what this event is about.</small></label>
             <label class="mu-field"><span>Where</span><select data-input="pl-place">${places.map(p => `<option value="${esc(p.id)}" ${PL.place === p.id ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</select></label>
+            ${PL.place === OUT_PICK ? `<label class="mu-field"><span>Where out</span><input type="text" maxlength="80" data-input="pl-out" data-focus="plout" placeholder="${styleOf(w) === 'medieval' ? 'the market square, the village tavern, the riverbank…' : 'the beach, a café downtown, the cinema…'}" value="${esc(PL.out)}"></label>` : ''}
             <div class="mu-row2"><label class="mu-field"><span>Day</span><select data-input="pl-day">${[0, 1, 2, 3, 4, 5, 6].map(d => `<option value="${d}" ${PL.day === d ? 'selected' : ''}>${d === 0 ? 'Today' : d === 1 ? 'Tomorrow' : weekday(g.day + d)}</option>`).join('')}</select></label>
                 <label class="mu-field"><span>Time</span><select data-input="pl-time">${times.map(t => `<option value="${t % 1440}" ${PL.time === t % 1440 ? 'selected' : ''}>${hm(t % 1440)}</option>`).join('') || '<option>—</option>'}</select></label></div>
             <button class="mu-primary" data-act="${face ? 'pl-invite-face' : 'pl-invite'}" data-who="${esc(avatar)}" ${PL.busy || !times.length ? 'disabled' : ''}>${icon(face ? 'chat' : 'send')}<span>${face ? 'Ask them' : 'Invite'}</span></button>
@@ -124,12 +134,14 @@ export function calendarApp(g: Save, w: WorldDef, head: string): string {
     return `${head}<div class="mu-ph-body">
         ${s.with.length ? `<section><h4>With you</h4>${s.with.map(c => `<div class="mu-ph-job mu-plan-row"><img src="${esc(thumb(c.avatar))}" alt=""><span><b data-notr>${esc(g.cast[c.avatar]?.name ?? '')}</b><small>${esc(fmt('Until {0}', hm(c.until % 1440)))}</small></span>
             <button class="mu-ghost" data-act="pc-bye" data-who="${esc(c.avatar)}">Say goodbye</button></div>`).join('')}</section>` : ''}
-        ${partyForm(g, w)}
+        ${isScenario(w) ? housePartyHtml(g, w) : `${partyForm(g, w)}
+        ${cityEventsHtml(g, w)}
+        ${festivalsHtml(g, w)}`}
         <section><h4>Coming up</h4>${list.length ? list.map(a => planRow(g, w, a)).join('') : '<p class="mu-muted">No plans. Open someone in People to invite them out.</p>'}</section>
         ${past.length ? `<section><h4>Missed</h4>${past.map(a => `<p class="mu-muted"><span data-notr>${esc(g.cast[a.avatar]?.name ?? '')}</span> · ${esc(placeName(g, w, a.place))} · ${esc(whenText(g, a.from))}</p>`).join('')}</section>` : ''}
     </div>`;
 }
-export const plansBadge = (g: Save) => upcoming(g).filter(a => a.from - nowAbs(g) <= 120).length;
+export const plansBadge = (g: Save) => { const w = getWorld(g.world); return upcoming(g).filter(a => a.from - nowAbs(g) <= 120).length + (w ? cityBadge(g, w) : 0); };
 
 /* ---------- actions ---------- */
 
@@ -141,10 +153,9 @@ Object.assign(ACT, {
     'pc-intro': async (el) => {
         const g = game(); const who = el.dataset.who!; if (!g || !g.cast[who] || state.generating) return;
         PL.card = ''; notify();
-        setPrompt('mundi_ask', `[{{user}} walks up to this person and introduces themself. ${g.cast[who].name} answers and says their name.]`, 0);
+        setAsk(`[{{user}} walks up to this person and introduces themself. ${g.cast[who].name} answers and says their name.]`);
         await addUserLine(`*walks up with a friendly smile* Hi, I'm ${personaName()}.`);
         await replyAs(who);
-        setTimeout(() => setPrompt('mundi_ask', ''), 60000);
     },
     'pc-along': (el) => {
         const c = gw(); if (!c) return;
@@ -176,13 +187,13 @@ Object.assign(ACT, {
         const who = el.dataset.who!; const r = c.g.cast[who]; if (!r) return;
         const at = (c.g.day + PL.day) * 1440 + PL.time;
         if (at < earliest(c.g)) { toast('Pick a later time.', 'info'); return; }
-        const title = PL.title.trim(); const ans = inviteFace(c.g, c.w, who, PL.place, at, PL.kind, title); if (ans.ok) PL.title = '';
+        if (!planPlace()) { toast('Write where.', 'info'); return; }
+        const title = PL.title.trim(); const ans = inviteFace(c.g, c.w, who, planPlace(), at, PL.kind, title); if (ans.ok) PL.title = '';
         PL.face = ''; saveGame();
         const what = PL.kind === 'date' ? 'go on a date' : 'hang out';
         // the scene plays it: your words go into the chat, and the engine's answer guides her reply
-        setPrompt('mundi_ask', `[{{user}} is asking ${r.name} to ${what}${title ? ` ("${title}")` : ''}: ${ans.where}, ${ans.when}. ${ans.ok ? `${r.name} says yes (it is decided), happily, in their own way.` : `${r.name} says no, kindly. Reason: ${ans.why}`} Write ${r.name}'s reply.]`, 0);
+        setAsk(`[{{user}} is asking ${r.name} (a new invitation: it replaces any earlier one in this conversation) to ${what}${title ? ` ("${title}")` : ''}, ${ans.where}, ${ans.when}. ${ans.ok ? `${r.name} says yes to THIS one (it is decided; earlier refusals were about other times), happily, in their own way.` : `${r.name} says no to this one, kindly. Reason: ${ans.why}`} Answer only this invitation, with its time (${ans.when}). Write ${r.name}'s reply.]`);
         sendCanned(PL.kind === 'date' ? `"Would you like to go on a date with me?${title ? ` ${title}:` : ''} ${ans.where}, ${ans.when}."` : `"${title ? `${title}, want to come?` : 'Want to hang out?'} ${ans.where}, ${ans.when}."`);
-        setTimeout(() => setPrompt('mundi_ask', ''), 60000);
         toast(ans.ok ? `${r.name} said yes: ${ans.where}, ${ans.when}.` : ans.why, ans.ok ? 'success' : 'info');
         notify();
     },
@@ -192,14 +203,15 @@ Object.assign(ACT, {
         const who = el.dataset.who!;
         const at = (c.g.day + PL.day) * 1440 + PL.time;
         if (at < earliest(c.g)) { toast('Pick a later time.', 'info'); return; }
-        const where = PL.place === playerHomeId ? tr('my place') : placeName(c.g, c.w, PL.place);
+        if (!planPlace()) { toast('Write where.', 'info'); return; }
+        const where = PL.place === playerHomeId ? tr('my place') : placeName(c.g, c.w, planPlace());
         const mine = PL.kind === 'date' ? fmt('Would you like to go on a date with me? {0}, {1}.', where, whenText(c.g, at)) : fmt('Want to hang out? {0}, {1}.', where, whenText(c.g, at));
         PL.busy = who;
         // the conversation opens on the phone: your invitation, then their answer
         { const { P } = await import('./phone.js'); P.open = true; P.app = 'thread'; P.who = who; P.typing = who; }
         notify();
         try {
-            const title = PL.title.trim(); const ans = await invite(c.g, c.w, who, PL.place, at, PL.kind, title ? `${title}! ${mine}` : mine, title); if (ans.ok) PL.title = '';
+            const title = PL.title.trim(); const ans = await invite(c.g, c.w, who, planPlace(), at, PL.kind, title ? `${title}! ${mine}` : mine, title); if (ans.ok) PL.title = '';
             toast(ans.ok ? fmt('{0} said yes: {1}, {2}.', c.g.cast[who]?.name ?? '', where, whenText(c.g, at)) : ans.why, ans.ok ? 'success' : 'info');
         } catch (e: any) { toast(String(e?.message ?? e), 'error'); }
         { const { P } = await import('./phone.js'); P.typing = ''; }
@@ -226,7 +238,8 @@ Object.assign(ACT, {
     },
 });
 Object.assign(INPUT, {
-    'pl-place': (el) => { PL.place = el.value; },
+    'pl-place': (el) => { PL.place = el.value; notify(); },
+    'pl-out': (el) => { PL.out = el.value; },
     'pl-day': (el) => { PL.day = Number(el.value); notify(); },
     'pl-time': (el) => { PL.time = Number(el.value); },
     'pl-title': (el) => { PL.title = el.value; },

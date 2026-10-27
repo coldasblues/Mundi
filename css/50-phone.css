@@ -355,6 +355,8 @@
 #mundi-root .mu-cw-kind .mu-cw-cover { aspect-ratio: 4 / 3; }
 #mundi-root .mu-cw-trait { display: grid; gap: 6px; padding: 10px; border: 1px solid var(--line); border-radius: var(--ri); }
 #mundi-root .mu-cw-apps { display: grid; gap: 6px; }
+#mundi-root .mu-cw-systems { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 4px 14px; margin: 6px 0; }
+#mundi-root .mu-cw-systems > .is-off { opacity: .45; pointer-events: none; }
 #mundi-root .mu-cw-app { display: grid; grid-template-columns: 36px auto 1fr 120px 44px; gap: 8px; align-items: center; }
 #mundi-root .mu-cw-app.is-off { opacity: .55; }
 #mundi-root .mu-cw-app > i { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; background: var(--c); color: #fff; }
@@ -429,6 +431,13 @@ body.mundi-open #toast-container { display: none !important; }
 
 /* the style of each world, on its card */
 #mundi-root .mu-worldart { position: relative; }
+#mundi-root .mu-style-tags { position: absolute; left: 10px; top: 10px; z-index: 2; display: flex; gap: 6px; flex-wrap: wrap; }
+#mundi-root .mu-style-tags .mu-style-tag { position: static; }
+#mundi-root .mu-style-tag.is-fantasy { background: rgba(124, 58, 237, .88); color: #fff; }
+#mundi-root .mu-style-tag.is-realistic { background: rgba(22, 120, 90, .88); color: #fff; }
+#mundi-root .mu-slides { position: absolute; inset: 0; overflow: hidden; }
+#mundi-root .mu-slides i { position: absolute; inset: 0; background-size: cover; background-position: center; opacity: 0; transition: opacity 1.2s ease; }
+#mundi-root .mu-slides i.is-on { opacity: 1; }
 #mundi-root .mu-style-tag { position: absolute; left: 10px; top: 10px; padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 800; font-style: normal; letter-spacing: .03em;
     background: rgba(10, 14, 22, .78); color: #fff; border: 1px solid rgba(255, 255, 255, .25); backdrop-filter: blur(4px); }
 #mundi-root .mu-style-tag.is-medieval { background: rgba(70, 40, 18, .88); color: #f6d98f; border-color: #b88a35; font-family: "Cinzel", serif; }
@@ -460,6 +469,11 @@ body.mundi-open #toast-container { display: none !important; }
 #mundi-root .mu-jr-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
 #mundi-root .mu-jr-list li { display: grid; gap: 1px; padding-left: 10px; border-left: 3px solid var(--accent); }
 #mundi-root .mu-jr-list small { color: var(--muted); font-size: 11px; }
+#mundi-root .mu-jr-rumors { display: grid; gap: 8px; margin-top: 14px; }
+#mundi-root .mu-jr-rumors ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+#mundi-root .mu-jr-rumors li { display: grid; gap: 1px; padding-left: 10px; border-left: 3px dashed color-mix(in srgb, var(--accent) 60%, transparent); font-style: italic; }
+#mundi-root .mu-jr-rumors li small { color: var(--muted); font-size: 11px; font-style: normal; }
+#mundi-root .mu-jr-rumors > button { justify-self: start; }
 #mundi-root .mu-jr-prose { margin: 8px 0 0; padding: 8px 12px; border-left: 3px solid var(--line); font-style: italic; white-space: pre-wrap; }
 #mundi-root .mu-jr-btn { justify-self: start; margin-top: 6px; }
 
@@ -509,3 +523,207 @@ body.mundi-open #toast-container { display: none !important; }
 #mundi-root .mu-ph-wp-grid button { aspect-ratio: 9 / 16; padding: 0; border-radius: 10px; background: #0002 center / cover no-repeat; border: 2px solid transparent; }
 #mundi-root .mu-ph-wp-grid button.is-on { border-color: var(--accent, #7aa2ff); }
 #mundi-root .mh-event-name { display: block; font-weight: 600; opacity: .85; }
+#mundi-root .mu-cw-words { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 4px 16px; }
+#mundi-root .mu-cw-words .mu-field > span { font-weight: 500; opacity: .8; }
+/* pictures for each part of the day (places, homes, maps) */
+#mundi-root .mu-me-times { display: grid; gap: 6px; margin: 6px 0; }
+#mundi-root .mu-me-times > summary { cursor: pointer; font-weight: 600; font-size: 13px; }
+#mundi-root .mu-me-time { display: grid; grid-template-columns: 54px 1fr 32px 32px 32px; gap: 6px; align-items: center; }
+#mundi-root .mu-me-time > button { width: 32px; height: 32px; padding: 0; display: grid; place-items: center; }
+#mundi-root .mu-cw-cover.is-mini { width: 54px; height: 34px; border-radius: 6px; background-size: cover; background-position: center; display: grid; place-items: center; font-size: 10px; color: var(--muted); border: 1px dashed var(--line); }
+#mundi-root .mu-me-region { display: grid; gap: 6px; margin: 6px 0; }
+#mundi-root .mu-me-region > summary { cursor: pointer; font-weight: 600; font-size: 13px; }
+#mundi-root .mu-me-mapform, #mundi-root .mu-me-mapform details { min-width: 0; }
+#mundi-root .mu-me-mapform .mu-field input { width: 100%; box-sizing: border-box; }
+#mundi-root .mu-me-maps .mu-me-time { grid-template-columns: 46px 1fr 30px 30px; }
+#mundi-root .mu-me-maps .mu-cw-cover.is-mini { width: 46px; }
+/* career branches: choose your path */
+#mundi-root .mu-branch { display: grid; gap: 6px; margin-top: 8px; padding: 10px; border-radius: 12px; background: color-mix(in srgb, var(--accent) 12%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); }
+#mundi-root .mu-branch-opt { display: grid; gap: 2px; text-align: left; padding: 9px 11px; border-radius: 10px; }
+#mundi-root .mu-branch-opt small { font-size: 11.5px; line-height: 1.35; white-space: normal; font-weight: 400; }
+#mundi-root .mu-cw-branch { display: grid; gap: 8px; padding: 10px; border: 1px solid var(--line); border-radius: 12px; margin: 6px 0; }
+#mundi-root .mu-cw-path { display: grid; gap: 6px; padding: 8px 10px; border-left: 3px solid var(--accent); background: color-mix(in srgb, var(--text) 3%, transparent); border-radius: 8px; }
+#mundi-root .mu-wc-life { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 4px; }
+#mundi-root .mu-wc-life li.is-on b { color: var(--accent); }
+#mundi-root .mu-wc-life li.is-off { opacity: .7; }
+#mundi-root .mu-castmeter { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; margin: 8px 0; padding: 8px 12px; border-radius: 12px; background: color-mix(in srgb, var(--text) 5%, transparent); }
+#mundi-root .mu-castmeter .is-too { color: #ff8f6b; } #mundi-root .mu-castmeter .is-works { color: #ffcf6b; } #mundi-root .mu-castmeter .is-pleasant, #mundi-root .mu-castmeter .is-lively { color: #7ddf8f; }
+/* RPG: character sheet, quests, grimoire, the badge, creation */
+#mundi-root .mu-rpg-bar { display: block; height: 6px; border-radius: 99px; background: color-mix(in srgb, var(--text) 12%, transparent); overflow: hidden; margin: 2px 0 6px; }
+#mundi-root .mu-rpg-bar i { display: block; height: 100%; border-radius: inherit; background: var(--accent); }
+#mundi-root .mu-rpg-bar.is-hp i { background: #e0533f; } #mundi-root .mu-rpg-bar.is-focus i { background: #7b5cff; } #mundi-root .mu-rpg-bar.is-xp i { background: #e8b23a; }
+#mundi-root .mu-sheet-attrs { display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 6px; }
+#mundi-root .mu-sheet-attrs > div { display: grid; justify-items: center; gap: 1px; padding: 6px; border-radius: 10px; background: color-mix(in srgb, var(--text) 6%, transparent); position: relative; }
+#mundi-root .mu-sheet-attrs b { font-size: 20px; } #mundi-root .mu-sheet-attrs em { font-style: normal; font-size: 12px; opacity: .8; } #mundi-root .mu-sheet-attrs i { font-size: 10px; font-style: normal; color: var(--accent); }
+#mundi-root .mu-sheet-attrs.is-make span { display: flex; gap: 4px; }
+#mundi-root .mu-sheet-skills { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 2px 10px; font-size: 13px; }
+#mundi-root .mu-sheet-skills span { opacity: .7; } #mundi-root .mu-sheet-skills span.is-trained { opacity: 1; } #mundi-root .mu-sheet-skills span.is-trained::before { content: '● '; color: var(--accent); }
+#mundi-root .mu-sheet-skills b { display: inline-block; min-width: 26px; }
+#mundi-root .mu-sheet-titles { color: #e8b23a; font-weight: 600; }
+#mundi-root .mu-quest { display: grid; gap: 4px; padding: 10px; border-radius: 12px; border: 1px solid var(--line); margin-bottom: 8px; }
+#mundi-root .mu-quest p { margin: 0; font-size: 13px; } #mundi-root .mu-quest.is-done, #mundi-root .mu-quest.is-failed { opacity: .6; }
+#mundi-root .mu-spell { display: grid; grid-template-columns: 1fr auto auto; gap: 6px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--line); }
+#mundi-root .mu-spell span { display: grid; } #mundi-root .mu-spell small { font-size: 11.5px; opacity: .8; } #mundi-root .mu-spell.is-prep b::after { content: ' ✦'; color: #7b5cff; }
+#mundi-root .mh-rpg { position: absolute; z-index: 21; top: 8px; left: 50%; transform: translateX(-50%); display: none; }
+#mundi-root .mh-rpg { position: fixed; top: auto; bottom: 14px; left: 14px; transform: none; display: grid; grid-template-columns: auto 70px; gap: 0 8px; align-items: center; padding: 6px 10px; border-radius: 12px; cursor: pointer; }
+#mundi-root .mh-rpg b { grid-row: span 2; font-size: 13px; } #mundi-root .mh-rpg .mu-rpg-bar { margin: 1px 0; height: 5px; }
+#mundi-root .mh-rpg em { position: absolute; top: -6px; right: -6px; width: 18px; height: 18px; border-radius: 50%; background: #e8b23a; color: #000; font-style: normal; font-weight: 800; font-size: 12px; display: grid; place-items: center; }
+#mundi-root .mh-act.is-quest { border-color: rgba(232, 178, 58, .6); }
+#mundi-root .mu-rpgmake { display: grid; gap: 8px; margin-top: 14px; }
+
+/* The Party app (RPG) */
+#mundi-root .mu-party-rows { align-items: center; gap: 8px; }
+#mundi-root .mu-party-rows button { padding: 2px 10px; font-size: 11px; }
+#mundi-root .mu-party-merc { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-style: normal; background: color-mix(in srgb, var(--text) 10%, transparent); }
+
+/* Life and society: reputation, alter ego, habits, apprentices, animals */
+#mundi-root .mu-lp section { display: grid; gap: 6px; margin-bottom: 12px; }
+#mundi-root .mu-lp-row { display: grid; grid-template-columns: 1fr; gap: 3px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--line); }
+#mundi-root .mu-lp-row > small { color: var(--muted); font-size: 12px; }
+#mundi-root .mu-lp .mu-row { display: flex; gap: 6px; align-items: center; } #mundi-root .mu-lp .mu-row input { flex: 1; min-width: 0; }
+#mundi-root .mu-lp .mu-ph-job > .mu-lp-icon { width: 40px; flex: none; font-size: 30px; }
+#mundi-root .mu-lp-row > .mu-lp-bar, #mundi-root .mu-lp-row > .mu-lp-rep { grid-column: 1 / -1; }
+#mundi-root .mu-lp-row.is-has b::after { content: ' ✓'; color: var(--accent); }
+#mundi-root .mu-lp-bar { display: block; height: 7px; border-radius: 4px; background: color-mix(in srgb, var(--text) 12%, transparent); overflow: hidden; }
+#mundi-root .mu-lp-bar i { display: block; height: 100%; border-radius: 4px; background: var(--accent); transition: width .4s; }
+#mundi-root .mu-lp-bar.is-sus i { background: linear-gradient(90deg, #f2c230, #ef4b3c); }
+#mundi-root .mu-lp-bar.is-food i { background: #e58a4e; } #mundi-root .mu-lp-bar.is-love i { background: #ff5c8a; }
+#mundi-root .mu-lp-rep { position: relative; display: block; height: 7px; border-radius: 4px; background: color-mix(in srgb, var(--text) 12%, transparent); overflow: hidden; }
+#mundi-root .mu-lp-rep::after { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: var(--muted); }
+#mundi-root .mu-lp-rep i { position: absolute; top: 0; bottom: 0; } #mundi-root .mu-lp-rep i.is-good { background: #3fd26a; } #mundi-root .mu-lp-rep i.is-bad { background: #ef4b3c; }
+#mundi-root .mu-lp-pet { display: grid; grid-template-columns: 52px 1fr; gap: 10px; padding: 10px; border: 1px solid var(--line); border-radius: 12px; }
+#mundi-root .mu-lp-pet > i, #mundi-root .mu-lp-icon { font-style: normal; font-size: 38px; line-height: 1; display: grid; place-items: center; }
+#mundi-root .mu-lp-pet > div { display: grid; gap: 3px; } #mundi-root .mu-lp-pet small { color: var(--muted); font-size: 11.5px; }
+#mundi-root .mu-lp-mentor { display: flex; gap: 6px; align-items: center; } #mundi-root .mu-lp-mentor select { flex: 1; min-width: 0; }
+#mundi-root .mh-fest { margin-left: 6px; }
+#mundi-root .mu-fac { display: grid; gap: 4px; padding: 10px; border: 1px solid var(--line); border-radius: 12px; margin-bottom: 8px; }
+#mundi-root .mu-fac.is-member { border-color: var(--accent); }
+#mundi-root .mu-fac header { display: grid; gap: 1px; } #mundi-root .mu-fac header small { color: var(--muted); font-size: 11.5px; }
+#mundi-root .mu-fac p { margin: 0; font-size: 12.5px; }
+#mundi-root .mu-lp-bar.is-power i { background: #6b4fd8; } #mundi-root .mu-lp-bar.is-faith i { background: linear-gradient(90deg, #f5d36b, #fff3c4); }
+#mundi-root .mu-audience p { margin: 0 0 6px; }
+#mundi-root .mu-talent-tier { display: grid; gap: 4px; margin-bottom: 6px; } #mundi-root .mu-talent-tier.is-locked { opacity: .5; }
+#mundi-root .mu-talent-tier > small { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+#mundi-root .mu-talent-tier > div { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 6px; }
+#mundi-root .mu-talent { display: grid; gap: 1px; justify-items: start; text-align: left; padding: 7px 9px !important; border-radius: 10px !important; }
+#mundi-root .mu-talent small { font-size: 11px; opacity: .8; }
+#mundi-root .mu-talent.is-on { border-color: var(--accent) !important; box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent) !important; }
+#mundi-root .mu-mini { width: 18px; height: 18px; border-radius: 50%; vertical-align: middle; object-fit: cover; }
+#mundi-root .mu-good-row .mu-lp-icon { font-size: 26px; width: 34px; }
+#mundi-root .mu-trophies { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; }
+#mundi-root .mu-trophies > div { display: grid; justify-items: center; gap: 2px; padding: 10px; border: 1px solid var(--line); border-radius: 12px; text-align: center; }
+#mundi-root .mu-trophies i { font-style: normal; font-size: 34px; } #mundi-root .mu-trophies small { color: var(--muted); font-size: 11px; }
+
+/* the maps picker: round pictures of every map, like choosing a world in The Sims */
+#mundi-root .mu-worlds-veil { position: absolute; inset: 0; z-index: 20; display: grid; place-items: center; padding: 70px 16px 16px; background: rgba(8, 12, 20, .45); backdrop-filter: blur(3px); }
+#mundi-root .mu-worlds { width: min(980px, 100%); max-height: 100%; overflow: auto; padding: 18px 22px 24px; border-radius: 18px; }
+#mundi-root .mu-worlds header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+#mundi-root .mu-worlds header h3 { margin: 0; display: flex; gap: 8px; align-items: center; letter-spacing: .06em; text-transform: uppercase; font-size: 15px; }
+#mundi-root .mu-worlds-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 18px 14px; }
+#mundi-root .mu-world-dot { display: grid; justify-items: center; gap: 4px; padding: 6px 2px; background: none; border: 0; color: inherit; cursor: pointer; text-align: center; }
+#mundi-root .mu-world-dot i { position: relative; display: block; width: 118px; aspect-ratio: 1; border-radius: 50%; background-size: cover; background-position: center; box-shadow: 0 6px 16px rgba(0, 0, 0, .28); border: 3px solid rgba(255, 255, 255, .85); transition: transform .18s ease, box-shadow .18s ease; }
+#mundi-root .mu-world-dot:hover i, #mundi-root .mu-world-dot:focus-visible i { transform: translateY(-3px) scale(1.04); box-shadow: 0 10px 22px rgba(0, 0, 0, .35); }
+#mundi-root .mu-world-dot.is-on i { border-color: var(--accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 45%, transparent), 0 8px 18px rgba(0, 0, 0, .3); }
+#mundi-root .mu-world-dot i em { position: absolute; left: 50%; bottom: 6px; transform: translateX(-50%); display: flex; gap: 4px; align-items: center; padding: 2px 8px; border-radius: 999px; background: var(--accent); color: #fff; font: 700 11px/1.4 inherit; font-style: normal; white-space: nowrap; }
+#mundi-root .mu-world-dot i em svg { width: 11px; height: 11px; }
+#mundi-root .mu-world-dot b { font-size: 13px; }
+#mundi-root .mu-world-dot small { opacity: .7; font-size: 11px; }
+@media (prefers-reduced-motion: reduce) { #mundi-root .mu-world-dot i { transition: none; } }
+
+/* tabs of a section (Profile, Companions, Groups, Missions) */
+#mundi-root .mu-ph-head .mu-sec-tabs { grid-column: 1 / -1; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; padding: 8px 4px 2px; }
+#mundi-root .mu-ph-head .mu-sec-tabs button { flex: none; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); color: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+#mundi-root .mu-ph-head .mu-sec-tabs button.is-on { background: var(--accent); border-color: var(--accent); color: #fff; }
+#mundi-root .mu-book .mu-ph-head .mu-sec-tabs button { background: transparent !important; border-color: rgba(90, 60, 30, .35) !important; color: #4a3322 !important; box-shadow: none !important; font-family: inherit; }
+#mundi-root .mu-book .mu-ph-head .mu-sec-tabs button.is-on { background: rgba(120, 70, 30, .85) !important; color: #f6e7c8 !important; border-color: transparent; }
+
+/* new game and new world on a wide screen: side by side instead of one long column */
+#mundi-root .mu-cw-new-grid > section, #mundi-root .mu-ng-worlds, #mundi-root .mu-ng-play { display: grid; gap: 12px; align-content: start; min-width: 0; }
+#mundi-root .mu-cw-new-grid { display: grid; gap: 12px; }
+@media (min-width: 1100px) {
+    #mundi-root:not([data-mobile]) .mu-wizard-body { max-width: 1560px; }
+    #mundi-root:not([data-mobile]) .mu-ng-world.has-play { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 26px; align-items: start; }
+    #mundi-root:not([data-mobile]) .mu-ng-play { position: sticky; top: 0; padding: 14px; border: 1px solid var(--line); border-radius: 16px; background: color-mix(in srgb, var(--panel) 70%, transparent); }
+    #mundi-root:not([data-mobile]) .mu-ng-play h3 { margin: 0; }
+    #mundi-root:not([data-mobile]) .mu-ng-play .mu-heropick { grid-template-columns: 1fr; max-width: none; }
+    #mundi-root:not([data-mobile]) .mu-worldgrid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+    #mundi-root:not([data-mobile]) .mu-worldgrid .mu-worldart, #mundi-root:not([data-mobile]) .mu-cw-new-b .mu-worldart { aspect-ratio: 2 / 1; }
+    #mundi-root:not([data-mobile]) .mu-worldgrid .mu-worldcard.is-new .mu-worldart, #mundi-root:not([data-mobile]) .mu-cw-new-b .mu-worldcard.is-new .mu-worldart { aspect-ratio: auto; height: 64px; }
+    #mundi-root:not([data-mobile]) .mu-worldgrid .mu-worldcard.is-new p { display: none; }
+    #mundi-root:not([data-mobile]) .mu-worldgrid { align-items: start; }
+    #mundi-root:not([data-mobile]) .mu-cw-new-b .mu-cards { align-items: start; }
+    #mundi-root:not([data-mobile]) .mu-cw-new-b .mu-worldcard.is-new p { display: none; }
+    #mundi-root:not([data-mobile]) .mu-cw-new-b .mu-worldcard.is-new { display: grid; grid-template-columns: 56px 1fr; column-gap: 12px; align-items: center; padding: 10px 14px; min-height: 0; }
+    #mundi-root:not([data-mobile]) .mu-cw-new-b .mu-worldcard.is-new > .mu-worldart { grid-row: 1 / 3; width: 56px; height: 56px; margin: 0; border-radius: 12px; }
+    #mundi-root:not([data-mobile]) .mu-cw-new-b .mu-worldcard.is-new > :not(.mu-worldart) { padding: 0; }
+    #mundi-root:not([data-mobile]) .mu-worldgrid .mu-worldcard.is-new { display: grid; grid-template-columns: 64px 1fr; grid-template-rows: auto auto; column-gap: 12px; align-items: center; padding: 10px 14px; min-height: 0; }
+    #mundi-root:not([data-mobile]) .mu-worldgrid .mu-worldcard.is-new > .mu-worldart { grid-row: 1 / 3; width: 64px; height: 64px; margin: 0; border-radius: 12px; }
+    #mundi-root:not([data-mobile]) .mu-worldgrid .mu-worldcard.is-new > :not(.mu-worldart) { padding: 0; }
+    #mundi-root:not([data-mobile]) .mu-cw-new-a .mu-styles { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; }
+    #mundi-root:not([data-mobile]) .mu-cw-new .mu-cw-new-body { max-width: 1520px; }
+    #mundi-root:not([data-mobile]) .mu-cw-new-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 30px; align-items: start; }
+    #mundi-root:not([data-mobile]) .mu-cw-new-a .mu-styles { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+    #mundi-root:not([data-mobile]) .mu-cw-new-b .mu-heropick { grid-template-columns: repeat(3, minmax(0, 1fr)); max-width: none; gap: 10px; }
+    #mundi-root:not([data-mobile]) .mu-cw-new-b .mu-herocard { min-height: 0; padding: 14px; }
+    #mundi-root:not([data-mobile]) .mu-cw-new-b .mu-cards { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
+    #mundi-root:not([data-mobile]) .mu-cw-new-b .mu-worldcard p { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+}
+#mundi-root .mu-cw-asks { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px 16px; }
+#mundi-root .mu-me-libgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; margin: 8px 0 4px; }
+#mundi-root .mu-me-libgrid button { display: grid; gap: 4px; padding: 4px; border-radius: 10px; text-align: center; font-size: 11px; }
+#mundi-root .mu-me-libgrid button i { display: block; aspect-ratio: 16 / 9; border-radius: 7px; background-size: cover; background-position: center; }
+#mundi-root .mu-me-libgrid button.is-on { outline: 2px solid var(--accent); }
+#mundi-root .mu-world-known { display: flex; justify-content: center; margin-top: 2px; }
+#mundi-root .mu-world-known img { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; border: 2px solid var(--panel); margin-left: -6px; }
+#mundi-root .mu-world-known img:first-child { margin-left: 0; }
+#mundi-root .mu-world-known em { font-size: 10px; font-style: normal; font-weight: 800; margin-left: 4px; align-self: center; }
+
+/* Library → Presets */
+#mundi-root .mu-cp { grid-template-columns: 300px minmax(0, 1fr); }
+#mundi-root .mu-cp-list { display: grid !important; grid-template-rows: none !important; grid-auto-rows: min-content; gap: 8px; align-content: start; padding: 12px; overflow: auto; }
+#mundi-root .mu-cp-list > * { flex: none; height: auto; }
+#mundi-root .mu-cp-row { display: grid; gap: 4px; text-align: left; padding: 10px 12px; }
+#mundi-root .mu-cp-row.is-on { outline: 2px solid var(--accent); }
+#mundi-root .mu-cp-row small { opacity: .7; }
+#mundi-root .mu-cp-name { flex: 1; max-width: 420px; }
+#mundi-root .mu-cp-appr { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px 12px; }
+#mundi-root .mu-cp-appr span { display: flex; align-items: center; gap: 6px; }
+#mundi-root .mu-cp-appr img { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; }
+#mundi-root .mu-cp-pick { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 10px 12px; border: 1px dashed var(--line); border-radius: 12px; }
+#mundi-root .mu-cp-pick b { margin-right: 6px; }
+#mundi-root .mu-cp-seen { display: grid; gap: 10px; padding: 14px 18px; }
+#mundi-root .mu-cp-ask { display: grid; gap: 10px; padding: 14px 18px; border: 1px solid var(--accent); }
+#mundi-root .mu-cp-groups { display: grid; gap: 6px; }
+#mundi-root .mu-cp-group > span { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+#mundi-root .mu-cp-group small { opacity: .7; }
+#mundi-root .mu-situation-custom { display: grid; gap: 10px; padding: 14px 18px; margin-top: 10px; }
+#mundi-root .mu-situation-books { max-height: 160px; overflow: auto; }
+#mundi-root .mu-ngjobs { display: grid; gap: 10px; padding: 14px 18px; } #mundi-root .mu-ngjobs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px 12px; } #mundi-root .mu-ngjobs-grid .mu-field > span { display: flex; align-items: center; gap: 6px; }
+#mundi-root .mu-ng-rooms { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
+#mundi-root .mu-ng-room { position: relative; display: grid; gap: 4px; padding: 6px; text-align: left; border-radius: var(--rb, 12px); opacity: .55; }
+#mundi-root .mu-ng-room.is-on { opacity: 1; outline: 2px solid var(--accent); }
+#mundi-root .mu-ng-room i { display: grid; place-items: center; aspect-ratio: 16/9; border-radius: 8px; background: var(--b2, #223) center/cover; }
+#mundi-root .mu-ng-room b { font-size: .85em; }
+#mundi-root .mu-ng-room em { position: absolute; top: 10px; right: 10px; display: none; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: #fff; font-style: normal; text-align: center; line-height: 22px; font-size: 13px; }
+#mundi-root .mu-ng-room.is-on em { display: block; }
+/* the scenario step: the scenarios on the left, the rooms grid to the screen's edge */
+@media (min-width: 900px) {
+    #mundi-root:not([data-mobile]) .mu-wizard-body:has(.mu-ng-world.is-scen) { max-width: none; }
+    #mundi-root:not([data-mobile]) .mu-ng-world.has-play.is-scen { grid-template-columns: minmax(300px, 380px) minmax(0, 1fr); }
+    #mundi-root:not([data-mobile]) .mu-ng-world.is-scen .mu-worldgrid { grid-template-columns: 1fr; }
+    #mundi-root:not([data-mobile]) .mu-ng-world.is-scen .mu-ng-play { position: static; }
+}
+#mundi-root .mu-ng-world.is-scen .mu-ng-rooms { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
+#mundi-root .mu-ng-room-w { position: relative; display: grid; }
+#mundi-root .mu-ng-room-edit { position: absolute; top: 10px; left: 10px; width: 28px; height: 28px; padding: 0; display: grid; place-items: center; border-radius: 50%; background: rgba(10, 14, 24, .7); color: #fff; z-index: 2; }
+#mundi-root .mu-ng-room-edit.is-on { background: var(--accent); }
+#mundi-root .mu-ng-room-edit svg { width: 15px; height: 15px; }
+#mundi-root .mu-ng-room.is-add { opacity: 1; border: 1.5px dashed var(--line); background: transparent; }
+#mundi-root .mu-ng-room.is-add i { display: grid; place-items: center; background: transparent; }
+#mundi-root .mu-ng-room.is-add i svg { width: 34px; height: 34px; }
+#mundi-root .mu-ng-roomform, #mundi-root .mu-ng-roomacts { display: grid; gap: 10px; padding: 14px 18px; margin-top: 12px; }
+#mundi-root .mu-ng-roompic { width: 120px; aspect-ratio: 16/9; border-radius: 8px; display: grid; place-items: center; background: var(--b2, #223) center/cover; }
+#mundi-root .mu-ng-roomacts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 4px 14px; }
+#mundi-root .mu-ng-roomacts header h4 { margin: 0; }
+/* faces in the jobs list stay small */
+#mundi-root .mu-ngjobs-grid img { width: 24px; height: 24px; max-width: 24px; border-radius: 50%; object-fit: cover; flex: none; }

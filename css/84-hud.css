@@ -34,6 +34,11 @@
 #mundi-root .mh-who { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
 #mundi-root .mh-who b { font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #mundi-root .mh-who .mu-cash { font-weight: 800; font-size: 14px; color: #6ee59a; text-shadow: 0 0 10px rgba(110, 229, 154, .35); }
+#mundi-root .mh-who { justify-content: flex-start; } #mundi-root .mh-who .mu-cash { margin-left: auto; }
+#mundi-root .mh-who .mh-lv { flex: none; align-self: center; position: relative; padding: 1px 8px; border-radius: 999px; border: 1px solid rgba(123, 92, 255, .6); background: rgba(123, 92, 255, .22); color: #d9d0ff; font-size: 11px; font-weight: 800; line-height: 1.5; cursor: pointer; }
+#mundi-root .mh-who .mh-lv:hover { background: rgba(123, 92, 255, .4); }
+#mundi-root .mh-who .mh-lv.is-ready { border-color: #ffcf4a; box-shadow: 0 0 10px rgba(255, 207, 74, .45); }
+#mundi-root .mh-who .mh-lv em { position: absolute; top: -6px; right: -6px; width: 14px; height: 14px; border-radius: 50%; display: grid; place-items: center; background: #ffcf4a; color: #2a1d00; font: 900 10px/1 inherit; font-style: normal; }
 #mundi-root .mh-bar { display: grid; grid-template-columns: 20px 64px 1fr; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; }
 #mundi-root .mh-bar-ic { color: var(--c); display: grid; place-items: center; filter: drop-shadow(0 0 4px var(--c)); }
 #mundi-root .mh-bar-ic .mu-ic { width: 18px; height: 18px; }
@@ -48,7 +53,7 @@
 #mundi-root .mh-ring-ic::before { content: ""; position: absolute; inset: -3px; border-radius: 50%; padding: 2px;
     background: conic-gradient(var(--c) calc(var(--v) * 1%), rgba(255, 255, 255, .14) 0); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
 #mundi-root .mh-ring-ic .mu-ic { width: 20px; height: 20px; filter: drop-shadow(0 0 3px var(--c)); }
-#mundi-root .mh-ring small { font-size: 10.5px; font-weight: 600; color: var(--hud-muted); }
+#mundi-root .mh-ring small { display: none; }   /* the icon says it; the name shows on hover */
 #mundi-root .mh-ring.is-low .mh-ring-ic, #mundi-root .mh-bar.is-low .mh-bar-ic { animation: mh-pulse 1.2s ease-in-out infinite; }
 @keyframes mh-pulse { 50% { opacity: .45; } }
 
@@ -285,7 +290,10 @@
 @keyframes mh-orb { from { transform: scale(.6); opacity: .4; } to { transform: scale(1); opacity: 1; } }
 
 /* library additions */
-#mundi-root .mu-lib-item.is-folder .mu-lib-thumb { color: var(--fc, inherit); }
+#mundi-root .mu-lib-item.is-folder .mu-lib-thumb { color: inherit; }
+/* a folder with a color: the tile takes the color, the folder icon is a lighter shade of it */
+#mundi-root .mu-lib-item.is-folder[style*="--fc"] .mu-lib-thumb { background: var(--fc); color: color-mix(in srgb, var(--fc) 25%, #fff);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .25), 0 2px 8px color-mix(in srgb, var(--fc) 35%, transparent); }
 #mundi-root .mu-lib-crumb input[type="color"] { width: 34px; height: 30px; padding: 0; border: 0; background: none; }
 #mundi-root .mu-tok { position: absolute; left: 6px; bottom: 6px; padding: 1px 6px; border-radius: 6px; font-size: 10px; font-weight: 800; background: rgba(0, 0, 0, .6); color: #fff; }
 #mundi-root .mu-lib-item { position: relative; }
@@ -350,3 +358,40 @@
 /* wide screens: next to your card (top left), where there is room before the clock */
 @media (min-width: 1680px) { #mundi-root .mh-event { right: auto; left: 408px; max-width: min(300px, calc(50vw - 640px)); } }
 @media (max-width: 1100px) { #mundi-root .mh-event { right: 14px; top: 76px; } #mundi-root .mh-acts { top: 150px; } }
+
+/* the persona card keeps one size: its height is fixed, extra bars only shrink the round badges */
+@media (min-width: 761px) {
+    #mundi-root:not([data-mobile]) .mh-persona { height: 136px; box-sizing: border-box; }
+    #mundi-root:not([data-mobile]) .mh-persona .mh-needs { gap: 5px; align-content: start; }
+    #mundi-root:not([data-mobile]) .mh-persona .mh-bar { font-size: 12.5px; }
+    #mundi-root:not([data-mobile]) .mh-persona .mh-bar-track { height: 9px; }
+    #mundi-root:not([data-mobile]) .mh-persona .mh-rings { flex-wrap: nowrap; gap: 8px; margin-top: 1px; }
+    #mundi-root:not([data-mobile]) .mh-persona .mh-ring { gap: 2px; min-width: 0; }
+    #mundi-root:not([data-mobile]) .mh-persona .mh-ring-ic { width: 38px; height: 38px; }
+    #mundi-root:not([data-mobile]) .mh-persona .mh-ring-ic .mu-ic { width: 17px; height: 17px; }
+    #mundi-root:not([data-mobile]) .mh-persona .mh-ring small { font-size: 10px; white-space: nowrap; }
+    #mundi-root:not([data-mobile]) .mh-persona.is-snug .mh-ring-ic { width: 34px; height: 34px; }
+    #mundi-root:not([data-mobile]) .mh-persona.is-snug .mh-ring-ic .mu-ic { width: 15px; height: 15px; }
+    #mundi-root:not([data-mobile]) .mh-persona.is-tight .mh-needs { gap: 3px; }
+    #mundi-root:not([data-mobile]) .mh-persona.is-tight .mh-bar { font-size: 12px; }
+    #mundi-root:not([data-mobile]) .mh-persona.is-tight .mh-bar-ic .mu-ic { width: 15px; height: 15px; }
+    #mundi-root:not([data-mobile]) .mh-persona.is-tight .mh-bar-track { height: 8px; }
+    #mundi-root:not([data-mobile]) .mh-persona.is-tight .mh-rings { gap: 10px; margin-top: 3px; }
+    #mundi-root:not([data-mobile]) .mh-persona.is-tight .mh-ring-ic { width: 32px; height: 32px; }
+    #mundi-root:not([data-mobile]) .mh-persona.is-tight .mh-ring-ic::before { inset: -2px; }
+    #mundi-root:not([data-mobile]) .mh-persona.is-tight .mh-ring-ic .mu-ic { width: 15px; height: 15px; }
+    #mundi-root:not([data-mobile]) .mh-persona.is-tight .mh-ring small { font-size: 9px; }
+}
+#mundi-root .mh-act.is-outing { border-style: dashed !important; }
+#mundi-root .mh-act.is-outing small::before { content: "🚪 off-screen · "; }
+.mu-premise { margin: .4rem 0 .8rem; padding: .6rem .9rem; border-left: 3px solid var(--mu-accent, #4aa3ff); background: rgba(255,255,255,.04); border-radius: 6px; font-style: italic; opacity: .92; }
+#mundi-root .mu-goal { grid-template-columns: 36px minmax(0, 1fr); column-gap: 10px; align-items: center; }
+#mundi-root .mu-goal .mu-goal-ic { grid-row: span 2; font-style: normal; font-size: 24px; line-height: 1; text-align: center; }
+#mundi-root .mu-goal b, #mundi-root .mu-goal small { grid-column: 2; }
+/* no needs to look after: name, then the money under it; the card is shorter */
+#mundi-root .mh-persona.no-needs .mh-needs { align-content: center; }
+#mundi-root .mh-persona.no-needs .mh-who { flex-wrap: wrap; align-items: center; row-gap: 4px; }
+#mundi-root .mh-persona.no-needs .mh-who b { font-size: 17px; }
+#mundi-root .mh-persona.no-needs .mh-who .mu-cash { flex-basis: 100%; margin-left: 0; font-size: 18px; }
+#mundi-root .mh-persona.no-needs .mh-rings { display: none; }
+@media (min-width: 761px) { #mundi-root:not([data-mobile]) .mh-persona.no-needs { height: auto; width: 300px; } }

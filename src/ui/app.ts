@@ -1,10 +1,15 @@
 import { drawThumbs } from './thumbs.js';
+import { deliverAsk } from '../sim/happenings.js';
+import { deliverLetter } from '../sim/letters.js';
+import { isWith } from '../sim/social.js';
+import { lex } from '../core/lexicon.js';
 import { rainAmbience } from './sfx.js';
 import { tutorialHtml, placeTutorial, tutorialTick } from './tutorial.js';
 import { coursesHtml } from './courses.js';
-import { weatherOf } from '../sim/weather.js';
+import { weatherHere } from '../sim/worldstate.js';
 import { ttsNoise } from './addons.js';
 import { helpHtml } from './help.js';
+import { whatsNewHtml, updateHtml } from './whatsnew.js';
 import { onComposerInput, onComposerKey, closeMention } from './mention.js';
 import { morph } from './morph.js';
 import { applyColors, setLookApplier } from './chatlook.js';
@@ -19,7 +24,12 @@ import { ACT, INPUT } from './reg.js';
 import { menuHtml } from './menu.js';
 import { settingsHtml } from './settings.js';
 import { newGameHtml } from './newgame.js';
-import { mapHtml, applyMapView, mapInput } from './map.js';
+import { mapHtml, applyMapView, mapInput, journeyHtml } from './map.js';
+import { rpgOverlays } from './rpgui.js';
+import { combatHtml } from './combatui.js';
+import { audienceHtml } from './factionsui.js';
+import { diceHtml } from './dice.js';
+import { arrestHtml } from './adventureui.js';
 import { sceneHtml, afterScene, chatHtml } from './scene.js';
 import { worldCfgHtml } from './worldcfg.js';
 import { styleOf } from '../core/world.js';
@@ -114,8 +124,8 @@ export function render() {
     main.querySelectorAll<HTMLElement>('[data-keep]').forEach(el => { keep[el.dataset.keep!] = { top: el.scrollTop, h: el.scrollHeight, atEnd: el.scrollHeight - el.scrollTop - el.clientHeight < 40 }; });
 
     // only what changed is redrawn (morph), so nothing else on screen "resets"
-    morph(main, `${body()}${inGame() ? hudHtml() + phoneHtml() + helpHtml() + coursesHtml() : ''}${tutorialHtml()}${state.busy ? `<div class="mu-busy"><i></i><span>${state.busy}…</span></div>` : ''}`);
-    { const g = game(); rainAmbience(!!g && inGame() && (state.view === 'map' || state.view === 'scene') && weatherOf(g).rain); }   // rain you can hear
+    morph(main, `${body()}${inGame() ? hudHtml() + phoneHtml() + helpHtml() + coursesHtml() + journeyHtml() + rpgOverlays() + combatHtml() + audienceHtml() + arrestHtml() + diceHtml() : ''}${updateHtml()}${whatsNewHtml()}${tutorialHtml()}${state.busy ? `<div class="mu-busy"><i></i><span>${state.busy}…</span></div>` : ''}`);
+    { const g = game(); rainAmbience(!!g && inGame() && (state.view === 'map' || state.view === 'scene') && weatherHere(g, getWorld(g.world)).rain); }   // rain you can hear
     r.dataset.view = state.view;
     // the style of the world on screen (the medieval look, the modern one…)
     const g = game();
@@ -123,7 +133,7 @@ export function render() {
     r.dataset.style = styleOf(shown);
     r.dataset.skin = skinOf(shown);
 
-    placeTutorial(main); tutorialTick();
+    placeTutorial(main); tutorialTick(); stackHud(main);
     // the picture by the side (a click on a name) fits in the room left of the dialogue box
     { const side = main.querySelector<HTMLElement>('.mu-sidepic'), dlg = main.querySelector<HTMLElement>('.mu-dialog');
       if (side) { const room = dlg ? (dlg.getBoundingClientRect().left - main.getBoundingClientRect().left) / uiZoom() - 10 : 0; if (room > 160) main.style.setProperty('--side-w', `${Math.round(room)}px`); else main.style.removeProperty('--side-w'); } }
@@ -197,6 +207,9 @@ Object.assign(ACT, {
 /* ---------- input ---------- */
 
 function attach(r: HTMLElement) {
+    // the focus ring is for the keyboard: a click (after which Mundi redraws and keeps the focus) shows none
+    r.addEventListener('pointerdown', () => { r.dataset.pointer = '1'; }, true);
+    r.addEventListener('keydown', (e) => { if (e.key === 'Tab') delete r.dataset.pointer; }, true);
     r.addEventListener('click', (e) => {
         if (mapInput.click(e)) return;
         const el = (e.target as HTMLElement).closest<HTMLElement>('[data-act]');
@@ -221,6 +234,10 @@ function attach(r: HTMLElement) {
             e.preventDefault();
             ACT.send?.(t, e);
         }
+        if (t.dataset?.focus === 'lib-dlg-name' && e.key === 'Enter' && !(e as KeyboardEvent).isComposing && state.modal?.type === 'lib-dlg-create') { e.preventDefault(); ACT['lib-create-yes']?.(t, e); }
+        if (t.dataset?.focus === 'lib-dlg-name' && e.key === 'Enter' && !(e as KeyboardEvent).isComposing && state.modal?.type === 'lib-dlg-renfolder') { e.preventDefault(); ACT['lib-folder-ren-yes']?.(t, e); }
+        if (t.dataset?.focus === 'lib-dlg-name' && e.key === 'Enter' && !(e as KeyboardEvent).isComposing && state.modal?.type === 'lib-dlg-newfolder') { e.preventDefault(); ACT['lib-newfolder-yes']?.(t, e); }
+        if (t.dataset?.focus === 'lib-tag-text' && e.key === 'Enter' && !(e as KeyboardEvent).isComposing) { e.preventDefault(); ACT['lib-tag-add']?.(t, e); }
         if (t.dataset?.focus === 'ph-draft' && e.key === 'Enter' && !(e as KeyboardEvent).isComposing) { e.preventDefault(); ACT[phone.app === 'social' ? 'ph-chirp' : phone.app === 'post' ? 'ph-reply' : 'ph-send']?.(t, e); }
     });
     document.addEventListener('keydown', (e) => {
@@ -291,6 +308,17 @@ export function mount() {
         if (shownSig && sig !== shownSig) notify();
         shownSig = sig;
     }, 1000);
+    // a friend's question goes out as a message once you are apart (never while they are in the scene with you)
+    let asking = false;
+    setInterval(() => {
+        const g = game(); const w = g && getWorld(g.world);
+        if (asking || !state.open || !g || !w || !inGame() || state.busy || state.generating) return;
+        asking = true;
+        deliverAsk(g, w, a => isWith(g, a) || presentAt(g, w, g.player.loc).some(r => r.avatar === a))
+            .then(async name => name || deliverLetter(g, w))   // or a letter from a friend far away
+            .then(name => { if (name) { saveGame(); toast(lex(w, 'newMessage', name), 'info'); notify(); } }).catch(() => { /* the AI is offline: try later */ })
+            .finally(() => { asking = false; });
+    }, 4000);
     setInterval(() => {
         const g = game(); const w = g && getWorld(g.world);
         if (!state.open || !g || !w || !inGame() || state.busy || state.generating || state.modal || !g.speed || clockMode(g) !== 'live') return;
@@ -317,3 +345,20 @@ export function mount() {
 
 export const peopleHere = () => { const g = game(); const w = g && getWorld(g.world); return g && w ? presentAt(g, w, g.player.loc) : []; };
 export const openOnStart = () => settings().openOnStart;
+
+// The clock card, the place chip under it and the map's tabs under that: stacked by measuring, so a bigger HUD (its
+// scale, a festival line, a long place name) never makes them overlap.
+function stackHud(main: HTMLElement) {
+    if (main.closest('[data-mobile]') || document.querySelector('#mundi-root[data-mobile]')) return;
+    const clock = main.querySelector<HTMLElement>('.mh-clock:not(.is-bar):not(.is-home)');
+    const chain = [clock, main.querySelector<HTMLElement>('.mh-where:not(.is-home)'), main.querySelector<HTMLElement>('.mu-mapnav')].filter((e): e is HTMLElement => !!e && e.offsetParent !== null);
+    if (!clock || chain.length < 2) return;
+    for (let i = 1; i < chain.length; i++) {
+        const above = chain[i - 1].getBoundingClientRect(), el = chain[i], r = el.getBoundingClientRect();
+        const scale = el.offsetHeight ? r.height / el.offsetHeight : 1;
+        const delta = (above.bottom + 8 - r.top) / (scale || 1);
+        if (Math.abs(delta) < 1) continue;
+        const top = parseFloat(getComputedStyle(el).top) || 0;
+        el.style.setProperty('top', `${Math.round(top + delta)}px`, 'important');
+    }
+}

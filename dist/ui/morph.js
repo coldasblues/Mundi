@@ -1,6 +1,7 @@
 // Updates the screen in place instead of rebuilding it: only what changed is touched, so animations do not replay,
 // scroll positions, open menus, the phone and pictures already loaded stay as they are.
 // SillyTavern's own panels shown inside Mundi ([data-native] hosts) are left alone.
+import { translateTree, settle } from '../core/tr.js';
 const SKIP_CHILDREN = (el) => el.hasAttribute('data-native') || el.hasAttribute('data-morph-skip');
 function sameNode(a, b) {
     if (a.nodeType !== b.nodeType)
@@ -113,5 +114,7 @@ export function morph(host, html) {
     t.innerHTML = html;
     const wrap = document.createElement('div');
     wrap.appendChild(t.content);
+    translateTree(wrap); // the interface in the chosen language, before it reaches the screen
     morphChildren(host, wrap);
+    settle();
 }

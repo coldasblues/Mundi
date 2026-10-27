@@ -42,7 +42,10 @@ export interface Settings {
     last: LastPlayed | null;   // what "Continue" opens: the last world save or scenario chat played in Mundi
     uiLoc?: Record<string, Record<string, string>>;
     lib: LibPrefs;
+    /** groups of people the player made in the Library (Presets): who, households, relations, how they see you */
+    castPresets?: CastPreset[];
 }
+export interface CastPreset { id: string; name: string; cast: string[]; hh: { members: string[]; ties: { a: string; b: string; type: string; tone: string }[] }[]; rels: { a: string; b: string; type: string; tone: string }[]; approval: Record<string, number> }
 // Favorites and folders for personas and lorebooks (SillyTavern only has them for characters, as folder tags).
 export interface LibFolder { id: string; name: string; items: string[] }
 export interface LibPrefs { view: 'list' | 'grid'; fav: Record<string, string[]>; folders: Record<string, LibFolder[]> }
@@ -78,7 +81,7 @@ export const saveSettings = () => ctx().saveSettingsDebounced();
 
 export interface Resident {
     avatar: string; name: string; occupation: string | null;
-    home: { zone: string; x: number; y: number; n?: number };
+    home: { zone: string; x: number; y: number; n?: number; /** a second (third…) flat at the same address, when every home is taken */ unit?: number };
     routine: Routine; leisure: string[]; met: boolean;
 }
 export interface Save {
@@ -86,7 +89,7 @@ export interface Save {
     player: {
         loc: string; home: { zone: string; kind: string; x: number; y: number; n?: number };
         stats: Record<string, number>; money: number; traits: Record<string, string[]>; attrs?: Record<string, number>; origin: string;
-        job: { id: string; rank: number; shifts: number } | null; rentPaidDay: number;
+        job: { id: string; rank: number; shifts: number; path?: string[]; referral?: string } | null; rentPaidDay: number;
     };
     cast: Record<string, Resident>;
     tick: Record<string, number>;   // last time (absolute minutes) each timed rule ran
@@ -95,24 +98,36 @@ export interface Save {
 
 // The open chat's save, or null when the open chat is not a Mundi game.
 // Per-save world settings (Globe → World → Advanced). Missing values mean the world's defaults.
-export interface WorldCfg { travel?: number; decay?: number; bondCap?: number; seasonDays?: number; lore?: string[]; clock?: 'action' | 'live' }
+export interface WorldCfg { /** Home: minutes pass with each message (default on) */ perMessage?: boolean; /** Home: the housemates leave the house (work, errands, nights out; default on) */ npcOut?: boolean; travel?: number; decay?: number; bondCap?: number; seasonDays?: number; lore?: string[]; clock?: 'action' | 'live'; /** open relationships: no jealousy, date several people freely */ poly?: boolean }
 export const cfg = (g: Save): WorldCfg => (((g as any).cfg ??= {}) as WorldCfg);
 // How time passes: "action" (default) only what you do moves the clock (eating, sleeping, working, travelling);
 // "live" the clock also runs by itself in real time (World → Rules).
 export const clockMode = (g: Save) => cfg(g).clock ?? 'action';
 // The tutorial's practice world: a save kept only in memory (no chat, no group, nothing written to SillyTavern).
 export const TUT = { save: null as Save | null };
+// Save safety (core/saves.ts): the first time a save is seen it is checked once (migrated to the current format,
+// backed up first, and its links to the world repaired). A save from a newer Mundi is never written: the game plays
+// a detached copy of it (`SAVE.shadow`), so nothing, not even SillyTavern saving the chat, can overwrite the original.
+export const SAVE = {
+    hooks: [] as ((g: Save) => void)[],
+    seen: new WeakSet<object>(),
+    shadow: new WeakMap<object, Save>(),
+    readOnly: false,
+};
 export function game(): Save | null {
     if (TUT.save) return TUT.save;
     const m = ctx().chatMetadata;
-    return m?.mundi?.v === 1 ? (m.mundi as Save) : null;
+    const g = m?.mundi?.v === 1 ? (m.mundi as Save) : null;
+    if (!g) return null;
+    if (!SAVE.seen.has(g)) { SAVE.seen.add(g); SAVE.readOnly = false; for (const h of SAVE.hooks) h(g); }
+    return SAVE.shadow.get(g) ?? g;
 }
 export function setGame(s: Save) { ctx().chatMetadata.mundi = s; }
 // Things that follow every save of the game (the Load screen's card of this save).
 const savedHooks: (() => void)[] = [];
 export const onSaved = (fn: () => void) => { savedHooks.push(fn); };
 export const saveGame = () => {
-    if (TUT.save) return;
+    if (TUT.save || SAVE.readOnly) return;
     ctx().saveMetadataDebounced();
     for (const f of savedHooks) { try { f(); } catch (e) { console.warn('[Mundi] after save', e); } }
 };

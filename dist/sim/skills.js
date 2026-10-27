@@ -2,11 +2,12 @@
 // roll where the traits a job looks for are your bonus; and the counters some life goals are measured with.
 // The traits you have are what the d20 rolls use (each matching trait is +2), so learning one helps everywhere.
 import { nowAbs } from '../core/store.js';
+import { systemOn, isScenario } from '../core/world.js';
 import { note } from './facts.js';
 import { book } from './ledger.js';
 import { priceOf } from './bills.js';
 import { playerHomeId, placeOf } from './places.js';
-export const coursesOf = (w) => (w.catalogs.courses ?? []);
+export const coursesOf = (w) => (systemOn(w, 'courses') ? w.catalogs.courses ?? [] : []);
 export function learning(g) {
     const p = g.player;
     const s = (p.learning ??= {});
@@ -34,7 +35,7 @@ export function gainTrait(g, trait, from) {
 /* ---------- courses ---------- */
 export const courseOf = (w, id) => coursesOf(w).find(c => c.id === id);
 export const hasCourse = (g, id) => learning(g).done.includes(id);
-export const canStudyHere = (g, w) => g.player.loc === playerHomeId || (placeOf(g, w, g.player.loc)?.tags ?? []).includes('study');
+export const canStudyHere = (g, w) => isScenario(w) || g.player.loc === playerHomeId || (placeOf(g, w, g.player.loc)?.tags ?? []).includes('study');
 export const studiedToday = (g, id) => learning(g).lastDay[id] === g.day;
 export function enroll(g, w, id) {
     const c = courseOf(w, id);
@@ -75,7 +76,8 @@ export function studySession(g, w) {
     return [`You finished ${c.name}!${got.length ? ` You are now ${got.join(' and ')}.` : ''}`];
 }
 /* ---------- the job interview ---------- */
-export const missingCourses = (g, w, o) => (o.courses ?? []).filter((id) => !hasCourse(g, id)).map((id) => courseOf(w, id)?.name ?? id);
+// (a course the world no longer offers is not asked for: the job would be out of reach forever)
+export const missingCourses = (g, w, o) => (o.courses ?? []).filter((id) => !!courseOf(w, id) && !hasCourse(g, id)).map((id) => courseOf(w, id)?.name ?? id);
 export function interviewDc(o) { const top = o.ranks.at(-1)?.pay ?? 0; return 9 + (o.needs?.length ? 3 : 0) + (top >= 50 ? 2 : 0); }
 export function interviewBonus(g, o, traits) {
     let b = 0;

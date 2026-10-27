@@ -1,11 +1,13 @@
 // "AI context": what Mundi sends to the AI with every reply, block by block. Each block can be switched off, a token
 // budget drops the least important blocks first, and the count shows how much of the model's context it takes.
-import { esc, notify, saveSettings } from '../core/store.js';
+// The texts are yours to change: each block's own text, the scene's rules, and instructions of your own.
+import { esc, notify, saveSettings, game } from '../core/store.js';
+import { getWorld } from '../core/world.js';
 import { ctx } from '../st/bridge.js';
-import { BLOCKS, promptCfg, sceneBlocks, sceneText, estTokens, refreshPrompt } from '../sim/prompt.js';
+import { blocksOf, promptCfg, sceneBlocks, sceneText, estTokens, refreshPrompt, DEFAULT_RULES } from '../sim/prompt.js';
 import { icon } from './icons.js';
 import { ACT, INPUT } from './reg.js';
-const A = { text: '', count: -1, preview: false };
+const A = { text: '', count: -1, preview: false, edit: '' };
 function count(text) {
     if (text === A.text)
         return;
@@ -47,18 +49,44 @@ export function tabAiContext() {
                 <input type="range" min="0" max="${steps.length - 1}" step="1" value="${bi}" data-input="aic-budget"></label>
             <small class="mu-muted">Over the budget, Mundi leaves out the least important blocks first (rumors, then approval…). The scene basics are always sent.</small>
         </section>
-        <section class="mu-wc-sec"><h4>Blocks</h4><div class="mu-aic-list">${BLOCKS.map(b => {
+        <section class="mu-wc-sec"><h4>Blocks</h4><div class="mu-aic-list">${blocksOf(game() ? getWorld(game().world) : null).map(b => {
         const x = blocks.find(y => y.id === b.id);
         const st = x?.state ?? 'empty';
         const tag = st === 'sent' ? `≈ ${estTokens(x.text)} tokens` : st === 'cut' ? 'left out: over the budget' : st === 'off' ? 'off' : 'nothing to send here';
+        const own = b.id === 'core' || b.id === 'extra' ? '' : pc.text[b.id] ?? '';
         return `<div class="mu-aic-row is-${st}">
                 ${b.cut ? `<input type="checkbox" class="mu-toggle" data-input="aic-block" data-id="${b.id}" ${pc.off.includes(b.id) ? '' : 'checked'}>` : `<span class="mu-aic-lock" title="Always sent">${icon('pin')}</span>`}
-                <span><b>${esc(b.name)}</b><small>${esc(b.desc)}</small></span><em>${tag}</em></div>`;
+                <span><b>${esc(b.name)}${own.trim() ? ' <small class="mu-aic-own">your text</small>' : ''}</b><small>${esc(b.desc)}</small></span><em>${tag}</em>
+                ${b.id === 'core' ? '' : `<button class="mu-ghost mu-ibtn" data-act="aic-edit" data-id="${b.id}" title="Change the text">${icon(A.edit === b.id ? 'up' : 'pen')}</button>`}</div>
+                ${A.edit === b.id ? editor(b.id, own, x?.text ?? '') : ''}`;
     }).join('')}</div></section>
+        <section class="mu-wc-sec"><h4>Rules of the scene</h4>
+            <p class="mu-muted">Sent last, after everything else. Empty: Mundi's own rules (shown greyed). The note about the language of replies is added by itself.</p>
+            <textarea class="mu-aic-text" rows="3" data-input="aic-rules" data-focus="aic-rules" placeholder="${esc(DEFAULT_RULES)}">${esc(pc.rules)}</textarea>
+            ${pc.rules.trim() ? `<button class="mu-ghost" data-act="aic-reset" data-id="rules">${icon('undo')}<span>Back to Mundi's rules</span></button>` : ''}</section>
         <section class="mu-wc-sec"><button class="mu-ghost" data-act="aic-preview">${icon(A.preview ? 'up' : 'down')}<span>${A.preview ? 'Hide the text' : 'Show the text sent now'}</span></button>
             ${A.preview ? `<div class="mu-lib-text is-code" data-notr>${esc(text)}</div>` : ''}</section>`;
 }
-Object.assign(ACT, { 'aic-preview': () => { A.preview = !A.preview; notify(); } });
+// A block's own text, under its row. {text} is what Mundi wrote for the block; your words go around it, or replace it.
+function editor(id, own, now) {
+    if (id === 'extra')
+        return `<div class="mu-aic-edit">
+        <textarea class="mu-aic-text" rows="4" data-input="aic-extra" data-focus="aic-extra" placeholder="For example: Keep replies under 150 words. {{user}} is never described doing things they did not do.">${esc(promptCfg().extra)}</textarea>
+        <small class="mu-muted">Sent with every reply, before the rules of the scene. SillyTavern's macros ({{user}}, {{char}}…) work here.</small></div>`;
+    return `<div class="mu-aic-edit">
+        <textarea class="mu-aic-text" rows="3" data-input="aic-text" data-id="${id}" data-focus="aic-text-${id}" placeholder="{text}">${esc(own)}</textarea>
+        <small class="mu-muted"><b>{text}</b> is what Mundi writes for this block; write around it (for example <i>[Feelings] {text}</i>), or leave it out to send only your words. Your text is sent only when the block has something to say. Empty: Mundi's own text.</small>
+        ${now ? `<small class="mu-muted">Now: <span data-notr>${esc(now.length > 240 ? `${now.slice(0, 240)}…` : now)}</span></small>` : ''}
+        ${own.trim() ? `<button class="mu-ghost" data-act="aic-reset" data-id="${id}">${icon('undo')}<span>Back to Mundi's text</span></button>` : ''}</div>`;
+}
+Object.assign(ACT, {
+    'aic-preview': () => { A.preview = !A.preview; notify(); },
+    'aic-edit': (el) => { A.edit = A.edit === el.dataset.id ? '' : el.dataset.id; notify(); },
+    'aic-reset': (el) => { const pc = promptCfg(); const id = el.dataset.id; if (id === 'rules')
+        pc.rules = '';
+    else
+        delete pc.text[id]; saveSettings(); refreshPrompt(); notify(); },
+});
 Object.assign(INPUT, {
     'aic-block': (el) => {
         const pc = promptCfg();
@@ -68,6 +96,13 @@ Object.assign(INPUT, {
         refreshPrompt();
         notify();
     },
+    // typing: saved and sent right away; the screen catches up on the next redraw
+    'aic-text': (el) => { const pc = promptCfg(); const v = el.value; if (v.trim())
+        pc.text[el.dataset.id] = v;
+    else
+        delete pc.text[el.dataset.id]; saveSettings(); refreshPrompt(); },
+    'aic-rules': (el) => { promptCfg().rules = el.value; saveSettings(); refreshPrompt(); },
+    'aic-extra': (el) => { promptCfg().extra = el.value; saveSettings(); refreshPrompt(); },
     'aic-budget': (el) => {
         const steps = [0, 200, 300, 400, 500, 600, 800, 1000, 1200, 1500, 2000];
         promptCfg().budget = steps[Number(el.value)] ?? 0;

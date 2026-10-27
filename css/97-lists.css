@@ -1,0 +1,188 @@
+/* Library lists: rows never grow past the list, and hover/selected stay calm (no theme button gradient or shadow) */
+#mundi-root .mu-lib-list:not(.is-grid) .mu-lib-items { grid-template-columns: minmax(0, 1fr); overflow-x: hidden; }
+#mundi-root .mu-lib-list:not(.is-grid) .mu-lib-item { min-width: 0; width: 100%; max-width: 100%; box-sizing: border-box; transform: none !important; box-shadow: none !important; text-shadow: none; }
+#mundi-root .mu-lib-list:not(.is-grid) .mu-lib-item:hover { background: rgba(255, 255, 255, .06) !important; border-color: transparent; filter: none; }
+#mundi-root .mu-lib-list:not(.is-grid) .mu-lib-item.is-on, #mundi-root .mu-lib-list:not(.is-grid) .mu-lib-item.is-on:hover { background: color-mix(in srgb, var(--accent) 16%, transparent) !important; border-color: color-mix(in srgb, var(--accent) 70%, transparent) !important; color: var(--fg); }
+#mundi-root .mu-lib-list:not(.is-grid) .mu-lib-item.is-picked { background: color-mix(in srgb, var(--accent) 22%, transparent) !important; }
+
+/* SillyTavern's prompt editor (the pencil in AI Response Configuration's prompt list): over Mundi, in the middle */
+body.mundi-open #completion_prompt_manager_popup {
+    position: fixed !important; z-index: 9600 !important; inset: 50% auto auto 50% !important; transform: translate(-50%, -50%);
+    width: min(760px, 94vw) !important; min-width: 0 !important; max-width: 94vw !important; height: min(84vh, 820px) !important; max-height: 90vh !important; margin: 0 !important;
+    overflow-y: auto !important; border-radius: 16px; box-shadow: 0 0 0 100vmax rgba(0, 0, 0, .55), 0 24px 60px rgba(0, 0, 0, .5) !important;
+    background-color: var(--SmartThemeBlurTintColor, rgba(20, 24, 36, .96));
+}
+
+/* the chat drawer: labels with a second line stay on the left and cut long names with "…" */
+#mundi-root .mh-drawer-panel button > span:not(.mh-drawer-mew) { display: grid; min-width: 0; text-align: left; justify-items: start; }
+#mundi-root .mh-drawer-panel button > span > small { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; font-size: 11.5px; opacity: .75; }
+#mundi-root .mh-drawer-panel button { min-width: 0; }
+#mundi-root .mu-lorepick button > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Classic layout (the sprite beside the dialogue box): while a sprite's menu is open, its buttons go over the chat */
+#mundi-root[data-layout="classic"] .mu-sprites:has(.mu-sprite.is-menu) { z-index: 14; overflow: visible; }
+#mundi-root[data-layout="classic"] .mu-sprite.is-menu { overflow: visible; }
+
+/* no focus ring after a click (only when moving with the keyboard) */
+#mundi-root[data-pointer] button:focus-visible, #mundi-root[data-pointer] button:focus { outline: none; }
+
+/* New game: world cards line up (same height, short text), "Create" and "Import" sit in a row below them */
+#mundi-root .mu-worldgrid { align-items: stretch !important; }
+#mundi-root .mu-worldgrid > .mu-worldcard-wrap > .mu-worldcard { height: 100%; }
+#mundi-root .mu-worldgrid .mu-worldcard p { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+#mundi-root .mu-worldnew { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+#mundi-root .mu-worldnew .mu-worldcard.is-new { display: grid; grid-template-columns: 56px 1fr; grid-template-rows: auto auto; column-gap: 12px; align-items: center; padding: 10px 14px; min-height: 0; }
+#mundi-root .mu-worldnew .mu-worldcard.is-new > .mu-worldart { grid-row: 1 / 3; width: 56px; height: 56px; aspect-ratio: auto; margin: 0; border-radius: 12px; }
+#mundi-root .mu-worldnew .mu-worldcard.is-new > :not(.mu-worldart) { padding: 0; }
+#mundi-root .mu-worldnew .mu-worldcard.is-new p { display: none; }
+
+/* main menu: the slideshow of the modern world's maps */
+#mundi-root .mu-menu-slide { opacity: 0; will-change: opacity, transform; }
+@media (prefers-reduced-motion: reduce) { #mundi-root .mu-menu-slide { animation: none !important; } }
+
+/* New world: no box around it; the options use the whole screen */
+#mundi-root .mu-cw-new { max-width: none !important; }
+#mundi-root .mu-cw-new .mu-cw-new-body.mu-panel { background: transparent !important; border: 0 !important; box-shadow: none !important; backdrop-filter: none !important; border-radius: 0; max-width: 1760px !important; margin: 0 auto; padding: 18px clamp(16px, 3vw, 48px) 0; }
+@media (min-width: 1100px) {
+    #mundi-root:not([data-mobile]) .mu-cw-new-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr) !important; gap: clamp(24px, 3vw, 56px) !important; }
+    #mundi-root:not([data-mobile]) .mu-cw-new-b .mu-cards { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+    #mundi-root:not([data-mobile]) .mu-cw-new-name { max-width: none; }
+}
+#mundi-root .mu-cw-new .mu-cw-new-go { margin: 18px calc(-1 * clamp(16px, 3vw, 48px)) 0; padding: 14px clamp(16px, 3vw, 48px); border-top: 1px solid var(--line); background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); }
+
+/* Classic layout: people without a sprite are not shown, so the others share the space (not a third of it each) */
+#mundi-root[data-layout="classic"] .mu-sprite { max-width: calc(100% / var(--ns, var(--n, 1))); }
+
+/* the open sprite sits above the people next to it (its buttons are not hidden behind their pictures), still under the chat box */
+#mundi-root .mu-sprite.is-menu { z-index: 5; }
+#mundi-root .mu-style-tag.is-lifesim { background: rgba(22, 140, 90, .9); color: #fff; }
+#mundi-root .mu-style-tag.is-rpg { background: rgba(124, 58, 237, .9); color: #fff; }
+/* New world: "Start from nothing" and "From lorebooks" stacked in one column */
+#mundi-root .mu-cw-startnew { display: grid; gap: 10px; align-content: start; }
+
+/* choice cards (New game modes, game modes, styles): text starts at the top, so titles line up across a row */
+#mundi-root .mu-herocard, #mundi-root .mu-style { justify-content: flex-start !important; align-items: flex-start !important; text-align: left; }
+#mundi-root .mu-herocard > b, #mundi-root .mu-style > b { line-height: 1.2; }
+#mundi-root .mu-herocard > p, #mundi-root .mu-style > small { margin: 0; }
+#mundi-root .mu-heropick, #mundi-root .mu-styles { align-items: stretch; }
+
+/* opening and closing the phone: it slides in from the right while the dialogue box glides to the left (and back) */
+@media (min-width: 1100px) {
+    #mundi-root:not([data-mobile]) .mu-dialog { transition: left .5s cubic-bezier(.22, 1, .36, 1), width .5s cubic-bezier(.22, 1, .36, 1); }
+    #mundi-root:has(.mu-phone.is-closing) .mu-dialog { left: 50%; width: min(calc(980px * var(--mu-dlg-w, 1)), calc(100% - 24px)); }
+}
+#mundi-root:not([data-mobile]) .mu-phone { animation: mu-phone-slide .42s cubic-bezier(.22, 1, .36, 1) both; }
+#mundi-root:not([data-mobile]) .mu-phone.is-closing { animation: mu-phone-away .26s cubic-bezier(.55, 0, .7, .2) both; pointer-events: none; }
+@keyframes mu-phone-slide { from { transform: translateX(calc(100% + 40px)) rotate(4deg); opacity: 0; } }
+@keyframes mu-phone-away { to { transform: translateX(calc(100% + 40px)) rotate(4deg); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { #mundi-root .mu-dialog, #mundi-root .mu-phone { transition: none !important; animation: none !important; } }
+
+/* New world / scenario: the "Create" bar is a footer fixed at the bottom of the screen, like New game's "Next" */
+#mundi-root .mu-cw-new .mu-cw-new-go { position: fixed !important; left: 0; right: 0; bottom: 0; z-index: 6; margin: 0 !important; display: flex; justify-content: flex-end; align-items: center; gap: 14px;
+    padding: 12px 22px !important; border-top: 1px solid var(--line); background: var(--panel) !important; backdrop-filter: none; }
+#mundi-root .mu-cw-new .mu-cw-new-body { padding-bottom: 96px !important; }
+
+/* the pencil on a world you made: a clear round button over the picture */
+#mundi-root .mu-world-edit { width: 36px !important; height: 36px !important; border-radius: 50% !important; padding: 0 !important; display: grid; place-items: center;
+    background: rgba(10, 14, 24, .78) !important; border: 1.5px solid rgba(255, 255, 255, .55) !important; color: #fff !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, .45); backdrop-filter: blur(6px); transition: transform .15s, background .15s; }
+#mundi-root .mu-world-edit .mu-ic { width: 17px; height: 17px; }
+#mundi-root .mu-world-edit:hover { background: var(--accent) !important; border-color: #fff !important; transform: scale(1.08); }
+#mundi-root .mu-dlg.mu-leave { width: min(580px, 94vw); } #mundi-root .mu-dlg.mu-leave .mu-dlg-btns { flex-wrap: nowrap; justify-content: flex-end; gap: 8px; }
+
+/* World creator: the actions in a footer at the bottom (like New game), Delete in red */
+#mundi-root .mu-creator-ed .mu-cw-foot { gap: 10px; justify-content: flex-start; }
+#mundi-root .mu-creator-ed .mu-cw-foot .mu-grow { flex: 1 1 auto; }
+#mundi-root .mu-creator-ed .mu-cw-foot button { display: inline-flex; align-items: center; gap: 7px; }
+#mundi-root .mu-creator-ed .mu-cw-foot .mu-danger { background: #d9363e !important; border-color: #b4252c !important; color: #fff !important; }
+#mundi-root .mu-creator-ed .mu-cw-foot .mu-danger:hover { background: #ef4950 !important; }
+
+#mundi-root .mu-creator-ed { grid-template-rows: auto minmax(0, 1fr) auto !important; }
+#mundi-root .mu-creator-ed .mu-cw-foot { position: static !important; margin: 0 !important; display: flex; align-items: center; padding: 12px 22px !important; border-top: 1px solid var(--line); background: var(--panel) !important; }
+#mundi-root .mu-creator-ed .mu-cw-layout { min-height: 0; overflow: hidden; align-items: stretch; }
+#mundi-root .mu-creator-ed .mu-cw-layout > .mu-tabs { min-height: 0; overflow: auto; align-content: start; padding-bottom: 6px; }
+#mundi-root .mu-creator-ed .mu-cw-layout > .mu-settings-body { min-height: 0; overflow: auto; }
+
+/* Library: sort menu */
+#mundi-root .mu-sort-wrap .mu-exp-pop { min-width: 190px; }
+
+#mundi-root .mu-sort-wrap .mu-sort-sp { display: inline-block; width: 16px; }
+#mundi-root .mu-lib-tools > .mu-sort-wrap { flex: 0 1 auto; min-width: 26px; }
+#mundi-root .mu-lib-tools > .mu-sort-wrap > .mu-ibtn { width: 34px; height: 34px; }
+#mundi-root .mu-chartags .mu-chip[style*="--tc"] { background: color-mix(in srgb, var(--tc) 35%, transparent); border-color: var(--tc); }
+#mundi-root .mu-chartags .mu-chip button { padding: 0 2px !important; min-width: 0; margin-left: 4px; }
+#mundi-root .mu-chartags .mu-chip button .mu-ic { width: 12px; height: 12px; }
+
+/* ===== World creator: compact cards per section ===== */
+#mundi-root .mu-creator-ed .mu-settings-body.mu-panel { background: transparent !important; border: 0 !important; box-shadow: none !important; backdrop-filter: none !important; padding: 0 6px 18px 0 !important; }
+#mundi-root .mu-creator-ed .mu-settings-layout { max-width: 1480px !important; gap: 16px; }
+#mundi-root .mu-creator-ed .mu-cw-grid { gap: 14px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 400px), 1fr)); }
+#mundi-root .mu-creator-ed .mu-cw-sec { background: color-mix(in srgb, var(--panel) 92%, transparent); border: 1px solid var(--line); border-radius: 14px; padding: 12px 16px 16px; gap: 10px; box-shadow: 0 1px 0 rgba(255, 255, 255, .03) inset; }
+#mundi-root .mu-creator-ed .mu-cw-sec.mu-cw-wide { grid-column: 1 / -1; }
+#mundi-root .mu-creator-ed .mu-cw-sec > h4:first-child { margin: 0 -16px 4px; padding: 0 16px 10px; border-bottom: 1px solid var(--line); font-size: 12.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
+#mundi-root .mu-creator-ed .mu-cw-sec > h4:not(:first-child) { margin: 8px 0 0; font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+#mundi-root .mu-creator-ed .mu-cw-sec > p, #mundi-root .mu-creator-ed .mu-cw-sec small.mu-muted { font-size: 12px; line-height: 1.45; margin: 0; }
+#mundi-root .mu-creator-ed .mu-field { gap: 4px; }
+#mundi-root .mu-creator-ed .mu-field > span { font-size: 12px; font-weight: 600; }
+#mundi-root .mu-creator-ed .mu-field input:not([type="checkbox"]):not([type="color"]), #mundi-root .mu-creator-ed .mu-field select { height: 34px; min-height: 34px; padding: 5px 10px; font-size: 13.5px; border-radius: 9px; }
+#mundi-root .mu-creator-ed .mu-field textarea { font-size: 13.5px; padding: 8px 10px; border-radius: 9px; line-height: 1.45; }
+#mundi-root .mu-creator-ed .mu-field > small { font-size: 11.5px; }
+#mundi-root .mu-creator-ed .mu-row2 { gap: 10px; }
+#mundi-root .mu-creator-ed .mu-check { font-size: 13px; }
+#mundi-root .mu-creator-ed .mu-cw-cover { max-height: 230px; }
+#mundi-root .mu-creator-ed .mu-cw-sec button { font-size: 13px; }
+/* the tab column: smaller buttons */
+#mundi-root .mu-creator-ed .mu-cw-layout > .mu-tabs { gap: 4px; }
+#mundi-root .mu-creator-ed .mu-cw-layout > .mu-tabs > button { padding: 8px 12px !important; font-size: 13px; min-height: 0; }
+/* list + form tabs (jobs, needs, people…): the list and the form are cards too; the form's headings split it in parts */
+#mundi-root .mu-creator-ed .mu-cw-master { gap: 14px; align-items: start; }
+#mundi-root .mu-creator-ed .mu-cw-master > .mu-cw-list { background: color-mix(in srgb, var(--panel) 92%, transparent); border: 1px solid var(--line); border-radius: 14px; padding: 8px; gap: 4px; }
+#mundi-root .mu-creator-ed .mu-cw-master > .mu-cw-list .mu-cw-row { padding: 8px 10px !important; border-radius: 10px !important; }
+#mundi-root .mu-creator-ed .mu-cw-master > .mu-cw-form { background: color-mix(in srgb, var(--panel) 92%, transparent); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px 16px; gap: 10px; }
+#mundi-root .mu-creator-ed .mu-cw-form > h4 { margin: 10px -16px 0; padding: 12px 16px 0; border-top: 1px solid var(--line); font-size: 12px; letter-spacing: .05em; text-transform: uppercase; color: var(--accent); }
+#mundi-root .mu-creator-ed .mu-cw-sec .mu-cw-master > .mu-cw-list, #mundi-root .mu-creator-ed .mu-cw-sec .mu-cw-master > .mu-cw-form { background: rgba(255, 255, 255, .025); }
+#mundi-root .mu-creator-ed .mu-cw-inline { gap: 8px; align-items: end; }
+#mundi-root .mu-creator-ed .mu-chips .mu-chip { padding: 5px 11px; font-size: 12.5px; }
+#mundi-root .mu-creator-ed .mu-field input[type="number"], #mundi-root .mu-creator-ed .mu-field input[type="time"] { max-width: 220px; }
+/* Library: drag a card onto a folder */
+#mundi-root .mu-lib-item.is-dragging { opacity: .45; }
+#mundi-root .mu-lib-item.is-folder.is-drop, #mundi-root .mu-lib-crumb [data-drop].is-drop { outline: 2px dashed var(--accent) !important; outline-offset: -2px; background: color-mix(in srgb, var(--accent) 18%, transparent) !important; }
+#mundi-root .mu-lib-item img { -webkit-user-drag: none; user-select: none; }
+/* Sort menu: the chosen one keeps the same look, only a check and a soft highlight */
+#mundi-root .mu-sort-wrap .mu-exp-pop button, #mundi-root .mu-sort-wrap .mu-exp-pop button.is-on { color: var(--text, #fff) !important; background: transparent !important; border-color: transparent !important; box-shadow: none !important; transform: none !important; padding: 8px 10px !important; min-height: 0; font-size: 14px; }
+#mundi-root .mu-sort-wrap .mu-exp-pop button.is-on { background: rgba(255, 255, 255, .08) !important; font-weight: 700; }
+#mundi-root .mu-sort-wrap .mu-exp-pop button:hover { background: rgba(255, 255, 255, .12) !important; }
+#mundi-root .mu-sort-wrap .mu-exp-pop button .mu-ic { width: 16px; height: 16px; }
+/* Folder bar: the name gives way (…) so the buttons always fit */
+#mundi-root .mu-lib-crumb { gap: 4px; min-width: 0; }
+#mundi-root .mu-lib-crumb > * { flex: 0 0 auto; }
+#mundi-root .mu-lib-crumb > b { flex: 1 1 auto; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; display: block; }
+#mundi-root .mu-lib-crumb > b .mu-ic, #mundi-root .mu-lib-crumb > b svg { display: inline-block !important; vertical-align: -3px; margin-right: 4px; width: 16px; height: 16px; }
+#mundi-root .mu-lib-crumb > .mu-ibtn { width: 30px; height: 30px; padding: 0 !important; }
+#mundi-root .mu-lib-crumb input[type="color"] { width: 28px; height: 26px; }
+
+/* Sprites: same size whatever the number of people. Each has a slot; with more people the slots come closer and
+   overlap (no shrinking). Who spoke last is in front (--z). */
+#mundi-root .mu-sprites { display: block !important; isolation: isolate; padding: 0 !important; --slot: min(34%, calc(66vh * var(--mu-sprite-size, 1))); --edge: 4%; }
+#mundi-root .mu-sprite { position: absolute !important; bottom: 0; max-width: none !important; width: var(--slot); z-index: var(--z, 1);
+    --step: min(calc(var(--slot) * .92), calc((100% - 2 * var(--edge) - var(--slot)) / max(1, var(--n) - 1)));
+    left: calc(50% + (var(--p, 0) - (var(--n, 1) - 1) / 2) * var(--step)); translate: -50% 0; transition: left .35s ease, translate .35s ease; }
+#mundi-root .mu-sprite > img { width: 100%; height: 100%; object-fit: contain; object-position: bottom center; }
+#mundi-root .mu-sprite.is-menu { z-index: 50 !important; }
+#mundi-root[data-layout="classic"] .mu-sprites { --slot: min(100%, calc(60vh * var(--mu-sprite-size, 1))); --edge: 0%; }
+#mundi-root[data-layout="classic"] .mu-sprite { --step: min(calc(var(--slot) * .92), max(18%, calc((100% - var(--slot)) / max(1, var(--ns) - 1))));
+    left: calc(50% + (var(--ps, 0) - (var(--ns, 1) - 1) / 2) * var(--step)); }
+#mundi-root[data-mobile] .mu-sprites { --slot: min(60%, 40vh); --edge: 0%; }
+/* Scenario rooms: the tile opens its settings, the round button adds/removes it */
+#mundi-root .mu-ng-room em { display: none !important; }
+#mundi-root .mu-ng-room.is-edit { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 55%, transparent), 0 8px 24px rgba(0, 0, 0, .35) !important; }
+#mundi-root .mu-ng-room-tick { position: absolute; top: 10px; right: 10px; z-index: 2; width: 26px; height: 26px; min-width: 0; padding: 0 !important; display: grid; place-items: center; border-radius: 50% !important;
+    font-size: 14px; font-weight: 800; line-height: 1; color: #fff; background: rgba(10, 14, 24, .55) !important; border: 2px solid rgba(255, 255, 255, .75) !important; box-shadow: 0 2px 8px rgba(0, 0, 0, .35); cursor: pointer; }
+#mundi-root .mu-ng-room-tick.is-on { background: var(--accent) !important; border-color: #fff !important; }
+#mundi-root .mu-ng-room-tick.is-x { background: rgba(200, 40, 50, .85) !important; }
+#mundi-root .mu-ng-room-tick:hover { transform: scale(1.1); }
+#mundi-root .mu-cw-sub { display: block; margin: 12px 0 6px; font-size: 12px; font-weight: 600; color: var(--muted); }
+#mundi-root .mu-cw-coverpick { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 6px; }
+#mundi-root .mu-cw-coverpick button { aspect-ratio: 16 / 10; padding: 0; border-radius: 8px; background: var(--bh) center / cover no-repeat; border: 2px solid transparent; cursor: pointer; }
+#mundi-root .mu-cw-coverpick button:hover { border-color: var(--line); }
+#mundi-root .mu-cw-coverpick button.is-on { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent); }

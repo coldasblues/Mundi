@@ -2,6 +2,7 @@
 // the birth (the child becomes a new person of the world, living with you), and growing up: once a week you can
 // celebrate their birthday and they move on to the next stage of life. The engine owns all of it; the AI narrates.
 import { nowAbs } from '../core/store.js';
+import { systemOn } from '../core/world.js';
 import { onDay } from './hooks.js';
 import { note } from './facts.js';
 import { romOf } from './romance.js';
@@ -121,9 +122,9 @@ export function familyLine(g, present) {
         out.push(`{{user}} and ${p.name} are expecting a baby (due in ${daysLeft(g)} days).`);
     return out.join(' ');
 }
-onDay.push((g) => {
+onDay.push((g, w) => {
     const p = pregnancy(g);
-    if (p && g.day >= p.due && !p.born) {
+    if (p && systemOn(w, 'family') && g.day >= p.due && !p.born) {
         p.born = true;
         return [`It's time: the baby is coming!`];
     }

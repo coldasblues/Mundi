@@ -62,6 +62,8 @@
 #mundi-root .mu-creator { display: grid; grid-template-columns: 220px 1fr; gap: 22px; }
 #mundi-root .mu-creator > section { display: grid; gap: 12px; align-content: start; }
 #mundi-root .mu-creator .mu-origins, #mundi-root .mu-creator .mu-attrs, #mundi-root .mu-creator .mu-bio { grid-column: 1 / -1; }
+#mundi-root .mu-creator.is-persona { margin-top: 18px; }
+#mundi-root .mu-creator.no-portrait { grid-template-columns: 1fr; }
 #mundi-root .mu-portrait { justify-items: center; text-align: center; }
 #mundi-root .mu-portrait-img { width: 200px; height: 200px; border-radius: 20px; background: linear-gradient(135deg, #22d3ee, #4f46e5); background-size: cover; background-position: center; display: grid; place-items: center; box-shadow: var(--shadow); }
 #mundi-root .mu-portrait-img span { font-size: 64px; font-weight: 800; color: rgba(255, 255, 255, .92); }

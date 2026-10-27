@@ -1,20 +1,28 @@
 // The scene: the place, the people in it (Expressions sprites), the conversation and the composer.
 // The conversation IS the group chat: generation, streaming, swipes, regenerate, continue, impersonate,
 // editing and deleting all use SillyTavern's own functions.
+import { isRpg } from '../sim/rpg.js';
+import { lex } from '../core/lexicon.js';
+import { setPrompt } from '../st/bridge.js';
+import { socialCheck } from '../sim/judge.js';
+import { pictureAt } from '../sim/daynight.js';
 import { nativeHost } from './native.js';
 import { lockScene } from '../sim/life.js';
 import { judgeLine, judgeReaction } from '../sim/mood.js';
 import { state, notify, esc, game, toast, ROOT_ID, saveGame } from '../core/store.js';
-import { getWorld, bgOf, num, type WorldDef } from '../core/world.js';
+import { getWorld, bgOf, num, systemOn, type WorldDef } from '../core/world.js';
 import type { Save } from '../core/store.js';
 import {
     chat, speakerOf, thumb, sendText, replyAs, regenerate, continueLast, impersonate, stop, swipeLeft, swipeRight,
-    editMessage, deleteMessageAt, expressionOf, fetchSprites, saveChat, me, currentCharacter, charOf, characters, bgList, bgThumb, ctx,
-    addUserLine, narratorLine, personaName, quiet, lorebooks, chatLore, bindChatLore,
+    editMessage, deleteMessageAt, expressionOf, fetchSprites, saveChat, me, currentCharacter, charOf, characters, ctx,
+    addUserLine, narratorLine, personaName, quiet, lorebooks, chatLores, setChatLores,
     scenarioOpen, scenarioCast, scenarioTitle, addToScenario, removeFromScenario, setChatBackground, newScenarioChat,
     persona, personas, personaThumb, usePersona,
 } from '../st/bridge.js';
-import { placeOf } from '../sim/places.js';
+import { placeOf, isOuting } from '../sim/places.js';
+import { outingOf } from '../sim/outing.js';
+import { bgStyle } from './outing.js';
+import { bgHead, bgGrid } from './bgpick.js';
 import { presentAt } from '../sim/people.js';
 import { toolsHtml } from './tools.js';
 import { addBond } from '../sim/social.js';
@@ -34,6 +42,7 @@ import { charPicker } from './charpick.js';
 import { stripBlock } from '../sim/pstate.js';
 import { narratorExtra, splitNarration, onEdited } from '../sim/pstate-live.js';
 import { afterNarration, storyOver, endedComposerHtml } from './pstateui.js';
+import { RAD, radialHtml } from './radial.js';
 
 const LOG_SIZE = 40;
 
@@ -54,6 +63,15 @@ function pictures(html: string) {
         .replace(/&lt;img\b[\s\S]*?\bsrc=(?:&quot;|&#39;)([^&]+?)(?:&quot;|&#39;)[\s\S]*?\/?&gt;/gi, (all, url) => (safeUrl(url) ? `<img class="mu-line-img" src="${url}" alt="" loading="lazy">` : all));
 }
 // Pictures and videos attached to a line (SillyTavern keeps them in the message's "extra").
+// A system line that carries a picture made by SillyTavern (not a hidden line of the story).
+function isGeneratedPicture(m: any) {
+    const x = m?.extra ?? {};
+    const has = (Object.prototype.propertyIsEnumerable.call(x, 'image') && typeof x.image === 'string' && x.image) || (Array.isArray(x.media) && x.media.some((d: any) => d?.url));
+    // any hidden (system) line that carries a picture is shown: SillyTavern posts generated pictures as lines the AI does
+    // not read (the ghost / crossed eye), sometimes under the character's name; hidden lines of earlier visits are not
+    // in the log anyway (it starts at this visit)
+    return !!has;
+}
 function attachments(m: any) {
     const x = m?.extra ?? {};
     const list: { url: string; video?: boolean }[] = [];
@@ -110,18 +128,32 @@ function expressions(): Record<string, string | null> {
     return out;
 }
 
+/* ---------- RPG: roll for the next line ---------- */
+
+// The dice button: your next line is a check (the judge picks the skill and difficulty; the dice decide).
+const CHECK = { on: false };
+function diceButton(nobody: boolean) {
+    const g = game(); const w = g && getWorld(g.world);
+    if (!g || !w || !isRpg(w) || nobody) return '';
+    return `<button data-act="roll-next" class="${CHECK.on ? 'is-on' : ''}" title="${esc(lex(w, 'rollAsk'))}: your next line is a d20 check">🎲</button>`;
+}
+
 /* ---------- drawing ---------- */
 
 function background(g: Save, w: WorldDef) {
+    if (isOuting(g.player.loc)) return bgStyle(outingOf(g)?.bg ?? '');   // Home, out of the house: the background you chose
     const p = placeOf(g, w, g.player.loc);
     if (!p) return '';
     if (p.home) {
         const kind = w.homes.kinds[p.id === 'home:player' ? g.player.home.kind : (w.homes.zones.find(z => z.id === g.cast[p.id.slice(5)]?.home.zone)?.kind ?? 'apartment')];
-        if (kind?.image) return `${bgOf(w, kind.image)};background-size:cover;background-position:center`;
+        const img = kind && pictureAt(w, g.minutes, kind.image, kind.images);   // the picture of this part of the day, if it has one
+        if (img) return `${bgOf(w, img)};background-size:cover;background-position:center`;
     }
-    if (p.bg) return `${bgOf(w, p.bg)};background-size:cover;background-position:center`;
+    const pub = w.places.find(x => x.id === p.id);
+    const bg = pictureAt(w, g.minutes, p.bg, pub?.bgs);
+    if (bg) return `${bgOf(w, bg)};background-size:cover;background-position:center`;
     const map = w.maps.find(m => m.id === p.map) ?? w.maps[0];
-    return `${bgOf(w, map.image)};background-size:420% auto;background-position:${num(p.x, 50)}% ${num(p.y, 50)}%`;
+    return `${bgOf(w, pictureAt(w, g.minutes, map.image, map.images)!)};background-size:420% auto;background-position:${num(p.x, 50)}% ${num(p.y, 50)}%`;
 }
 
 import { fullPicOf as fullPic } from './chatlook.js';
@@ -129,8 +161,10 @@ import { fullPicOf as fullPic } from './chatlook.js';
 const lineText = (m: any, i: number) => stFormat(cleanText(shownText(m)), m, i, (t) => `<p>${formatText(t)}</p>`);
 function lineHtml(m: any, i: number, last: boolean, lastChar: number) {
     const narr = !!m.extra?.mundi_narrator;
-    if (m.is_system && !narr) return '';
-    const who = narr ? tr('Narrator') : m.is_user ? (m.name || me()) : m.name;
+    // a picture SillyTavern made (Image Generation posts it as a system line) is shown; other system lines are not
+    const pic = m.is_system && !narr && isGeneratedPicture(m);
+    if (m.is_system && !narr && !pic) return '';
+    const who = narr ? tr('Narrator') : pic && (!m.name || /system/i.test(String(m.name))) ? tr('Picture') : m.is_user ? (m.name || me()) : m.name;
     const editing = state.modal?.type === 'edit' && state.modal.i === i;
     const swipes = !m.is_user && i === lastChar && Array.isArray(m.swipes) && m.swipes.length > 0
         ? `<span class="mu-swipes"><button data-act="swipe" data-d="-1" title="Previous answer" ${(m.swipe_id ?? 0) <= 0 ? 'disabled' : ''}>‹</button><small>${(m.swipe_id ?? 0) + 1}/${m.swipes.length}</small><button data-act="swipe" data-d="1" title="Next answer (generates a new one at the end)">›</button></span>` : '';
@@ -138,7 +172,7 @@ function lineHtml(m: any, i: number, last: boolean, lastChar: number) {
         <div class="mu-line-head">${narr ? '' : avatarHtml(m)}<b ${narr ? '' : `data-act="portrait" data-src="${esc(fullPic(m))}" data-name="${esc(who)}"`}>${esc(who)}</b>${swipes}
             ${state.modal?.type === 'delete' && state.modal.i === i
                 ? `<span class="mu-line-ask">Delete this line? <button class="mu-danger" data-act="delete-yes" data-i="${i}">Delete</button><button data-act="edit-cancel">Cancel</button></span>`
-                : `<span class="mu-line-tools">${m.is_user ? '' : ttsButton(i)}${game() ? `<button data-act="remember-line" data-i="${i}" title="Remember this (Journal)">${icon('book')}</button>` : ''}<button data-act="edit" data-i="${i}" title="Edit">${icon('edit')}</button><button data-act="delete" data-i="${i}" title="Delete">${icon('trash')}</button></span>`}</div>
+                : `<span class="mu-line-tools">${m.is_user ? '' : ttsButton(i)}${game() && systemOn(getWorld(game()!.world), 'pins') ? `<button data-act="remember-line" data-i="${i}" title="Remember this (Journal)">${icon('book')}</button>` : ''}<button data-act="edit" data-i="${i}" title="Edit">${icon('edit')}</button><button data-act="delete" data-i="${i}" title="Delete">${icon('trash')}</button></span>`}</div>
         ${editing
             ? `<textarea class="mu-msgedit" data-focus="edit" rows="4">${esc(m.mes)}</textarea><div class="mu-row"><button class="mu-primary" data-act="edit-save" data-i="${i}">Save</button><button data-act="edit-cancel">Cancel</button></div>`
             : `<div class="mu-line-text mes_text">${lineText(m, i)}${attachments(m)}</div>`}
@@ -156,15 +190,30 @@ function logHtml() {
     return out || '<p class="mu-muted mu-pad">Say something, or just do something: write it in the box below.</p>';
 }
 
+
+// Sprites keep their size; with more people they stand closer and overlap. Who spoke last stands in front.
+function stageVars(list: string[], hasSprite: (a: string) => boolean): Map<string, string> {
+    const last = new Map<string, number>(); const msgs = chat();
+    for (let i = Math.max(0, msgs.length - 200); i < msgs.length; i++) { const a = speakerOf(msgs[i]); if (a) last.set(a, i); }
+    const order = [...list].sort((a, b) => (last.get(a) ?? -1) - (last.get(b) ?? -1));
+    const shown = list.filter(hasSprite);
+    const out = new Map<string, string>();
+    list.forEach((a, k) => out.set(a, `--p:${k};--n:${list.length};--ps:${Math.max(0, shown.indexOf(a))};--ns:${Math.max(1, shown.length)};--z:${order.indexOf(a) + 1}`));
+    return out;
+}
+
 export function sceneHtml() {
     const g = game()!; const w = getWorld(g.world)!;
     // talking alone with someone: only their picture stays in the scene
     const here = presentAt(g, w, g.player.loc).filter(r => inTalk(g, r.avatar));
     const ex = expressions();
     const nobody = !here.length;
+    // how many have a real sprite (the classic layout shows only those, so they share the room among themselves)
+    const withSprite = here.filter(r => !!spriteFor(r.avatar, ex[r.avatar] ?? null)).length;
+    const sv = stageVars(here.map(r => r.avatar), a => !!spriteFor(a, ex[a] ?? null)); void withSprite;
     const sprites = here.map((r, k) => {
         const src = spriteFor(r.avatar, ex[r.avatar] ?? null);
-        return `<figure class="mu-sprite ${isWith(g, r.avatar) ? 'is-with' : ''}" style="--i:${k};--n:${here.length}" title="${esc(r.name)}">${src ? `<img src="${esc(src)}" alt="">` : `<span class="is-avatar mu-zoomable"><img src="${esc(avatarUrl(r.avatar))}" alt="" draggable="false"></span>`}<figcaption>${esc(r.met ? r.name : 'Someone')}</figcaption></figure>`;
+        return `<figure class="mu-sprite ${isWith(g, r.avatar) ? 'is-with' : ''} ${RAD.who === r.avatar ? 'is-menu' : ''}" style="--i:${k};${sv.get(r.avatar)}" title="${esc(r.met ? r.name : 'Someone')}" data-act="spr-menu" data-who="${esc(r.avatar)}">${src ? `<img src="${esc(src)}" alt="">` : `<span class="is-avatar mu-zoomable"><img src="${esc(avatarUrl(r.avatar))}" alt="" draggable="false"></span>`}<figcaption>${esc(r.met ? r.name : 'Someone')}</figcaption>${radialHtml(r.avatar, r)}</figure>`;
     }).join('');
     return `<div class="mu-scene">
         <div class="mu-scene-bg" style="${esc(background(g, w))}"></div>
@@ -181,7 +230,7 @@ export function sceneHtml() {
             : `<button class="mu-primary" data-act="send">Send</button>
                        <button data-act="continue" title="The character continues their last line" ${nobody ? 'disabled' : ''}>${icon('forward')}</button>
                        <button data-act="regenerate" title="Regenerate the last answer" ${nobody ? 'disabled' : ''}>${icon('redo')}</button>
-                       <button data-act="impersonate" title="The AI writes your line" ${nobody ? 'disabled' : ''}>${icon('pen')}</button>${sdButton()}${micButton()}<button data-act="ext-menu" class="${EXT.open ? 'is-on' : ''}" title="SillyTavern extensions">${icon('grid')}</button>`}
+                       <button data-act="impersonate" title="The AI writes your line" ${nobody ? 'disabled' : ''}>${icon('pen')}</button>${diceButton(nobody)}${sdButton()}${micButton()}<button data-act="ext-menu" class="${EXT.open ? 'is-on' : ''}" title="SillyTavern extensions">${icon('grid')}</button>`}
                 </div>
             </div>`}
         </section>
@@ -195,39 +244,40 @@ export function sceneHtml() {
 // Scenario: a plain chat (one character, or a group made from it), in the scene's look: their sprites, the
 // conversation, SillyTavern's own background. No map, no clock. It is saved as a normal SillyTavern chat.
 const SC = { pick: '' as '' | 'bg' | 'add' | 'lore' | 'persona' | 'persona-rename', q: '', bgs: null as string[] | null, to: '' };
+// The persona picker, for a Home game too (from the game menu).
+export const personaPickHtml = () => (SC.pick === 'persona' || SC.pick === 'persona-rename' ? scenarioPicker() : '');
 function scenarioPicker(): string {
     if (!SC.pick) return '';
     const q = SC.q.toLowerCase();
     if (SC.pick === 'bg') {
-        if (!SC.bgs) { SC.bgs = []; bgList().then(b => { SC.bgs = b.images; notify(); }).catch(() => { SC.bgs = []; }); }
-        const list = SC.bgs.filter(f => !q || f.toLowerCase().includes(q));
-        return `<div class="mu-dlg-veil" data-act="sc-pick-close"></div><div class="mu-panel mu-scpick" role="dialog"><header><h3>Background</h3><button class="mu-ibtn mu-ghost" data-act="sc-pick-close" aria-label="Close">${icon('x')}</button></header>
-            <input class="mu-search" type="search" data-input="sc-q" data-focus="scq" placeholder="Search" value="${esc(SC.q)}">
-            <div class="mu-scpick-grid is-bg" data-keep="scpick">${list.map(f => `<button data-act="sc-bg" data-file="${esc(f)}" title="${esc(f)}"><img src="${esc(bgThumb(f))}" alt="" loading="lazy"><span data-notr>${esc(f.replace(/\.[a-z0-9]+$/i, ''))}</span></button>`).join('') || '<p class="mu-muted">Loading…</p>'}</div></div>`;
+        void q;
+        return `<div class="mu-dlg-veil" data-act="sc-pick-close"></div><div class="mu-panel mu-scpick mu-glassdlg" role="dialog"><header><h3>Background</h3><button class="mu-ibtn mu-ghost" data-act="sc-pick-close" aria-label="Close">${icon('x')}</button></header>
+            ${bgHead('sc-q', 'scq', SC.q)}${bgGrid({ act: 'sc-bg', q: SC.q, keep: 'scpick' })}</div>`;
     }
     // your persona: switch in the middle of the chat (like SillyTavern), and choose whether your earlier lines follow
     if (SC.pick === 'persona') {
         const cur = persona();
         const list = personas().filter(p => !q || p.name.toLowerCase().includes(q)).sort((a, b) => a.name.localeCompare(b.name));
-        return `<div class="mu-dlg-veil" data-act="sc-pick-close"></div><div class="mu-panel mu-scpick" role="dialog"><header><h3>Your persona</h3><button class="mu-ibtn mu-ghost" data-act="sc-pick-close" aria-label="Close">${icon('x')}</button></header>
-            <p class="mu-muted">Who you are in this chat. It stays with this chat (SillyTavern's chat lock).</p>
+        return `<div class="mu-dlg-veil" data-act="sc-pick-close"></div><div class="mu-panel mu-scpick mu-glassdlg" role="dialog"><header><h3>Your persona</h3><button class="mu-ibtn mu-ghost" data-act="sc-pick-close" aria-label="Close">${icon('x')}</button></header>
+            <p class="mu-muted">Who you are in this ${game() ? 'game' : 'chat'}. It stays with it (SillyTavern's chat lock).</p>
             <input class="mu-search" type="search" data-input="sc-q" data-focus="scq" placeholder="Search your personas" value="${esc(SC.q)}">
             <div class="mu-scpick-grid" data-keep="scpick">${list.map(p => `<button class="${p.file === cur ? 'is-on' : ''}" data-act="sc-persona" data-file="${esc(p.file)}" title="${esc(p.name)}"><img src="${esc(personaThumb(p.file))}" alt="" loading="lazy"><span data-notr>${esc(p.name)}</span></button>`).join('') || '<p class="mu-muted">No personas found.</p>'}</div></div>`;
     }
     if (SC.pick === 'persona-rename') {
         const to = personas().find(p => p.file === SC.to); const old = [...new Set(chat().filter(m => m.is_user && !m.is_system).map(m => String(m.name ?? '')))].filter(n => n && n !== to?.name);
-        return `<div class="mu-dlg-veil" data-act="sc-pick-close"></div><div class="mu-panel mu-scpick mu-screname" role="dialog"><header><h3>Your earlier lines</h3><button class="mu-ibtn mu-ghost" data-act="sc-pick-close" aria-label="Close">${icon('x')}</button></header>
+        return `<div class="mu-dlg-veil" data-act="sc-pick-close"></div><div class="mu-panel mu-scpick mu-glassdlg mu-screname" role="dialog"><header><h3>Your earlier lines</h3><button class="mu-ibtn mu-ghost" data-act="sc-pick-close" aria-label="Close">${icon('x')}</button></header>
             <p>Your earlier lines in this chat are written as <b data-notr>${esc(old.join(', ') || personaName())}</b>. Change them to <b data-notr>${esc(to?.name ?? '')}</b>, with the new picture?</p>
             <div class="mu-row mu-dlg-btns"><button data-act="sc-persona-yes" data-v="0">No, only from now on</button><button class="mu-primary" data-act="sc-persona-yes" data-v="1">Yes, change them</button></div></div>`;
     }
     if (SC.pick === 'lore') {
-        const cur = chatLore();
-        const list = lorebooks().filter(n => !q || n.toLowerCase().includes(q)).sort((a, b) => a.localeCompare(b));
-        return `<div class="mu-dlg-veil" data-act="sc-pick-close"></div><div class="mu-panel mu-scpick is-lore" role="dialog"><header><h3>Chat lorebook</h3><button class="mu-ibtn mu-ghost" data-act="sc-pick-close" aria-label="Close">${icon('x')}</button></header>
-            <p class="mu-muted">A lorebook only for this chat (SillyTavern's "chat lore"). The character's own lorebooks keep working as usual.</p>
+        const cur = chatLores();
+        const list = lorebooks().filter(n => !q || n.toLowerCase().includes(q)).sort((a, b) => Number(cur.includes(b)) - Number(cur.includes(a)) || a.localeCompare(b));
+        return `<div class="mu-dlg-veil" data-act="sc-pick-close"></div><div class="mu-panel mu-scpick is-lore" role="dialog"><header><h3>Chat lorebooks</h3><button class="mu-ibtn mu-ghost" data-act="sc-pick-close" aria-label="Close">${icon('x')}</button></header>
+            <p class="mu-muted">Lorebooks only for this chat; pick as many as you want. The first is SillyTavern's "chat lore"; the others are switched on while this chat is open. The character's own lorebooks keep working as usual.</p>
             <input class="mu-search" type="search" data-input="sc-q" data-focus="scq" placeholder="Search your lorebooks" value="${esc(SC.q)}">
-            <div class="mu-lorepick" data-keep="scpick"><button class="${!cur ? 'is-on' : ''}" data-act="sc-lore" data-name="">${icon('x')}<span>None</span></button>
-                ${list.map(n => `<button class="${cur === n ? 'is-on' : ''}" data-act="sc-lore" data-name="${esc(n)}">${icon('book')}<span data-notr>${esc(n)}</span>${cur === n ? icon('check') : ''}</button>`).join('') || '<p class="mu-muted">No lorebooks found.</p>'}</div></div>`;
+            <div class="mu-lorepick" data-keep="scpick"><button class="${!cur.length ? 'is-on' : ''}" data-act="sc-lore" data-name="">${icon('x')}<span>None</span></button>
+                ${list.map(n => `<button class="${cur.includes(n) ? 'is-on' : ''}" data-act="sc-lore" data-name="${esc(n)}" title="${esc(n)}">${icon('book')}<span data-notr>${esc(n)}</span>${cur.includes(n) ? icon('check') : ''}</button>`).join('') || '<p class="mu-muted">No lorebooks found.</p>'}</div>
+            <div class="mu-row mu-dlg-btns"><button class="mu-primary" data-act="sc-pick-close">Done</button></div></div>`;
     }
     const cast = scenarioCast();
     return `<div class="mu-dlg-veil" data-act="sc-pick-close"></div><div class="mu-panel mu-scpick is-chars" role="dialog"><header><h3>Add a character</h3><button class="mu-ibtn mu-ghost" data-act="sc-pick-close" aria-label="Close">${icon('x')}</button></header>
@@ -239,9 +289,10 @@ export function chatHtml() {
     if (!scenarioOpen()) return '';
     const cast = scenarioCast();
     const ex = expressions();
+    const sv = stageVars(cast, a => !!spriteFor(a, ex[a] ?? null));
     const sprites = cast.map((a, k) => {
         const src = spriteFor(a, ex[a] ?? null);
-        return `<figure class="mu-sprite" style="--i:${k};--n:${cast.length}">${src ? `<img src="${esc(src)}" alt="">` : `<span class="is-avatar mu-zoomable" data-act="portrait" data-src="${esc(avatarUrl(a))}" data-name="${esc(charOf(a)?.name ?? '')}"><img src="${esc(avatarUrl(a))}" alt="" draggable="false"></span>`}</figure>`;
+        return `<figure class="mu-sprite ${RAD.who === a ? 'is-menu' : ''}" style="--i:${k};${sv.get(a)}" ${src ? `data-act="spr-menu" data-who="${esc(a)}"` : ''}>${radialHtml(a, null)}${src ? `<img src="${esc(src)}" alt="">` : `<span class="is-avatar mu-zoomable" data-act="portrait" data-src="${esc(avatarUrl(a))}" data-name="${esc(charOf(a)?.name ?? '')}"><img src="${esc(avatarUrl(a))}" alt="" draggable="false"></span>`}</figure>`;
     }).join('');
     // the chat's own background (just chosen, or locked to this chat), else what SillyTavern shows now
     const bgEl = document.getElementById('bg1');
@@ -268,12 +319,12 @@ export function chatHtml() {
             </div>
         </section>
         <div class="mh-drawer ${DRAWER.open ? 'is-open' : ''}">
-            <button class="mh-drawer-tab mh-glass" data-act="drawer" title="${DRAWER.open ? 'Close' : 'Scenario tools'}">${icon(DRAWER.open ? 'x' : 'menu')}</button>
-            <nav class="mh-drawer-panel mh-glass"><header><b data-notr>${esc(scenarioTitle())}</b><small>Scenario</small></header>
+            <button class="mh-drawer-tab mh-glass" data-act="drawer" title="${DRAWER.open ? 'Close' : 'Chat tools'}">${icon(DRAWER.open ? 'x' : 'menu')}</button>
+            <nav class="mh-drawer-panel mh-glass"><header><b data-notr>${esc(scenarioTitle())}</b><small>Chat</small></header>
                 <button data-act="sc-open" data-v="bg">${icon('image')}<span>Background</span></button>
                 <button data-act="sc-open" data-v="add">${icon('users')}<span>Add a character</span></button>
                 <button data-act="sc-open" data-v="persona"><span class="mh-drawer-mew"><img class="mh-drawer-me" src="${esc(personaThumb())}" alt=""></span><span>Your persona<small data-notr>${esc(personaName())}</small></span></button>
-                <button data-act="sc-open" data-v="lore">${icon('book')}<span>Chat lorebook${chatLore() ? `<small data-notr>${esc(chatLore())}</small>` : ''}</span></button>
+                <button data-act="sc-open" data-v="lore" class="mh-drawer-lore" title="${esc(chatLores().join(', '))}">${icon('book')}<span>Chat lorebooks${chatLores().length ? `<small data-notr>${chatLores().length > 1 ? `${chatLores().length} lorebooks · ` : ''}${esc(chatLores()[0])}</small>` : '<small>None</small>'}</span></button>
                 <button data-act="chat-new">${icon('plus')}<span>New chat</span></button>
                 <button data-act="drawer-look" class="${DRAWER.look ? 'is-on' : ''}">${icon('palette')}<span>Look</span></button>
                 <button data-act="open-settings">${icon('gear')}<span>Settings</span></button>
@@ -340,10 +391,13 @@ Object.assign(ACT, {
     },
     'sc-lore': async (el) => {
         const n = el.dataset.name ?? '';
-        await bindChatLore(n);
+        const cur = chatLores();
+        const next = !n ? [] : cur.includes(n) ? cur.filter(x => x !== n) : [...cur, n];
+        await setChatLores(next);
+        const { applyGameLore } = await import('../sim/lore.js'); await applyGameLore();
         // SillyTavern's own chat lorebook button shows it too
-        document.querySelectorAll('.chat_lorebook_button').forEach(b => b.classList.toggle('world_set', !!n));
-        SC.pick = ''; toast(n ? `"${n}" is now this chat's lorebook.` : 'This chat has no lorebook now.', 'success'); notify();
+        document.querySelectorAll('.chat_lorebook_button').forEach(b => b.classList.toggle('world_set', next.length > 0));
+        toast(!n ? 'This chat has no lorebooks now.' : cur.includes(n) ? `"${n}" is off for this chat.` : `"${n}" is on for this chat.`, 'success'); notify();
     },
     'sc-remove': async (el) => { await removeFromScenario(el.dataset.avatar!); notify(); },
     'chat-new': async () => {
@@ -361,6 +415,14 @@ Object.assign(ACT, {
         const g0 = game(); const w0 = g0 && getWorld(g0.world);
         // alone: nobody is called into the scene; the hidden narrator describes the place, the time and the feelings
         if (g0 && w0 && !presentAt(g0, w0, g0.player.loc).length && !scenarioOpen()) { state.composer = ''; await soloNarrate(g0, w0, text); return; }
+        // RPG: an attempt to persuade, lie, threaten… is judged by the AI and decided by the dice before anyone answers
+        if (g0 && w0 && isRpg(w0) && !scenarioOpen()) {
+            const force = CHECK.on; CHECK.on = false;
+            try {
+                const res = await socialCheck(g0, w0, text, presentAt(g0, w0, g0.player.loc), force);
+                if (res) { setPrompt('mundi_roll', res.prompt, 0); toast(res.toast, res.check.grade.includes('success') ? 'success' : 'warn'); res.msgs.forEach(m => toast(m, 'success')); saveGame(); }
+            } catch { /* the judge is offline: the line goes as it is */ }
+        }
         // "@Name" in the line: that person answers
         const men = scenarioOpen() ? { who: null, text } : mentionIn(text);
         if (men.who) { closeMention(); state.composer = ''; notify(); await addUserLine(men.text); void replyAs(men.who.avatar); }
@@ -383,6 +445,7 @@ Object.assign(ACT, {
         notify();
     },
     'input-mode': (el) => { INPUT_MODE.v = el.dataset.v as InputMode; notify(); },
+    'roll-next': () => { CHECK.on = !CHECK.on; notify(); },
     'ext-menu': () => { EXT.open = !EXT.open; notify(); },
     drawer: () => { DRAWER.open = !DRAWER.open; notify(); },
     'drawer-look': () => { DRAWER.look = !DRAWER.look; notify(); },
@@ -458,6 +521,8 @@ async function switchPersona(file: string, rename: boolean) {
     SC.pick = ''; notify();
     const to = personas().find(p => p.file === file); if (!to) return;
     try { await usePersona(file); } catch (e: any) { toast(String(e?.message ?? e), 'error'); return; }
+    // a Home game keeps the persona you switched to (it opens with it next time)
+    if (game()) { const { gameEntry } = await import('../sim/game.js'); const { settings, saveSettings } = await import('../core/store.js'); const e = gameEntry(settings().lastGame ?? null); if (e) { e.persona = file; saveSettings(); } void import('../sim/prompt.js').then(m => m.refreshPrompt()); }
     if (rename) {
         const pic = `/thumbnail?type=persona&file=${encodeURIComponent(file)}`;
         let n = 0;

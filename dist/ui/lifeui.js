@@ -1,20 +1,22 @@
 import { relOverlays, endConfirmHtml } from './relui.js';
 // Screens for the Life-Sim systems: the elevator of apartment buildings, invitations from people, the shop and
 // goals apps, throwing a party, talking with only one person, and playing as someone else.
+import { currentHappening, answer } from '../sim/happenings.js';
 import { esc, game, toast, notify, saveGame, nowAbs, state } from '../core/store.js';
 import { countUp } from '../sim/skills.js';
-import { priceOf } from '../sim/bills.js';
 import { getWorld } from '../core/world.js';
+import { styleOf } from '../core/world.js';
 import { icon } from './icons.js';
 import { ACT, INPUT } from './reg.js';
-import { money } from '../sim/needs.js';
+import { money, usualPay } from '../sim/needs.js';
 import { placeOf, playerHomeId } from '../sim/places.js';
 import { residents, whereNow } from '../sim/people.js';
 import { social, bondOf, bump } from '../sim/social.js';
 import { add, check, earliest, HANGOUT_BOND } from '../sim/plans.js';
 import { note } from '../sim/facts.js';
 import { syncScene } from '../sim/game.js';
-import { shopItems, hasItem, buy, ASPIRATIONS, aspirationOf, setAspiration, lifeOf, pendingInvite, clearInvite, activeFeelings } from '../sim/life.js';
+import { houseParty, partyRooms, throwHouseParty, cancelHouseParty, PARTY_HOURS } from '../sim/houseparty.js';
+import { shopPrice, shopItems, hasItem, buy, ASPIRATIONS, aspirationOf, setAspiration, lifeOf, pendingInvite, clearInvite, activeFeelings } from '../sim/life.js';
 import { thumb, charOf, personaName, personaThumb } from '../st/bridge.js';
 import { swapOf, switchTo, roster } from '../sim/playas.js';
 import { refreshPrompt } from '../sim/prompt.js';
@@ -28,8 +30,8 @@ export function startElevator(g, w, loc) {
         return;
     const zone = w.homes.zones.find(z => z.id === home.zone);
     const kind = loc === playerHomeId ? g.player.home.kind : zone?.kind;
-    if (kind !== 'apartment' || !zone)
-        return;
+    if (!String(kind ?? '').startsWith('apartment') || !zone)
+        return; // any kind of apartment has an elevator
     const n = home.n ?? 1;
     Object.assign(ELEV, { on: true, floors: Math.max(2, Math.ceil(zone.spots.length / 2)), floor: Math.ceil(n / 2), door: n, at: 1 });
 }
@@ -54,6 +56,16 @@ function inviteHtml(g, w) {
         <div><b data-notr>${esc(r.name)}</b><p>${inv.kind === 'date' ? 'Asks you out on a date' : 'Invites you to meet up'}: <b data-notr>${esc(placeOf(g, w, inv.place)?.name ?? '')}</b>, ${esc(when)}.</p></div>
         <div class="mh-invite-btns"><button class="mu-primary" data-act="inv-yes">Accept</button><button data-act="inv-no">Decline</button></div></div>`;
 }
+/* ---------- something comes to you: a neighbor at the door, a friend asking advice, a big moment (phase 4) ---------- */
+function happeningHtml(g) {
+    const h = currentHappening(g);
+    const r = h && g.cast[h.avatar];
+    if (!h || !r)
+        return '';
+    return `<div class="mh-invite mh-happen mh-glass is-${h.kind}" role="dialog"><img src="${esc(thumb(r.avatar))}" alt="">
+        <div><b data-notr>${esc(r.met ? r.name : 'Someone')}</b><p data-notr>${esc(h.text)}</p></div>
+        <div class="mh-invite-btns">${h.choices.map(([c, label], i) => `<button class="${i ? '' : 'mu-primary'}" data-act="hap" data-id="${esc(h.id)}" data-c="${esc(c)}">${esc(label)}</button>`).join('')}</div></div>`;
+}
 /* ---------- sleeping, or a day going by (25) ---------- */
 const FX = { title: '', sub: '', kind: 'night', until: 0 };
 export function showTransition(title, sub, kind = 'night') {
@@ -71,22 +83,22 @@ export function lifeOverlays() {
     const w = g && getWorld(g.world);
     if (!g || !w)
         return '';
-    return `${elevatorHtml()}${inviteHtml(g, w)}${playAsHtml(g)}${transitionHtml()}${relOverlays()}${endConfirmHtml()}`;
+    return `${elevatorHtml()}${inviteHtml(g, w) || happeningHtml(g)}${playAsHtml(g)}${transitionHtml()}${relOverlays()}${endConfirmHtml()}`;
 }
 /* ---------- phone apps: shop and goals ---------- */
 export function shopApp(g, w, head) {
     return `${head}<div class="mu-ph-body mu-shop">${shopItems(w).map(it => `<article class="mu-shop-item">
-        <i>${it.icon}</i><span><b>${esc(it.name)}</b><small>${esc(it.desc)}</small><small class="mu-shop-price">${money(w, priceOf(g, it.price))}</small></span>
-        ${hasItem(g, it.id) ? '<em>Owned</em>' : `<button data-act="shop-buy" data-id="${esc(it.id)}" ${g.player.money >= priceOf(g, it.price) ? '' : 'aria-disabled="true"'}>Buy</button>`}</article>`).join('')}</div>`;
+        <i>${it.icon}</i><span><b>${esc(it.name)}</b><small>${esc(it.desc)}</small><small class="mu-shop-price">${money(w, shopPrice(g, w, it))}</small></span>
+        ${hasItem(g, it.id) ? '<em>Owned</em>' : `<button data-act="shop-buy" data-id="${esc(it.id)}" ${g.player.money >= shopPrice(g, w, it) ? '' : 'aria-disabled="true"'}>Buy</button>`}</article>`).join('')}</div>`;
 }
 export function goalsApp(g, w, head) {
     const cur = aspirationOf(g);
     const l = lifeOf(g);
     const bar = (have, need) => `<span class="mu-bond"><i style="width:${Math.max(0, Math.min(100, (have / need) * 100))}%"></i></span>`;
     return `${head}<div class="mu-ph-body">
-        ${cur ? (() => { const [h, n] = cur.check(g, w); const done = (l.aspDone ?? []).includes(cur.id); return `<section class="mu-ph-card"><small>Your life goal</small><b>${esc(cur.name)}</b><small>${esc(cur.desc)}</small>${bar(h, n)}<small>${done ? 'Reached!' : `${Math.min(h, n).toLocaleString('en-US')} / ${n.toLocaleString('en-US')}`}</small></section>`; })() : '<p class="mu-muted">Pick a life goal. It guides your days, and the story knows about it.</p>'}
+        ${cur ? (() => { const [h, n] = cur.check(g, w); const done = (l.aspDone ?? []).includes(cur.id); return `<section class="mu-ph-card"><small>Your life goal</small><b>${cur.icon} ${esc(cur.name)}</b><small>${esc(cur.desc)}</small>${bar(h, n)}<small>${done ? 'Reached!' : `${Math.min(h, n).toLocaleString('en-US')} / ${n.toLocaleString('en-US')}`}</small></section>`; })() : '<p class="mu-muted">Pick a life goal. It guides your days, and the story knows about it.</p>'}
         <h4>Life goals</h4>
-        ${ASPIRATIONS.map(a => `<button class="mu-goal ${cur?.id === a.id ? 'is-on' : ''}" data-act="goal-set" data-id="${a.id}"><b>${esc(a.name)}</b><small>${esc(a.desc)}</small>${(l.aspDone ?? []).includes(a.id) ? '<em>✓</em>' : ''}</button>`).join('')}
+        ${ASPIRATIONS.map(a => `<button class="mu-goal ${cur?.id === a.id ? 'is-on' : ''}" data-act="goal-set" data-id="${a.id}"><i class="mu-goal-ic">${a.icon}</i><b>${esc(a.name)}</b><small>${esc(a.desc)}</small>${(l.aspDone ?? []).includes(a.id) ? '<em>✓</em>' : ''}</button>`).join('')}
         <section class="mu-ph-card"><small>You</small><small>Fitness: ${l.fitness}/100${l.study.degree ? ' · Graduated' : l.study.enrolled ? ` · Studying (${l.study.passed}/3 exams)` : ''}</small></section>
     </div>`;
 }
@@ -97,7 +109,7 @@ export const PARTY = { open: false, day: 0, time: 20 * 60, guests: [], title: ''
 export function partyForm(g, w) {
     if (!PARTY.open)
         return `<button class="mu-primary" data-act="party-open">${icon('users')}<span>Throw a party at home</span></button>`;
-    const fee = w.currency.tiers ? 5 : 60;
+    const fee = Math.max(1, Math.round(usualPay(w) * 3.75)); // food and drinks: about four hours of a first job
     const people = residents(g).filter(r => r.met && bondOf(g, r.avatar) >= HANGOUT_BOND);
     return `<section class="mu-ph-card mu-party"><h4>A party at your place</h4>
         <label class="mu-field"><span>Name (optional)</span><input type="text" maxlength="80" data-input="party-title" data-focus="partytitle" placeholder="e.g. My birthday, Game night" value="${esc(PARTY.title)}"></label>
@@ -107,6 +119,26 @@ export function partyForm(g, w) {
         ${people.length ? `<div class="mu-chips">${people.map(r => `<button class="mu-chip ${PARTY.guests.includes(r.avatar) ? 'is-on' : ''}" data-act="party-guest" data-who="${esc(r.avatar)}">${esc(r.name)}</button>`).join('')}</div>` : '<p class="mu-muted">Get to know people first.</p>'}
         <small>Food and drinks: ${money(w, fee)}</small>
         <div class="mu-row"><button class="mu-primary" data-act="party-go" ${PARTY.guests.length ? '' : 'aria-disabled="true"'}>Send the invitations</button><button class="mu-ghost" data-act="party-close">Cancel</button></div></section>`;
+}
+/* ---------- a scenario's house party ---------- */
+// Everyone in the house is there: while it lasts they leave their rooms and routines for the common rooms.
+const HP = { day: 0, time: 21 * 60, title: '' };
+export function housePartyHtml(g, w) {
+    const p = houseParty(g);
+    const now = nowAbs(g);
+    const old = styleOf(w) === 'medieval'; // a medieval Home holds a feast
+    const rooms = partyRooms(g, w).map(id => placeOf(g, w, id)?.name).filter(Boolean);
+    if (p && p.until > now)
+        return `<section class="mu-ph-card mu-party"><h4>🎉 ${esc(p.title || (old ? 'A feast' : 'House party'))}</h4>
+        <small>${now >= p.from ? 'Going on now' : `${p.from - now < 1440 && Math.floor(p.from / 1440) === g.day ? 'Today' : weekday(Math.floor(p.from / 1440))} at ${hm(p.from % 1440)}`} · ${PARTY_HOURS} hours</small>
+        <small>Everyone in the house comes out of their rooms: ${esc(rooms.join(', '))}.</small>
+        ${now < p.from ? '<button class="mu-ghost" data-act="hp-cancel">Call it off</button>' : ''}</section>`;
+    return `<section class="mu-ph-card mu-party"><h4>🎉 ${old ? 'A feast in the house' : 'A party at home'}</h4>
+        <small>${old ? 'The house can hold a feast' : 'The house can throw a party'}: everyone comes out of their rooms and routines, into ${esc(rooms.join(', ') || 'the common rooms')}.</small>
+        <label class="mu-field"><span>Name (optional)</span><input type="text" maxlength="80" data-input="hp-title" data-focus="hptitle" placeholder="${old ? 'e.g. Harvest feast, a name day' : 'e.g. Welcome party, Pool night'}" value="${esc(HP.title)}"></label>
+        <div class="mu-row"><select data-input="hp-day">${[0, 1, 2, 3].map(d => `<option value="${d}" ${HP.day === d ? 'selected' : ''}>${d === 0 ? 'Today' : d === 1 ? 'Tomorrow' : weekday(g.day + d)}</option>`).join('')}</select>
+            <select data-input="hp-time">${[18, 19, 20, 21, 22].map(h => `<option value="${h * 60}" ${HP.time === h * 60 ? 'selected' : ''}>${h}:00</option>`).join('')}</select></div>
+        <button class="mu-primary" data-act="hp-go">${icon('users')}<span>${old ? 'Hold the feast' : 'Throw the party'}</span></button></section>`;
 }
 /* ---------- playing as someone else (50) ---------- */
 export function swapBadge(g) {
@@ -138,11 +170,13 @@ function playAsHtml(g) {
             <footer class="mu-row"><button class="mu-primary mu-right" data-act="pa-edit">${icon('check')}<span>Done</span></button></footer></div>`
         : `<div class="mu-pa-grid">${card('', origName, origPic, 'Your character')}${list.map(a => card(a, g.cast[a].name, thumb(a), placeOf(g, getWorld(g.world), whereNow(g, getWorld(g.world), g.cast[a]))?.name ?? '')).join('')}</div>
             <p class="mu-muted mu-pa-note">You take their place and their home. The one you were stays where they are (or with you, if they were your company). Energy, needs and money stay the same; each person keeps their own relationships, diary and job.</p>
-            <footer class="mu-row"><button data-act="pa-edit">${icon('edit')}<span>Choose who you can play (${list.length})</span></button></footer>`}
+            <footer class="mu-row"><button data-act="pa-edit">${icon('edit')}<span>Choose who you can play (${list.length})</span></button><button data-act="pa-persona"><img class="mu-pa-me" src="${esc(personaThumb())}" alt=""><span>Use another persona</span></button></footer>`}
     </section></div>`;
 }
 export const openPlayAs = () => { PA.open = true; PA.edit = false; notify(); };
 Object.assign(ACT, {
+    // your SillyTavern persona: the same picker as in a Home or a chat (the one you play as keeps their card)
+    'pa-persona': () => { PA.open = false; const el = document.createElement('button'); el.dataset.v = 'persona'; ACT['sc-open'](el, new Event('click')); },
     elev: (el) => {
         const f = Number(el.dataset.f);
         ELEV.at = f;
@@ -166,6 +200,18 @@ Object.assign(ACT, {
         clearInvite(g);
         saveGame();
         toast('It is in your calendar.', 'success');
+        notify();
+    },
+    hap: async (el) => {
+        const g = game();
+        const w = g && getWorld(g.world);
+        if (!g || !w)
+            return;
+        const msg = answer(g, w, el.dataset.id, el.dataset.c);
+        if (msg)
+            toast(msg, 'info');
+        saveGame();
+        await syncScene();
         notify();
     },
     'inv-no': () => {
@@ -195,6 +241,25 @@ Object.assign(ACT, {
     },
     'goal-set': (el) => { const g = game(); if (!g)
         return; setAspiration(g, el.dataset.id); saveGame(); notify(); },
+    'hp-go': () => {
+        const g = game();
+        const w = g && getWorld(g.world);
+        if (!g || !w)
+            return;
+        const from = Math.max(nowAbs(g), (g.day + HP.day) * 1440 + HP.time);
+        const err = throwHouseParty(g, w, from, HP.title);
+        if (err) {
+            toast(err, 'info');
+            return;
+        }
+        countUp(g, 'parties');
+        HP.title = '';
+        saveGame();
+        toast('The house knows: party on!', 'success');
+        notify();
+    },
+    'hp-cancel': () => { const g = game(); if (!g)
+        return; cancelHouseParty(g); saveGame(); notify(); },
     'party-open': () => { const g = game(); PARTY.open = true; PARTY.guests = []; PARTY.day = 0; PARTY.time = 20 * 60; if (g && (g.minutes >= 21 * 60))
         PARTY.day = 1; notify(); },
     'party-close': () => { PARTY.open = false; notify(); },
@@ -204,7 +269,7 @@ Object.assign(ACT, {
         const w = g && getWorld(g.world);
         if (!g || !w || !PARTY.guests.length)
             return;
-        const fee = w.currency.tiers ? 5 : 60;
+        const fee = Math.max(1, Math.round(usualPay(w) * 3.75)); // food and drinks: about four hours of a first job
         if (g.player.money < fee) {
             toast('Not enough money for food and drinks.', 'info');
             return;
@@ -256,7 +321,12 @@ Object.assign(ACT, {
     else
         list.push(a); saveGame(); notify(); },
 });
-Object.assign(INPUT, { 'pa-q': (el) => { PA.q = el.value; notify(); } });
+Object.assign(INPUT, {
+    'hp-title': (el) => { HP.title = el.value; },
+    'hp-day': (el) => { HP.day = Number(el.value); },
+    'hp-time': (el) => { HP.time = Number(el.value); },
+    'pa-q': (el) => { PA.q = el.value; notify(); }
+});
 async function goPlay(who) {
     const g = game();
     const w = g && getWorld(g.world);

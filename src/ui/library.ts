@@ -12,22 +12,26 @@ import {
     setCharacterImage, setPersonaImage, defaultPersona, setDefaultPersona, personaSheet, setPersonaSheet,
     fetchSprites, uploadSprite, deleteSprite, expressionLabels,
     bgList, bgThumb, bgUrl, bgUpload, bgRename, bgDelete, bgFolderCreate, bgFolderPut, type Bgs,
-    refreshList, folderColor, setFolderColor, deleteFolder, personaLore, setPersonaLore, exportCharacter, cardTokens, cachedTokens, characterChats, useGreeting, openCharacter,
+    refreshList, folderColor, setFolderColor, deleteFolder, personaLore, setPersonaLore, exportCharacter, cardFile, fileNameOf, baseSpriteFolder, loreCount, charTags, tagColor, tagCharacter, untagCharacter, allTags, cardTokens, cachedTokens, folderMade, renameFolder, characterChats, useGreeting, openCharacter,
 } from '../st/bridge.js';
 import { gameEntry, heroDescription, initialsAvatar } from '../sim/game.js';
 import { sceneText } from '../sim/prompt.js';
 import { ACT, INPUT } from './reg.js';
+import { leaveHtml } from './creator.js';
 import { icon } from './icons.js';
+import { makeZip, uniqueName, download, type ZipFile } from '../core/zip.js';
+import { outfitsOf, outfitLabel, savedOutfits, addOutfit, removeOutfit, forgetOutfits } from './outfits.js';
 import { pickAndCrop, pickFile } from './cropper.js';
 import { toggleTrait } from './traits.js';
 import { nativeHost } from './native.js';
+import { presetsTabHtml } from './castpresets.js';
 
 const L = state.lib;
 import { spritePackHtml, spritePackOpen } from './spritepack.js';
 import { extractButton, extractHtml } from './extractui.js';
-type Tab = 'characters' | 'personas' | 'lorebooks' | 'backgrounds' | 'save' | 'world' | 'st-characters' | 'st-personas' | 'st-worldinfo';
+type Tab = 'characters' | 'personas' | 'lorebooks' | 'backgrounds' | 'presets' | 'save' | 'world' | 'st-characters' | 'st-personas' | 'st-worldinfo';
 type ListTab = 'characters' | 'personas' | 'lorebooks' | 'backgrounds';
-const TABS: [Tab, string][] = [['characters', 'Characters'], ['personas', 'Personas'], ['lorebooks', 'Lorebooks'], ['backgrounds', 'Backgrounds']];   // the save's and the world's settings live in the game (the globe button)
+const TABS: [Tab, string][] = [['characters', 'Characters'], ['personas', 'Personas'], ['lorebooks', 'Lorebooks'], ['backgrounds', 'Backgrounds'], ['presets', 'Presets']];   // the save's and the world's settings live in the game (the globe button)
 const ST_TABS: Tab[] = ['st-characters', 'st-personas', 'st-worldinfo'];
 const isList = (t: string): t is ListTab => t === 'characters' || t === 'personas' || t === 'lorebooks' || t === 'backgrounds';
 type Opt = [string | number, string];
@@ -59,6 +63,11 @@ const F = {
         f.items = on ? [...new Set([...f.items, ...ids])] : f.items.filter(x => !ids.includes(x));
         saveSettings();
     },
+    rename(tab: ListTab, id: string, name: string) {
+        if (tab === 'characters') { renameFolder(id, name); return; }
+        const f = mundiFolders(tab).find(x => x.id === id); if (!f) return;
+        f.name = name; saveSettings();
+    },
     async make(tab: ListTab, name: string): Promise<Folder> {
         if (tab === 'characters') return newFolder(name);
         if (tab === 'backgrounds') { const have = B()?.folders.find(f => f.name.toLowerCase() === name.toLowerCase()); if (have) return have; const f = await bgFolderCreate(name); B()?.folders.push(f); return f; }
@@ -85,7 +94,6 @@ const FAV = {
 interface Item { id: string; name: string; img: string; fav: boolean; crown?: boolean }
 const match = (name: string) => !L.q || name.toLowerCase().includes(L.q.toLowerCase());
 const isMundiCard = (c: any) => !!c.data?.extensions?.mundi || c.creator === 'Mundi' || c.data?.creator === 'Mundi';
-const byName = (a: Item, b: Item) => Number(b.fav) - Number(a.fav) || a.name.localeCompare(b.name);
 
 function items(tab: ListTab): Item[] {
     let list: Item[];
@@ -93,8 +101,45 @@ function items(tab: ListTab): Item[] {
     else if (tab === 'personas') { const d = defaultPersona(); list = personas().map(p => ({ id: p.file, name: p.name, img: personaThumb(p.file), fav: FAV.is(tab, p.file), crown: p.file === d })); }
     else if (tab === 'backgrounds') { if (!B()) { loadBgs(); return []; } list = B()!.images.map(f => ({ id: f, name: f.replace(/\.[^.]+$/, ''), img: bgThumb(f), fav: false })); }
     else list = lorebooks().map(n => ({ id: n, name: n, img: '', fav: FAV.is(tab, n) }));
-    return list.filter(i => match(i.name) && (!L.favOnly || i.fav)).sort(byName);
+    return sortItems(tab, list.filter(i => match(i.name) && (!L.favOnly || i.fav)));
 }
+
+/* ---------- sorting the list (favorites stay on top) ---------- */
+
+const SORTS: Record<ListTab, [string, string][]> = {
+    characters: [['name', 'Name (A–Z)'], ['name-desc', 'Name (Z–A)'], ['new', 'Newest first'], ['old', 'Oldest first'], ['chat', 'Last chatted'], ['tokens', 'Most tokens'], ['tokens-asc', 'Fewest tokens']],
+    personas: [['name', 'Name (A–Z)'], ['name-desc', 'Name (Z–A)']],
+    lorebooks: [['name', 'Name (A–Z)'], ['name-desc', 'Name (Z–A)'], ['entries', 'Most entries'], ['entries-asc', 'Fewest entries']],
+    backgrounds: [['name', 'Name (A–Z)'], ['name-desc', 'Name (Z–A)']],
+};
+const SO = { open: false };
+const sortOf = (tab: ListTab) => { const s = (LP() as any).sorts?.[tab] ?? 'name'; return SORTS[tab].some(([k]) => k === s) ? s : 'name'; };
+const dateOf = (c: any) => Number(c?.date_added) || Date.parse(String(c?.create_date ?? '')) || 0;
+// tokens of the cards not counted yet: one at a time in the background, the list redraws as they come
+const tokenQueue: string[] = []; let counting = false;
+function tokensOf(id: string): number | undefined {
+    const n = cachedTokens(id); if (n !== undefined) return n;
+    if (!tokenQueue.includes(id)) tokenQueue.push(id);
+    if (!counting) { counting = true; void (async () => { let k = 0; while (tokenQueue.length) { try { await cardTokens(tokenQueue.shift()!); } catch { /* skip */ } if (++k % 10 === 0 || !tokenQueue.length) notify(); } counting = false; })(); }
+    return undefined;
+}
+function sortItems(tab: ListTab, list: Item[]): Item[] {
+    const s = sortOf(tab);
+    const num = (i: Item): number | undefined => tab === 'characters'
+        ? (s.startsWith('tokens') ? tokensOf(i.id) : s === 'chat' ? Number(charOf(i.id)?.date_last_chat) || 0 : dateOf(charOf(i.id)))
+        : tab === 'lorebooks' && s.startsWith('entries') ? loreCount(i.id, notify) : 0;
+    const cmp = (a: Item, b: Item) => {
+        if (s === 'name') return a.name.localeCompare(b.name);
+        if (s === 'name-desc') return b.name.localeCompare(a.name);
+        const x = num(a), y = num(b);
+        if (x === undefined || y === undefined) return x === y ? a.name.localeCompare(b.name) : x === undefined ? 1 : -1;   // not counted yet: last
+        const up = s === 'old' || s.endsWith('-asc');
+        return (up ? x - y : y - x) || a.name.localeCompare(b.name);
+    };
+    return list.sort((a, b) => Number(b.fav) - Number(a.fav) || cmp(a, b));
+}
+const sortBtn = (tab: ListTab) => `<span class="mu-exp-wrap mu-sort-wrap mu-right">${ibtn('lib-sort-open', 'sort', `Sort: ${SORTS[tab].find(([k]) => k === sortOf(tab))![1]}`, SO.open ? 'is-on' : '')}
+    ${SO.open ? `<span class="mu-exp-pop mu-panel"><small>Sort by</small>${SORTS[tab].map(([k, l]) => `<button class="mu-ghost ${sortOf(tab) === k ? 'is-on' : ''}" data-act="lib-sort" data-v="${k}">${sortOf(tab) === k ? icon('check') : '<i class="mu-sort-sp"></i>'}<span>${l}</span></button>`).join('')}</span>` : ''}</span>`;
 
 /* ---------- fields: text to read, or a form while editing ---------- */
 
@@ -156,8 +201,8 @@ function charDetail(avatar: string) {
     const head = headHtml('characters', avatar, c.name, thumb(avatar), avatar, isMundiCard(c) ? '<span class="mu-tag">Mundi</span>' : '');
     const bar = actionBar({ dup: 'lib-dup', expr: true, del: 'lib-del-one' });
     if (c.shallow) return `${head}<p class="mu-muted">Loading the card…</p>`;
-    if (!L.edit) return `${head}${charToolsHtml(avatar)}${extractButton('card', avatar)}${read('Description', c.description)}${read('Personality', c.personality)}${read('Scenario', c.scenario)}${greetingsHtml(c, avatar)}${charLoreHtml(avatar)}${bar}`;
-    return `${head}<div class="mu-lib-form">${charLoreHtml(avatar)}
+    if (!L.edit) return `${head}${charToolsHtml(avatar)}${extractButton('card', avatar)}${read('Description', c.description)}${read('Personality', c.personality)}${read('Scenario', c.scenario)}${greetingsHtml(c, avatar)}${charTagsHtml(avatar)}${charLoreHtml(avatar)}${bar}`;
+    return `${head}<div class="mu-lib-form">${charTagsHtml(avatar)}${charLoreHtml(avatar)}
         ${field('Name', 'name', c.name)}
         ${field('Description', 'description', c.description, 'area', { rows: 9 })}
         ${field('Personality', 'personality', c.personality, 'area', { rows: 4 })}
@@ -210,6 +255,18 @@ function greetingsHtml(c: any, avatar: string) {
 }
 
 // Her lorebooks: the first is the card's own, the others SillyTavern's "additional" lorebooks for her.
+// Tags: SillyTavern's own (its tag manager and filters see the same ones). They are saved at once.
+const TG = { text: '' };
+function charTagsHtml(avatar: string) {
+    const mine = charTags(avatar);
+    const have = new Set(mine.map(t => t.id));
+    const others = allTags().filter(t => !have.has(t.id));
+    return `<section class="mu-lib-read mu-chartags"><h4>Tags</h4>
+        <div class="mu-chips">${mine.map(t => `<span class="mu-chip is-on" style="${tagColor(t.id) ? `--tc:${esc(tagColor(t.id))}` : ''}"><span data-notr>${esc(t.name)}</span><button class="mu-ghost" data-act="lib-tag-del" data-id="${esc(t.id)}" title="Remove">${icon('x')}</button></span>`).join('') || '<span class="mu-muted">No tags.</span>'}</div>
+        <div class="mu-lib-searchrow"><input type="text" list="mu-tag-list" placeholder="Add a tag (an existing one or a new one)" value="${esc(TG.text)}" data-input="lib-tag-text" data-focus="lib-tag-text">${btn('lib-tag-add', 'plus', 'Add')}</div>
+        <datalist id="mu-tag-list">${others.map(t => `<option value="${esc(t.name)}"></option>`).join('')}</datalist>
+        <small class="mu-muted">The same tags as in SillyTavern: they show in its character list and filters.</small></section>`;
+}
 function charLoreHtml(avatar: string) {
     const mine = charLorebooks(avatar);
     const others = lorebooks().filter(n => !mine.includes(n)).sort((a, b) => a.localeCompare(b));
@@ -237,19 +294,30 @@ async function saveChar(avatar: string) {
 
 /* ---------- expressions: one picture per emotion, in the character's sprite folder ---------- */
 
+// Outfits: the usual sprites, or a subfolder (pajamas, swimsuit…). Clicking a sprite in the game lets you change it.
+const EO = { outfit: '', name: '' };
+function outfitBar(avatar: string) {
+    const list = outfitsOf(avatar) ?? []; const saved = savedOutfits(avatar);
+    return `<div class="mu-outfits"><small class="mu-muted">Outfit</small><div class="mu-chips">
+        <button class="mu-chip ${EO.outfit ? '' : 'is-on'}" data-act="lib-outfit" data-o="">Usual</button>
+        ${list.map(o => `<span class="mu-chip-wrap"><button class="mu-chip ${EO.outfit.toLowerCase() === o.toLowerCase() ? 'is-on' : ''}" data-act="lib-outfit" data-o="${esc(o)}">${esc(outfitLabel(o))}</button>${saved.includes(o) ? `<button class="mu-ghost mu-ibtn" data-act="lib-outfit-del" data-o="${esc(o)}" title="Forget this outfit (the pictures stay)">${icon('x')}</button>` : ''}</span>`).join('')}</div>
+        <div class="mu-lib-searchrow"><input type="text" placeholder="New outfit (a folder name, like pajamas)" value="${esc(EO.name)}" data-input="lib-outfit-name" data-focus="lib-outfit-name">${btn('lib-outfit-add', 'plus', 'Add')}</div>
+        <small class="mu-muted">An outfit is a subfolder of their Expressions folder${EO.outfit ? ` (<span data-notr>${esc(baseSpriteFolder(avatar))}/${esc(EO.outfit)}</span>)` : ''}. Upload its pictures here; in the game, click their sprite to change clothes.</small></div>`;
+}
 function exprHtml(avatar: string) {
     if (spritePackOpen(avatar)) return spritePackHtml();   // making a sprite pack (spritepack.ts)
     const c = charOf(avatar);
     const back = `<div class="mu-gal-albumhead">${btn('lib-expr-close', 'back', 'Back to the card', 'mu-ghost')}<div><h3>Expressions</h3><small data-notr>${esc(c?.name ?? avatar)}</small></div></div>`;
     if (L.sprites === null) {
-        fetchSprites(avatar).then(list => { if (L.expr === avatar) { L.sprites = list; notify(); } });
-        return `${back}<p class="mu-muted">Loading the pictures…</p>`;
+        const want = EO.outfit;
+        fetchSprites(avatar, want).then(list => { if (L.expr === avatar && EO.outfit === want) { L.sprites = list; notify(); } });
+        return `${back}${outfitBar(avatar)}<p class="mu-muted">Loading the pictures…</p>`;
     }
     const byLabel = new Map<string, any[]>();
     for (const s of L.sprites) { const k = String(s.label); if (!byLabel.has(k)) byLabel.set(k, []); byLabel.get(k)!.push(s); }
     const labels = [...new Set([...expressionLabels(), ...byLabel.keys()])];
     const done = labels.filter(l => byLabel.has(l)).length;
-    return `${back}<p class="mu-muted">${done} / ${labels.length} expressions have a picture. The character shows the picture of the emotion of each line; “neutral” is used when there is none.</p>
+    return `${back}${outfitBar(avatar)}<p class="mu-muted">${done} / ${labels.length} expressions have a picture. The character shows the picture of the emotion of each line; “neutral” is used when there is none.</p>
         <div class="mu-spk-cta"><button class="mu-primary" data-act="spk-open" data-avatar="${esc(avatar)}">${icon('sparkles')}<span>Make a sprite pack</span></button><small class="mu-muted">From one picture: your ComfyUI makes every expression, you keep the ones you like.</small></div>
         <div class="mu-expr-grid">${labels.map(l => {
             const files = byLabel.get(l) ?? [];
@@ -467,22 +535,39 @@ function rows(tab: ListTab): Row[] {
     if (L.q || L.favOnly) return list;   // searching shows everything, without folders
     if (L.folder) return list.filter(i => F.of(tab, i.id).includes(L.folder!));
     const fs = F.list(tab); const ids = new Set(fs.map(f => f.id));
-    const out: Row[] = fs.map(f => ({ id: f.id, name: f.name, img: '', fav: false, folder: true, count: list.filter(i => F.of(tab, i.id).includes(f.id)).length }));
+    const out: Row[] = sortFolders(tab, fs.map(f => ({ id: f.id, name: f.name, img: '', fav: false, folder: true, count: list.filter(i => F.of(tab, i.id).includes(f.id)).length })));
     return out.concat(list.filter(i => !F.of(tab, i.id).some(t => ids.has(t))));
 }
+// Folders follow the same order: by name, by when they were made, or by how much is inside (for tokens and entries).
+function sortFolders(tab: ListTab, fs: Row[]): Row[] {
+    const s = sortOf(tab);
+    const made = (f: Row) => tab === 'characters' ? folderMade(f.id) : 0;
+    const cmp = (a: Row, b: Row) => {
+        if (s === 'name-desc') return b.name.localeCompare(a.name);
+        if (s === 'new' || s === 'old') return ((s === 'new' ? made(b) - made(a) : made(a) - made(b)) || a.name.localeCompare(b.name));
+        if (s === 'tokens' || s === 'entries') return (b.count ?? 0) - (a.count ?? 0) || a.name.localeCompare(b.name);
+        if (s.endsWith('-asc')) return (a.count ?? 0) - (b.count ?? 0) || a.name.localeCompare(b.name);
+        return a.name.localeCompare(b.name);
+    };
+    return fs.sort(cmp);
+}
 const itemIds = () => (isList(L.tab) ? rows(L.tab).filter(r => !r.folder).map(r => r.id) : []);
-const grid = () => L.tab === 'backgrounds' || LP().view === 'grid';
+// List or grid, per tab (lorebooks start as a list: their cards have no picture)
+const viewOf = (tab: string) => ((LP() as any).views?.[tab] ?? (tab === 'lorebooks' ? 'list' : LP().view));
+const grid = () => L.tab === 'backgrounds' || viewOf(L.tab) === 'grid';
 
 function rowHtml(r: Row) {
     if (r.folder) {
         const fc = L.tab === 'characters' ? folderColor(r.id) : (mundiFolders(L.tab as ListTab).find(f => f.id === r.id) as any)?.color ?? '';
-        return `<button class="mu-lib-item is-folder" data-act="lib-folder" data-id="${esc(r.id)}" style="${fc ? `--fc:${esc(fc)}` : ''}"><i class="mu-lib-thumb">${icon('folder')}</i><span data-notr>${esc(r.name)}</span><small>${r.count}</small></button>`;
+        return `<button class="mu-lib-item is-folder" data-act="lib-folder" data-id="${esc(r.id)}" data-drop="${esc(r.id)}" style="${fc ? `--fc:${esc(fc)}` : ''}"><i class="mu-lib-thumb">${icon('folder')}</i><span data-notr>${esc(r.name)}</span><small>${r.count}</small></button>`;
     }
     const picked = L.picked.includes(r.id);
     const box = L.picking || L.picked.length ? `<em class="mu-pick">${picked ? icon('check') : ''}</em>` : '';
-    const pic = r.img ? `<img src="${esc(r.img)}" alt="" loading="lazy">` : `<i class="mu-lib-thumb">${icon('book')}</i>`;
+    const pic = r.img ? `<img src="${esc(r.img)}" alt="" loading="lazy" draggable="false">` : `<i class="mu-lib-thumb">${icon('book')}</i>`;
     const badges = `${r.crown ? `<b class="mu-crownmark" title="Default persona">${icon('crownFill')}</b>` : ''}${r.fav ? `<b class="mu-fav">${icon('starFill')}</b>` : ''}`;
-    return `<button class="mu-lib-item ${L.sel === r.id && !L.picked.length ? 'is-on' : ''} ${picked ? 'is-picked' : ''}" data-act="lib-sel" data-id="${esc(r.id)}">${box}${pic}<span data-notr>${esc(r.name)}</span>${badges}</button>`;
+    const n = L.tab === 'lorebooks' && !grid() ? loreCount(r.id, notify) : undefined;
+    const count = L.tab === 'lorebooks' && !grid() ? `<small class="mu-lib-count" title="Entries">${n ?? '…'}</small>` : '';
+    return `<button class="mu-lib-item ${L.sel === r.id && !L.picked.length ? 'is-on' : ''} ${picked ? 'is-picked' : ''}" data-act="lib-sel" data-id="${esc(r.id)}" draggable="true" title="${esc(r.name)}">${box}${pic}<span data-notr>${esc(r.name)}</span>${badges}${count}</button>`;
 }
 
 function bulkBar(tab: ListTab) {
@@ -494,6 +579,7 @@ function bulkBar(tab: ListTab) {
         <div class="mu-lib-bulkbtns">
             ${tab === 'backgrounds' ? '' : btn('lib-bulk-fav', allFav ? 'star' : 'starFill', allFav ? 'Unfavorite' : 'Favorite', '', dis)}
             ${btn('lib-bulk-folder', 'move', 'Move', '', dis)}
+            ${tab === 'characters' || tab === 'lorebooks' ? btn('lib-bulk-zip', 'download', 'Zip', '', dis) : ''}
             ${btn('lib-bulk-del', 'trash', 'Delete', 'mu-danger', dis)}
             ${ibtn('lib-pick-clear', 'x', 'Cancel selection')}</div></div>`;
 }
@@ -511,15 +597,33 @@ function listPane(tab: ListTab) {
                 ${ibtn('lib-picking', 'select', 'Select several (or Ctrl+click, Shift+click)', L.picking ? 'is-on' : '')}
                 ${ibtn('lib-search', 'search', 'Search', L.searching || L.q ? 'is-on' : '')}
                 ${tab === 'backgrounds' ? '' : ibtn('lib-favonly', L.favOnly ? 'starFill' : 'star', 'Only favorites', `mu-favbtn ${L.favOnly ? 'is-on' : ''}`)}
-                ${tab === 'backgrounds' ? '' : ibtn('lib-view', grid() ? 'list' : 'grid', grid() ? 'Show as a list' : 'Show as a grid', 'mu-right')}
+                ${sortBtn(tab)}${tab === 'backgrounds' ? '' : ibtn('lib-view', grid() ? 'list' : 'grid', grid() ? 'Show as a list' : 'Show as a grid')}
             </div>
             ${L.searching || L.q ? `<input type="search" placeholder="Search" value="${esc(L.q)}" data-input="lib-q" data-focus="lib-q">` : ''}
-            ${folder ? `<div class="mu-lib-crumb">${btn('lib-folder-up', 'back', 'Folders', 'mu-ghost')}<b data-notr>${icon('folder')} ${esc(folder.name)}</b>
-                ${tab === 'backgrounds' ? '' : `<input type="color" title="Folder color" value="${esc((tab === 'characters' ? folderColor(folder.id) : (folder as any).color) || '#4fb0ff')}" data-input="lib-folder-color">${ibtn('lib-folder-del', 'trash', 'Delete this folder (what is inside stays)', 'mu-ghost')}`}</div>` : ''}
+            ${folder ? `<div class="mu-lib-crumb">${btn('lib-folder-up', 'back', 'Folders', 'mu-ghost', 'data-drop=""')}<b data-notr>${icon('folder')} ${esc(folder.name)}</b>
+                ${tab === 'backgrounds' ? '' : `<input type="color" title="Folder color" value="${esc((tab === 'characters' ? folderColor(folder.id) : (folder as any).color) || '#4fb0ff')}" data-input="lib-folder-color">${tab === 'characters' || tab === 'lorebooks' ? ibtn('lib-folder-zip', 'download', 'Export this folder as a zip', 'mu-ghost') : ''}${ibtn('lib-folder-ren', 'edit', 'Rename this folder', 'mu-ghost')}${ibtn('lib-folder-del', 'trash', 'Delete this folder (what is inside stays)', 'mu-ghost')}`}</div>` : ''}
         </div>
         <div class="mu-lib-items" data-keep="lib-items">${list.length ? list.slice(0, 600).map(rowHtml).join('') : '<p class="mu-muted mu-pad">Nothing here.</p>'}</div>
         ${bulkBar(tab)}
     </aside>`;
+}
+
+/* ---------- export as a zip (a folder, or what is selected) ---------- */
+
+async function exportZip(tab: ListTab, ids: string[], name: string) {
+    if (!ids.length) { toast('Nothing to export.', 'info'); return; }
+    const used = new Set<string>(); const files: ZipFile[] = []; let failed = 0;
+    await busy(`Exporting ${ids.length}`, async () => {
+        for (const id of ids) {
+            try {
+                if (tab === 'characters') files.push({ name: uniqueName(`${fileNameOf(String(charOf(id)?.name ?? id))}.png`, used), data: new Uint8Array(await (await cardFile(id, 'png')).arrayBuffer()) });
+                else if (tab === 'lorebooks') files.push({ name: uniqueName(`${fileNameOf(id)}.json`, used), data: new TextEncoder().encode(JSON.stringify(await loadLore(id), null, 4)) });
+            } catch { failed++; }
+        }
+    });
+    if (!files.length) { toast('Could not export.', 'error'); return; }
+    download(makeZip(files), `${fileNameOf(name)}.zip`);
+    toast(`Exported ${files.length} ${tab === 'characters' ? 'cards' : 'lorebooks'}${failed ? ` (${failed} could not be read)` : ''}.`, failed ? 'warn' : 'success');
 }
 
 /* ---------- dialogs: create, delete, folders ---------- */
@@ -532,6 +636,7 @@ function dialogHtml() {
     const m = state.modal;
     if (!m || !String(m.type).startsWith('lib-dlg')) return '';
     let body = '';
+    if (m.type === 'lib-dlg-leave') return leaveHtml('lib');
     if (m.type === 'lib-dlg-del') {
         const ids: string[] = m.ids; const what: string = m.what;
         const title = what === 'entry' ? 'Delete this entry?'
@@ -547,7 +652,7 @@ function dialogHtml() {
             const games = settings().games.filter(e => ids.includes(e.persona));
             if (games.length) notes.push(`<p class="mu-warn">Used in Mundi worlds: <span data-notr>${esc(games.map(e => e.title).join(', '))}</span></p><p class="mu-muted">Those games will open with another persona.</p>`);
             if (ids.includes(persona())) notes.push(`<p class="mu-warn">It is the persona selected right now${personas().length > ids.length ? ': SillyTavern switches to another one first.' : ', and the only one left: it is kept.'}</p>`);
-            notes.push('<p class="mu-muted">Chats (scenarios) that were locked to it go back to the persona selected in SillyTavern.</p>');
+            notes.push('<p class="mu-muted">Chats that were locked to it go back to the persona selected in SillyTavern.</p>');
         }
         if (what === 'lorebooks' && ids.includes(chatLore())) notes.push('<p class="mu-warn">This save uses this lorebook.</p>');
         body = `<h3>${title}</h3>${notes.join('')}<p>This cannot be undone.</p>
@@ -567,11 +672,14 @@ function dialogHtml() {
         body = `<h3>New folder</h3><input type="text" placeholder="New folder name" value="${esc(m.name ?? '')}" data-input="lib-dlg-name" data-focus="lib-dlg-name">
             ${L.picked.length ? `<p class="mu-muted">${L.picked.length} selected items go into it.</p>` : ''}
             <div class="mu-row mu-dlg-btns"><button data-act="lib-dlg-close">Cancel</button>${btn('lib-newfolder-yes', 'folderPlus', 'Create', 'mu-primary')}</div>`;
+    } else if (m.type === 'lib-dlg-renfolder') {
+        body = `<h3>Rename folder</h3><input type="text" placeholder="Folder name" value="${esc(m.name ?? '')}" data-input="lib-dlg-name" data-focus="lib-dlg-name">
+            <div class="mu-row mu-dlg-btns"><button data-act="lib-dlg-close">Cancel</button>${btn('lib-folder-ren-yes', 'check', 'Rename', 'mu-primary')}</div>`;
     } else if (m.type === 'lib-dlg-create') {
         const tab: ListTab = m.tab;
         const pic = tab === 'lorebooks' ? '' : `<div class="mu-create-pic">${m.url ? `<img src="${esc(m.url)}" alt="">` : `<i>${icon('user')}</i>`}
             ${btn('lib-create-pic', 'image', m.url ? 'Change the image' : 'Choose an image')}</div>`;
-        body = `<h3>${CREATE[tab]}</h3><div class="mu-create">${pic}<div class="mu-create-fields">
+        body = `<h3>${CREATE[tab]}</h3><div class="mu-create ${pic ? '' : 'is-nopic'}">${pic}<div class="mu-create-fields">
                 <label class="mu-field"><span>Name</span><input type="text" value="${esc(m.name ?? '')}" data-input="lib-dlg-name" data-focus="lib-dlg-name"></label>
                 ${tab === 'lorebooks' ? '' : `<label class="mu-field"><span>Description</span><textarea rows="5" data-input="lib-dlg-desc" data-focus="lib-dlg-desc">${esc(m.desc ?? '')}</textarea></label>`}
             </div></div>
@@ -601,6 +709,7 @@ export function libraryHtml() {
     let body: string;
     if (tab === 'backgrounds' && !B()) loadBgs();
     if (isList(tab)) body = `<div class="mu-lib-body ${grid() ? 'is-grid' : ''}">${tab === 'backgrounds' && !B() ? '<p class="mu-muted mu-pad">Loading…</p>' : `${listPane(tab)}${detailPane(tab)}`}</div>`;
+    else if (tab === 'presets') body = presetsTabHtml();
     else if (tab === 'save') body = `<div class="mu-lib-body is-single"><section class="mu-lib-detail mu-panel" data-keep="lib-detail">${saveTab()}</section></div>`;
     else if (tab === 'world') body = `<div class="mu-lib-body is-single"><section class="mu-lib-detail mu-panel" data-keep="lib-detail">${worldTab()}</section></div>`;
     else body = `<div class="mu-lib-body is-single">${nativeHost(tab, NOTES[tab] ?? '')}</div>`;
@@ -620,11 +729,16 @@ const switchHtml = (act: string, label: string, on: boolean) =>
 
 /* ---------- actions ---------- */
 
+// Leaving a card with changes not saved asks first (save, discard or stay); the click that tried to leave runs after.
+let lastClick: HTMLElement | null = null;
+if (typeof document !== 'undefined') document.addEventListener('click', (e) => { const el = (e.target as HTMLElement)?.closest?.('#mundi-root [data-act]') as HTMLElement | null; if (el && !String(el.dataset.act).startsWith('lib-leave')) lastClick = el; }, true);
+let pending: HTMLElement | null = null;
 function guard(): boolean {
     if (!dirty()) return true;
-    toast('Save or discard your changes first.', 'warn');
+    pending = lastClick; state.modal = { type: 'lib-dlg-leave' }; notify();
     return false;
 }
+const resume = () => { const el = pending; pending = null; state.modal = null; if (el?.dataset.act && el.dataset.act !== 'lib-leave') (ACT as any)[el.dataset.act]?.(el); else notify(); };
 async function select(id: string) {
     L.sel = id; L.entry = null; L.expr = null; state.modal = null;
     notify();
@@ -749,6 +863,12 @@ Object.assign(ACT, {
     'lib-sel': (el, e) => clickItem(el.dataset.id!, e as MouseEvent),
     'lib-unsel': () => { if (!guard()) return; L.sel = null; L.expr = null; notify(); },
     'lib-folder': (el) => { L.folder = el.dataset.id!; L.picked = []; L.anchor = null; notify(); },
+    'lib-folder-zip': () => {
+        const tab = listTab(); if (!tab || !L.folder) return;
+        const f = F.list(tab).find(x => x.id === L.folder);
+        void exportZip(tab, items(tab).filter(i => F.of(tab, i.id).includes(L.folder!)).map(i => i.id), f?.name ?? 'folder');
+    },
+    'lib-bulk-zip': () => { const tab = listTab(); if (tab && L.picked.length) void exportZip(tab, [...L.picked], tab === 'characters' ? 'characters' : 'lorebooks'); },
     'lib-folder-del': () => {
         const tab = listTab(); if (!tab || !L.folder) return;
         if (tab === 'characters') deleteFolder(L.folder);
@@ -756,6 +876,10 @@ Object.assign(ACT, {
         L.folder = null; refreshList(); toast('Folder deleted. What was inside is still here.', 'success'); notify();
     },
     'lib-export-open': () => { EXP.open = !EXP.open; notify(); },
+    'lib-tag-add': () => { if (!L.sel) return; if (!tagCharacter(L.sel, TG.text)) { toast('Write a tag.', 'info'); return; } TG.text = ''; notify(); },
+    'lib-tag-del': (el) => { if (!L.sel) return; untagCharacter(L.sel, el.dataset.id!); notify(); },
+    'lib-sort-open': () => { SO.open = !SO.open; notify(); },
+    'lib-sort': (el) => { const tab = listTab(); if (!tab) return; const p = LP() as any; (p.sorts ??= {})[tab] = el.dataset.v; SO.open = false; saveSettings(); notify(); },
     'lib-export': async (el) => { EXP.open = false; notify(); if (!L.sel) return; try { await exportCharacter(L.sel, el.dataset.f as any); } catch (e: any) { toast(String(e?.message ?? e), 'error'); } },
     'lib-greet': async (el) => {
         try { await openCharacter(el.dataset.avatar!, true); useGreeting(Number(el.dataset.k)); state.view = 'chat' as any; notify(); }
@@ -764,7 +888,7 @@ Object.assign(ACT, {
     'lib-folder-up': () => { L.folder = null; L.picked = []; L.anchor = null; notify(); },
     'lib-favonly': () => { L.favOnly = !L.favOnly; notify(); },
     'lib-search': () => { L.searching = !(L.searching || L.q); if (!L.searching) L.q = ''; notify(); if (L.searching) setTimeout(() => document.querySelector<HTMLInputElement>('#mundi-root [data-input="lib-q"]')?.focus(), 30); },
-    'lib-view': () => { LP().view = grid() ? 'list' : 'grid'; saveSettings(); notify(); },
+    'lib-view': () => { const p = LP() as any; (p.views ??= {})[L.tab] = grid() ? 'list' : 'grid'; saveSettings(); notify(); },
     'lib-picking': () => { L.picking = !L.picking; if (!L.picking) L.picked = []; notify(); },
     'lib-pick-all': () => { L.picked = itemIds(); L.picking = true; notify(); },
     'lib-pick-clear': () => { clearPicks(); notify(); },
@@ -772,6 +896,9 @@ Object.assign(ACT, {
     'lib-adv': () => { L.adv = !L.adv; notify(); },
     'lib-entry': (el) => { const uid = el.dataset.uid!; if (!guard()) return; L.entry = L.entry === uid ? null : uid; state.modal = null; notify(); },
     'lib-discard': () => { L.draft = {}; notify(); },
+    'lib-leave-stay': (el, e) => { if (e && el.classList.contains('mu-dlg-veil') && e.target !== el) return; pending = null; state.modal = null; notify(); },
+    'lib-leave-go': () => { L.draft = {}; resume(); },
+    'lib-leave-save': async () => { state.modal = null; await (ACT as any)['lib-save']?.(); if (!dirty()) resume(); else notify(); },
     'lib-alt-add': () => { const c = L.sel ? charOf(L.sel) : null; if (!c) return; L.draft.alt = [...altOf(c), '']; notify();
         requestAnimationFrame(() => document.querySelector<HTMLTextAreaElement>(`#mundi-root [data-focus="lib-alt-${L.draft.alt.length - 1}"]`)?.focus()); },
     'lib-alt-del': (el) => { const c = L.sel ? charOf(L.sel) : null; if (!c) return; const l = [...altOf(c)]; l.splice(Number(el.dataset.k), 1); L.draft.alt = l; notify(); },
@@ -833,17 +960,22 @@ Object.assign(ACT, {
     'lib-crown': () => { const id = L.sel; if (!id) return; setDefaultPersona(defaultPersona() === id ? null : id); notify(); },
     // expressions
     'lib-expr': () => { if (!guard() || !L.sel) return; L.expr = L.sel; L.sprites = null; notify(); },
-    'lib-expr-close': () => { L.expr = null; notify(); },
+    'lib-expr-close': () => { L.expr = null; EO.outfit = ''; notify(); },
+    'lib-outfit': (el) => { EO.outfit = el.dataset.o ?? ''; L.sprites = null; notify(); },
+    'lib-outfit-add': () => { const id = L.expr; if (!id) return; const n = addOutfit(id, EO.name); if (!n) { toast('Write the folder name.', 'info'); return; } EO.name = ''; EO.outfit = n; L.sprites = null; notify(); },
+    'lib-outfit-del': (el) => { const id = L.expr; if (!id) return; removeOutfit(id, el.dataset.o ?? ''); forgetOutfits(id); if (EO.outfit === el.dataset.o) { EO.outfit = ''; L.sprites = null; } notify(); },
     'lib-expr-up': async (el) => {
         const id = L.expr; if (!id) return;
         const file = await pickFile('image/*');
         if (!file) return;
-        await busy('Uploading', () => uploadSprite(id, el.dataset.l!, file, el.dataset.s || el.dataset.l!));
+        await busy('Uploading', () => uploadSprite(id, el.dataset.l!, file, el.dataset.s || el.dataset.l!, EO.outfit));
+        forgetOutfits(id); delete (state.sprites as any)[id];
         L.sprites = null; notify();
     },
     'lib-expr-del': async (el) => {
         const id = L.expr; if (!id) return;
-        await busy('Deleting', () => deleteSprite(id, el.dataset.l!, el.dataset.s!));
+        await busy('Deleting', () => deleteSprite(id, el.dataset.l!, el.dataset.s!, EO.outfit));
+        delete (state.sprites as any)[id];
         L.sprites = null; notify();
     },
     // deleting always asks first
@@ -877,6 +1009,19 @@ Object.assign(ACT, {
         m.name = ''; notify();
     },
     'lib-newfolder': () => { if (listTab()) { state.modal = { type: 'lib-dlg-newfolder', name: '' }; notify(); setTimeout(() => document.querySelector<HTMLInputElement>('#mundi-root [data-input="lib-dlg-name"]')?.focus(), 30); } },
+    'lib-folder-ren': () => {
+        const tab = listTab(); const f = tab && L.folder ? F.list(tab).find(x => x.id === L.folder) : null; if (!tab || !f) return;
+        state.modal = { type: 'lib-dlg-renfolder', tab, id: f.id, name: f.name }; notify();
+        setTimeout(() => { const i = document.querySelector<HTMLInputElement>('#mundi-root [data-input="lib-dlg-name"]'); i?.focus(); i?.select(); }, 30);
+    },
+    'lib-folder-ren-yes': () => {
+        const m = state.modal; if (m?.type !== 'lib-dlg-renfolder') return;
+        const name = String(m.name ?? '').trim();
+        if (!name) { toast('Write a name for the folder.', 'warn'); return; }
+        if (F.list(m.tab).some(f => f.id !== m.id && f.name.toLowerCase() === name.toLowerCase())) { toast('There is already a folder with this name.', 'warn'); return; }
+        F.rename(m.tab, m.id, name);
+        state.modal = null; notify(); toast('Folder renamed.', 'success');
+    },
     'lib-newfolder-yes': async () => {
         const tab = listTab(); const name = String(state.modal?.name ?? '').trim();
         if (!tab) return;
@@ -908,6 +1053,8 @@ Object.assign(INPUT, {
     'lib-q': (el) => { L.q = el.value; notify(); },
     'lib-delchats': (el) => { if (state.modal) state.modal.chats = el.checked; },
     'lib-dlg-name': (el) => { if (state.modal) state.modal.name = el.value; },
+    'lib-outfit-name': (el) => { EO.name = el.value; },
+    'lib-tag-text': (el) => { TG.text = el.value; },
     'lib-dlg-desc': (el) => { if (state.modal) state.modal.desc = el.value; },
     'lib-alt': (el) => {
         const c = L.sel ? charOf(L.sel) : null; if (!c) return;
@@ -924,6 +1071,50 @@ Object.assign(INPUT, {
 });
 // the export menu closes when you click anywhere else
 document.addEventListener('click', (e) => {
-    if (!EXP.open || (e.target as HTMLElement).closest?.('.mu-exp-wrap')) return;
-    EXP.open = false; setTimeout(notify, 0);
+    if ((!EXP.open && !SO.open) || (e.target as HTMLElement).closest?.('.mu-exp-wrap')) return;
+    EXP.open = false; SO.open = false; setTimeout(notify, 0);
+}, true);
+
+/* ---------- drag a card onto a folder (it moves there; nothing is copied) ---------- */
+// The browser's own drag of a picture would reach SillyTavern's file drop and import the card again, so a drag
+// started in the Library carries only Mundi's own data and every drop inside Mundi is caught here.
+const DRAG = { ids: [] as string[], tab: '' as ListTab | '' };
+const MIME = 'application/x-mundi-item';
+const inMundi = (e: Event) => !!(e.target as HTMLElement)?.closest?.('#mundi-root');
+document.addEventListener('dragstart', (e) => {
+    const el = (e.target as HTMLElement)?.closest?.<HTMLElement>('#mundi-root .mu-lib-item[data-act="lib-sel"]');
+    if (!el) { if (inMundi(e) && (e.target as HTMLElement)?.tagName === 'IMG') e.preventDefault(); return; }
+    const tab = listTab(); const id = el.dataset.id!;
+    if (!tab || !e.dataTransfer) { e.preventDefault(); return; }
+    DRAG.tab = tab; DRAG.ids = L.picked.includes(id) ? L.picked.slice() : [id];
+    e.dataTransfer.clearData(); e.dataTransfer.setData(MIME, DRAG.ids.join('\n')); e.dataTransfer.effectAllowed = 'move';
+    el.classList.add('is-dragging');
+}, true);
+document.addEventListener('dragend', () => {
+    DRAG.ids = []; DRAG.tab = '';
+    document.querySelectorAll('#mundi-root .is-dragging, #mundi-root .is-drop').forEach(x => x.classList.remove('is-dragging', 'is-drop'));
+}, true);
+const target = (e: DragEvent) => (e.target as HTMLElement)?.closest?.<HTMLElement>('#mundi-root [data-drop]');
+document.addEventListener('dragover', (e) => {
+    if (!DRAG.ids.length) return;
+    e.preventDefault(); e.stopPropagation();
+    const t = target(e);
+    if (e.dataTransfer) e.dataTransfer.dropEffect = t ? 'move' : 'none';
+    document.querySelectorAll('#mundi-root .is-drop').forEach(x => { if (x !== t) x.classList.remove('is-drop'); });
+    t?.classList.add('is-drop');
+}, true);
+document.addEventListener('drop', async (e) => {
+    if (!DRAG.ids.length && !e.dataTransfer?.types.includes(MIME)) return;
+    e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+    const t = target(e); const tab = DRAG.tab; const ids = DRAG.ids.slice();
+    DRAG.ids = []; DRAG.tab = '';
+    document.querySelectorAll('#mundi-root .is-dragging, #mundi-root .is-drop').forEach(x => x.classList.remove('is-dragging', 'is-drop'));
+    if (!t || !tab || tab !== listTab()) return;
+    const to = t.dataset.drop ?? '', from = L.folder ?? '';
+    if (to === from) return;
+    if (from) await F.put(tab, from, ids, false);
+    if (to) await F.put(tab, to, ids, true);
+    const name = to ? F.list(tab).find(f => f.id === to)?.name ?? '' : '';
+    toast(to ? `Moved to ${name}.` : 'Taken out of the folder.', 'success');
+    clearPicks(); notify();
 }, true);

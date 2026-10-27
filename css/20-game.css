@@ -89,3 +89,18 @@
 #mundi-root .mu-pin, #mundi-root .mu-pin:active, #mundi-root .mu-pin:hover { transform: translate(-50%, -50%) scale(var(--ik, 1)) !important; transition: none !important; }
 #mundi-root .mu-pin, #mundi-root .mu-pin * { user-select: none; -webkit-user-select: none; -webkit-user-drag: none; }
 #mundi-root .mu-mapimg { user-select: none; -webkit-user-select: none; }
+/* a scenario's map: the rooms as pictures */
+#mundi-root .mu-map.is-rooms { overflow: auto; background: var(--bg); }
+#mundi-root .mu-rooms { max-width: 1240px; margin: 0 auto; padding: 150px 18px 120px; display: grid; gap: 12px; }
+#mundi-root .mu-rooms h3, #mundi-root .mu-rooms h4 { margin: 0; }
+#mundi-root .mu-rooms-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+#mundi-root .mu-room { position: relative; display: grid; gap: 6px; padding: 8px; text-align: left; border-radius: 14px; }
+#mundi-root .mu-room i { position: relative; aspect-ratio: 16/9; border-radius: 10px; background: var(--b2, #223) center/cover; }
+#mundi-root .mu-room i em { position: absolute; left: 8px; top: 8px; display: inline-flex; gap: 4px; align-items: center; padding: 2px 8px; border-radius: 999px; background: var(--accent); color: #fff; font-style: normal; font-size: 12px; font-weight: 700; }
+#mundi-root .mu-room.is-you { outline: 2px solid var(--accent); }
+#mundi-root .mu-room .faces { display: flex; gap: 2px; position: absolute; right: 14px; top: calc(8px + (100% - 16px) * 0); }
+#mundi-root .mu-room .faces img { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; border: 2px solid var(--bg); }
+#mundi-root .mu-room .faces i { aspect-ratio: auto; font-style: normal; font-size: 12px; background: none; }
+#mundi-root .mu-room i, #mundi-root .mu-ng-room i { display: block; width: 100%; justify-self: stretch; }
+#mundi-root .mu-room, #mundi-root .mu-ng-room { justify-items: stretch; align-content: start; }
+#mundi-root .mu-room, #mundi-root .mu-ng-room { grid-template-columns: minmax(0, 1fr) !important; justify-content: stretch; }

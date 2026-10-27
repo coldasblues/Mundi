@@ -1,0 +1,3913 @@
+{
+ "format": 1,
+ "id": "house",
+ "name": "The Shared House",
+ "kind": "Modern",
+ "version": "1.0.0",
+ "description": "A big house by the sea, three floors, ten bedrooms, a handful of strangers and one summer. Everything happens under one roof.",
+ "tags": [
+  "lifesim",
+  "realistic"
+ ],
+ "madeFor": "lifesim",
+ "setting": "A large modern house on the hills above the coast, rented for the summer by a small group of adults who barely knew each other before moving in. There is a pool, a gym, a rooftop terrace and one kitchen everybody fights over. The house is the whole stage: work, errands and nights out happen off-screen, and people come back with stories.",
+ "cover": "living-day.jpg",
+ "currency": {
+  "name": "dollar",
+  "symbol": "$"
+ },
+ "time": {
+  "startDay": 1,
+  "startMinutes": 600,
+  "speed": 60,
+  "periods": [
+   {
+    "id": "dawn",
+    "name": "Dawn",
+    "from": 0
+   },
+   {
+    "id": "morning",
+    "name": "Morning",
+    "from": 360
+   },
+   {
+    "id": "afternoon",
+    "name": "Afternoon",
+    "from": 720
+   },
+   {
+    "id": "evening",
+    "name": "Evening",
+    "from": 1080
+   },
+   {
+    "id": "night",
+    "name": "Night",
+    "from": 1320,
+    "prices": 1.15
+   }
+  ]
+ },
+ "maps": [
+  {
+   "id": "house",
+   "name": "The house",
+   "image": "house.jpg",
+   "ratio": 1.7917,
+   "town": true,
+   "area": "The hill"
+  }
+ ],
+ "places": [
+  {
+   "id": "living",
+   "name": "Living room",
+   "map": "house",
+   "x": 19,
+   "y": 27,
+   "tags": [
+    "leisure"
+   ],
+   "desc": "a bright living room: a big beige sectional, a wooden coffee table, a wall TV and tall windows onto the garden.",
+   "event": "Someone left the TV on again.",
+   "closed": [],
+   "bg": "living-day.jpg",
+   "bgs": {
+    "afternoon": "living-afternoon.jpg",
+    "night": "living-night.jpg"
+   }
+  },
+  {
+   "id": "kitchen",
+   "name": "Kitchen",
+   "map": "house",
+   "x": 44,
+   "y": 27,
+   "tags": [
+    "food"
+   ],
+   "desc": "a white kitchen with a marble island and bar stools, pendant lights and a fridge covered in notes.",
+   "event": "The fridge hums; a note says \"DO NOT EAT MY YOGURT\".",
+   "closed": [],
+   "bg": "kitchen-day.jpg",
+   "bgs": {
+    "afternoon": "kitchen-afternoon.jpg",
+    "night": "kitchen-night.jpg"
+   }
+  },
+  {
+   "id": "dining",
+   "name": "Dining room",
+   "map": "house",
+   "x": 44,
+   "y": 57,
+   "tags": [
+    "food",
+    "leisure"
+   ],
+   "desc": "a long wooden table under a globe chandelier, glass doors to the garden.",
+   "event": "Chairs scrape; somebody is setting the table.",
+   "closed": [],
+   "bg": "dining-day.jpg",
+   "bgs": {
+    "afternoon": "dining-afternoon.jpg",
+    "night": "dining-night.jpg"
+   }
+  },
+  {
+   "id": "entrance",
+   "name": "Entrance hall",
+   "map": "house",
+   "x": 12,
+   "y": 57,
+   "tags": [
+    "leisure"
+   ],
+   "desc": "a long light hallway with a bench, coat hooks, a round mirror and the front door.",
+   "event": "The door slams; someone just got back.",
+   "closed": [],
+   "bg": "entrance-day.jpg",
+   "bgs": {
+    "afternoon": "entrance-afternoon.jpg",
+    "night": "entrance-night.jpg"
+   }
+  },
+  {
+   "id": "laundry",
+   "name": "Laundry room",
+   "map": "house",
+   "x": 28,
+   "y": 57,
+   "tags": [
+    "service"
+   ],
+   "desc": "a laundry with two machines, a sink and shelves of detergent by the garden window.",
+   "event": "A washing machine thumps through its spin.",
+   "closed": [],
+   "bg": "laundry-day.jpg",
+   "bgs": {
+    "afternoon": "laundry-afternoon.jpg",
+    "night": "laundry-night.jpg"
+   }
+  },
+  {
+   "id": "gym",
+   "name": "Home gym",
+   "map": "house",
+   "x": 19,
+   "y": 80,
+   "tags": [
+    "sport"
+   ],
+   "desc": "a home gym with a treadmill, an exercise bike, dumbbells, yoga mats and a round mirror.",
+   "event": "Music from a phone speaker bounces off the mirror.",
+   "closed": [],
+   "bg": "gym-day.jpg",
+   "bgs": {
+    "afternoon": "gym-afternoon.jpg",
+    "night": "gym-night.jpg"
+   }
+  },
+  {
+   "id": "pool",
+   "name": "Pool",
+   "map": "house",
+   "x": 65,
+   "y": 59,
+   "tags": [
+    "leisure",
+    "sport"
+   ],
+   "desc": "a long pool on the lawn, wooden deck and loungers, olive trees along the fence.",
+   "event": "Someone cannonballs into the water.",
+   "closed": [],
+   "bg": "pool-day.jpg",
+   "bgs": {
+    "afternoon": "pool-afternoon.jpg",
+    "night": "pool-night.jpg"
+   }
+  },
+  {
+   "id": "bathroom",
+   "name": "Bathroom",
+   "map": "house",
+   "x": 30,
+   "y": 40,
+   "tags": [
+    "service"
+   ],
+   "desc": "the shared bathroom: a floating wooden sink, a round lit mirror, white tiles and a big window.",
+   "event": "The shower is running; someone is singing.",
+   "closed": [],
+   "bg": "bathroom-day.jpg",
+   "bgs": {
+    "afternoon": "bathroom-afternoon.jpg",
+    "night": "bathroom-night.jpg"
+   }
+  },
+  {
+   "id": "garage",
+   "name": "Garage",
+   "map": "house",
+   "x": 8,
+   "y": 85,
+   "tags": [
+    "service"
+   ],
+   "desc": "a polished garage with a white SUV, a workbench, tool chests and shelves of boxes.",
+   "event": "The garage door rattles up.",
+   "closed": [],
+   "bg": "garage-day.jpg",
+   "bgs": {
+    "afternoon": "garage-afternoon.jpg",
+    "night": "garage-night.jpg"
+   }
+  },
+  {
+   "id": "storage",
+   "name": "Storage room",
+   "map": "house",
+   "x": 58,
+   "y": 85,
+   "tags": [
+    "service"
+   ],
+   "desc": "a storage room lined with shelves of labeled boxes, a ladder and rolled-up rugs.",
+   "event": "A box slides off a shelf somewhere.",
+   "closed": [],
+   "bg": "storage-day.jpg",
+   "bgs": {
+    "afternoon": "storage-afternoon.jpg",
+    "night": "storage-night.jpg"
+   }
+  },
+  {
+   "id": "frontyard",
+   "name": "Entrance",
+   "map": "house",
+   "x": 6,
+   "y": 80,
+   "tags": [
+    "outdoor"
+   ],
+   "desc": "the front of the house: the porch, the driveway, the gate and the quiet street outside.",
+   "event": "A car slows down at the gate, then drives on.",
+   "closed": [],
+   "bg": "frontyard-day.jpg",
+   "bgs": {
+    "afternoon": "frontyard-afternoon.jpg",
+    "night": "frontyard-night.jpg"
+   }
+  },
+  {
+   "id": "bathroom2",
+   "name": "Bathroom (Floor 2)",
+   "map": "house",
+   "x": 30,
+   "y": 73,
+   "tags": [
+    "service"
+   ],
+   "desc": "the shared bathroom: a floating wooden sink, a round lit mirror, white tiles and a big window.",
+   "event": "Someone is in there; the door is locked.",
+   "closed": [],
+   "bg": "bathroom-day.jpg",
+   "bgs": {
+    "afternoon": "bathroom-afternoon.jpg",
+    "night": "bathroom-night.jpg"
+   }
+  },
+  {
+   "id": "bathroom3",
+   "name": "Washroom (Floor 2)",
+   "map": "house",
+   "x": 30,
+   "y": 73,
+   "tags": [
+    "service"
+   ],
+   "desc": "the shared bathroom: a floating wooden sink, a round lit mirror, white tiles and a big window.",
+   "event": "Someone is in there; the door is locked.",
+   "closed": [],
+   "bg": "bathroom-day.jpg",
+   "bgs": {
+    "afternoon": "bathroom-afternoon.jpg",
+    "night": "bathroom-night.jpg"
+   }
+  },
+  {
+   "id": "bathroom4",
+   "name": "Shower room (Floor 2)",
+   "map": "house",
+   "x": 30,
+   "y": 73,
+   "tags": [
+    "service"
+   ],
+   "desc": "the shared bathroom: a floating wooden sink, a round lit mirror, white tiles and a big window.",
+   "event": "Someone is in there; the door is locked.",
+   "closed": [],
+   "bg": "bathroom-day.jpg",
+   "bgs": {
+    "afternoon": "bathroom-afternoon.jpg",
+    "night": "bathroom-night.jpg"
+   }
+  },
+  {
+   "id": "bathroom5",
+   "name": "Bathroom (Floor 3)",
+   "map": "house",
+   "x": 30,
+   "y": 73,
+   "tags": [
+    "service"
+   ],
+   "desc": "the shared bathroom: a floating wooden sink, a round lit mirror, white tiles and a big window.",
+   "event": "Someone is in there; the door is locked.",
+   "closed": [],
+   "bg": "bathroom-day.jpg",
+   "bgs": {
+    "afternoon": "bathroom-afternoon.jpg",
+    "night": "bathroom-night.jpg"
+   }
+  },
+  {
+   "id": "bathroom6",
+   "name": "Washroom (Floor 3)",
+   "map": "house",
+   "x": 30,
+   "y": 73,
+   "tags": [
+    "service"
+   ],
+   "desc": "the shared bathroom: a floating wooden sink, a round lit mirror, white tiles and a big window.",
+   "event": "Someone is in there; the door is locked.",
+   "closed": [],
+   "bg": "bathroom-day.jpg",
+   "bgs": {
+    "afternoon": "bathroom-afternoon.jpg",
+    "night": "bathroom-night.jpg"
+   }
+  },
+  {
+   "id": "bathroom7",
+   "name": "Shower room (Floor 3)",
+   "map": "house",
+   "x": 30,
+   "y": 73,
+   "tags": [
+    "service"
+   ],
+   "desc": "the shared bathroom: a floating wooden sink, a round lit mirror, white tiles and a big window.",
+   "event": "Someone is in there; the door is locked.",
+   "closed": [],
+   "bg": "bathroom-day.jpg",
+   "bgs": {
+    "afternoon": "bathroom-afternoon.jpg",
+    "night": "bathroom-night.jpg"
+   }
+  }
+ ],
+ "homes": {
+  "zones": [
+   {
+    "id": "rooms",
+    "name": "Green bedrooms",
+    "map": "house",
+    "kind": "room",
+    "rent": 0,
+    "desc": "the bedrooms with a sage-green wall",
+    "spots": [
+     [
+      82,
+      22
+     ],
+     [
+      92,
+      22
+     ]
+    ]
+   },
+   {
+    "id": "rooms2",
+    "name": "Small bedrooms",
+    "map": "house",
+    "kind": "room2",
+    "rent": 0,
+    "desc": "the smaller bedrooms with a desk",
+    "spots": [
+     [
+      82,
+      43
+     ],
+     [
+      92,
+      43
+     ]
+    ]
+   },
+   {
+    "id": "rooms3",
+    "name": "Bright bedrooms",
+    "map": "house",
+    "kind": "room3",
+    "rent": 0,
+    "desc": "the bright bedrooms with a reading nook",
+    "spots": [
+     [
+      82,
+      64
+     ],
+     [
+      92,
+      64
+     ]
+    ]
+   },
+   {
+    "id": "rooms4",
+    "name": "Top floor bedrooms",
+    "map": "house",
+    "kind": "room2",
+    "rent": 0,
+    "desc": "the bedrooms under the roof, with sloped ceilings and skylights (one has twin beds, made to share)",
+    "spots": [
+     [
+      82,
+      85
+     ],
+     [
+      92,
+      85
+     ],
+     [
+      82,
+      92
+     ],
+     [
+      92,
+      92
+     ]
+    ]
+   }
+  ],
+  "kinds": {
+   "room": {
+    "name": "Bedroom",
+    "desc": "a calm bedroom with a sage-green wall, a double bed, lamps on both sides and a round mirror",
+    "image": "bedroom1-day.jpg",
+    "images": {
+     "afternoon": "bedroom1-afternoon.jpg",
+     "night": "bedroom1-night.jpg"
+    }
+   },
+   "room2": {
+    "name": "Small bedroom",
+    "desc": "a small white bedroom with a single bed, a wooden desk and a tall window",
+    "image": "bedroom2-day.jpg",
+    "images": {
+     "afternoon": "bedroom2-afternoon.jpg",
+     "night": "bedroom2-night.jpg"
+    }
+   },
+   "room3": {
+    "name": "Bright bedroom",
+    "desc": "a bright bedroom with a padded headboard, a desk corner and shelves by the window",
+    "image": "bedroom3-day.jpg",
+    "images": {
+     "afternoon": "bedroom3-afternoon.jpg",
+     "night": "bedroom3-night.jpg"
+    }
+   }
+  },
+  "expenses": [
+   {
+    "id": "water",
+    "name": "Water",
+    "icon": "drop",
+    "blocks": [
+     "shower",
+     "water",
+     "cook",
+     "x-coffee"
+    ]
+   },
+   {
+    "id": "power",
+    "name": "Power",
+    "icon": "bolt",
+    "blocks": [
+     "cook",
+     "x-coffee",
+     "x-freelance",
+     "x-treadmill",
+     "x-tv"
+    ]
+   }
+  ],
+  "breakables": [
+   {
+    "id": "shower",
+    "name": "the shower",
+    "blocks": [
+     "shower",
+     "basin"
+    ]
+   },
+   {
+    "id": "stove",
+    "name": "the stove",
+    "blocks": [
+     "cook"
+    ]
+   },
+   {
+    "id": "sink",
+    "name": "the kitchen sink",
+    "blocks": [
+     "water"
+    ]
+   }
+  ],
+  "repairCost": 90
+ },
+ "statuses": [
+  {
+   "id": "life",
+   "name": "Life",
+   "icon": "❤",
+   "color": "#ff4d7a",
+   "start": 100,
+   "max": 100,
+   "hud": true,
+   "zero": {
+    "text": "You pass out and wake up in your bed. The bill is {cost}.",
+    "cost": 300,
+    "restore": 60
+   },
+   "rpg": true
+  },
+  {
+   "id": "energy",
+   "name": "Energy",
+   "icon": "⚡",
+   "color": "#ffc233",
+   "start": 100,
+   "max": 100,
+   "hud": true,
+   "decay": null,
+   "zero": {
+    "text": "Exhausted, you fall asleep where you are and wake up at home.",
+    "restore": 40,
+    "crisis": {
+     "after": 0,
+     "text": "",
+     "seen": "{u} collapsed from exhaustion at {0}."
+    }
+   }
+  },
+  {
+   "id": "hunger",
+   "name": "Hunger",
+   "icon": "🍽",
+   "color": "#ff8a3d",
+   "start": 85,
+   "max": 100,
+   "hud": true,
+   "decay": {
+    "amount": 10,
+    "everyMinutes": 120
+   },
+   "zero": {
+    "text": "You are starving.",
+    "drain": {
+     "status": "life",
+     "amount": 5,
+     "everyMinutes": 60
+    },
+    "crisis": {
+     "after": 180,
+     "text": "You feel faint from hunger and nearly collapse. A stranger helps you sit down and gives you something to eat.",
+     "restore": 25,
+     "mood": -15,
+     "shame": 0,
+     "seen": "{u} nearly fainted from hunger at {0}."
+    }
+   }
+  },
+  {
+   "id": "thirst",
+   "name": "Thirst",
+   "icon": "💧",
+   "color": "#3db8ff",
+   "start": 85,
+   "max": 100,
+   "hud": true,
+   "decay": {
+    "amount": 10,
+    "everyMinutes": 90
+   },
+   "zero": {
+    "text": "You are badly dehydrated.",
+    "drain": {
+     "status": "life",
+     "amount": 5,
+     "everyMinutes": 60
+    },
+    "crisis": {
+     "after": 120,
+     "text": "Dizzy and dehydrated, you have to sit down. A stranger hands you a bottle of water.",
+     "restore": 25,
+     "mood": -10,
+     "shame": 0,
+     "seen": "{u} almost passed out from thirst at {0}."
+    }
+   }
+  },
+  {
+   "id": "mood",
+   "name": "Mood",
+   "icon": "☺",
+   "color": "#b88cff",
+   "start": 70,
+   "max": 100,
+   "hud": true,
+   "decay": {
+    "amount": 2,
+    "everyMinutes": 180
+   },
+   "zero": {
+    "crisis": {
+     "after": 240,
+     "text": "Everything feels too heavy. You break down and have to go home.",
+     "place": "home",
+     "restore": 25,
+     "shame": 0,
+     "seen": "{u} broke down at {0}."
+    }
+   }
+  },
+  {
+   "id": "hygiene",
+   "name": "Hygiene",
+   "icon": "🧼",
+   "color": "#5ec8e6",
+   "start": 100,
+   "max": 100,
+   "hud": true,
+   "decay": {
+    "amount": 4,
+    "everyMinutes": 60,
+    "awakeOnly": true
+   },
+   "zero": {
+    "text": "You badly need a wash: people keep their distance and your mood sinks.",
+    "drain": {
+     "status": "mood",
+     "amount": 2,
+     "everyMinutes": 60
+    },
+    "crisis": {
+     "after": 360,
+     "text": "People step away from you, and someone says something about the smell. Your face burns.",
+     "mood": -15,
+     "shame": 5,
+     "seen": "People at {0} kept away from {u}, who badly needed a wash."
+    }
+   }
+  }
+ ],
+ "actions": [
+  {
+   "id": "coffee",
+   "name": "Coffee",
+   "label": "Have a coffee",
+   "icon": "☕",
+   "cost": 5,
+   "minutes": 10,
+   "tags": [
+    "food"
+   ],
+   "effects": {
+    "energy": 15,
+    "thirst": 10
+   }
+  },
+  {
+   "id": "snack",
+   "name": "Snack",
+   "label": "Grab a snack",
+   "icon": "🥪",
+   "cost": 12,
+   "minutes": 15,
+   "anywhere": true,
+   "effects": {
+    "hunger": 30,
+    "energy": 3
+   }
+  },
+  {
+   "id": "meal",
+   "name": "Meal",
+   "label": "Eat a meal",
+   "icon": "🍝",
+   "cost": 30,
+   "minutes": 40,
+   "tags": [
+    "food"
+   ],
+   "effects": {
+    "hunger": 60,
+    "mood": 5,
+    "energy": 8
+   }
+  },
+  {
+   "id": "drink",
+   "name": "Drink",
+   "label": "Drink something",
+   "icon": "🥤",
+   "cost": 5,
+   "minutes": 5,
+   "anywhere": true,
+   "effects": {
+    "thirst": 40,
+    "energy": 2
+   }
+  },
+  {
+   "id": "cook",
+   "name": "Cook",
+   "label": "Cook at home",
+   "icon": "🍳",
+   "cost": 8,
+   "minutes": 45,
+   "home": true,
+   "effects": {
+    "hunger": 55,
+    "mood": 3,
+    "energy": 5
+   },
+   "roll": {
+    "dc": 9,
+    "traits": [
+     "Good cook",
+     "Creative",
+     "Cooking"
+    ],
+    "success": {
+     "text": "It came out really good.",
+     "effects": {
+      "mood": 4
+     }
+    },
+    "fail": {
+     "text": "A bit burnt, but it fills you up.",
+     "effects": {
+      "mood": -3
+     }
+    }
+   }
+  },
+  {
+   "id": "water",
+   "name": "Water",
+   "label": "Drink water",
+   "icon": "💧",
+   "cost": 0,
+   "minutes": 5,
+   "home": true,
+   "effects": {
+    "thirst": 45,
+    "energy": 2
+   }
+  },
+  {
+   "id": "relax",
+   "name": "Relax",
+   "label": "Take a walk",
+   "icon": "🌿",
+   "cost": 0,
+   "minutes": 60,
+   "tags": [
+    "outdoor"
+   ],
+   "effects": {
+    "mood": 12,
+    "energy": -5
+   }
+  },
+  {
+   "id": "shower",
+   "name": "Shower",
+   "label": "Take a shower",
+   "icon": "🚿",
+   "cost": 0,
+   "minutes": 20,
+   "home": true,
+   "effects": {
+    "hygiene": 100,
+    "mood": 3,
+    "energy": 5
+   }
+  },
+  {
+   "id": "washup",
+   "name": "Go to the bathroom",
+   "label": "Go to the bathroom",
+   "icon": "🧴",
+   "cost": 0,
+   "minutes": 10,
+   "tags": [
+    "food",
+    "shop",
+    "service",
+    "sport",
+    "study"
+   ],
+   "effects": {
+    "hygiene": 50
+   }
+  },
+  {
+   "id": "fix",
+   "name": "Repairs",
+   "label": "Fix something at home",
+   "icon": "🔧",
+   "cost": 0,
+   "minutes": 60,
+   "home": true,
+   "effects": {
+    "energy": -10
+   },
+   "roll": {
+    "dc": 13,
+    "traits": [
+     "Handy",
+     "Smart"
+    ],
+    "success": {
+     "text": "You fixed the leaky faucet yourself.",
+     "effects": {
+      "mood": 10
+     }
+    },
+    "fail": {
+     "text": "You made it worse and had to buy a new part.",
+     "money": -25,
+     "effects": {
+      "mood": -8
+     }
+    }
+   }
+  },
+  {
+   "id": "busk",
+   "name": "Busking",
+   "label": "Play music for tips",
+   "icon": "🎸",
+   "cost": 0,
+   "minutes": 60,
+   "tags": [
+    "leisure"
+   ],
+   "effects": {
+    "energy": -8
+   },
+   "roll": {
+    "dc": 14,
+    "traits": [
+     "Musical",
+     "Charming",
+     "Outgoing"
+    ],
+    "success": {
+     "text": "A small crowd gathered and tipped well.",
+     "money": 35,
+     "effects": {
+      "mood": 8
+     }
+    },
+    "fail": {
+     "text": "People walked past without stopping.",
+     "effects": {
+      "mood": -6
+     }
+    }
+   }
+  },
+  {
+   "id": "gymshower",
+   "name": "Shower at the gym",
+   "label": "Shower at the gym",
+   "icon": "🚿",
+   "cost": 0,
+   "minutes": 20,
+   "tags": [
+    "sport"
+   ],
+   "effects": {
+    "hygiene": 100,
+    "energy": 5
+   }
+  },
+  {
+   "id": "x-tv",
+   "name": "TV",
+   "label": "Watch TV",
+   "icon": "📺",
+   "cost": 0,
+   "minutes": 60,
+   "home": true,
+   "effects": {
+    "mood": 6,
+    "energy": -2
+   }
+  },
+  {
+   "id": "x-coffee",
+   "name": "Coffee",
+   "label": "Make coffee",
+   "icon": "☕",
+   "cost": 0,
+   "minutes": 10,
+   "home": true,
+   "needsItem": "coffee",
+   "effects": {
+    "energy": 20,
+    "thirst": 5
+   }
+  },
+  {
+   "id": "x-freelance",
+   "name": "Freelance",
+   "label": "Freelance on the computer",
+   "icon": "🖥️",
+   "cost": -70,
+   "minutes": 180,
+   "home": true,
+   "needsItem": "pc",
+   "effects": {
+    "energy": -15,
+    "mood": -4,
+    "hygiene": -5
+   }
+  },
+  {
+   "id": "x-paint",
+   "name": "Painting",
+   "label": "Paint something to sell",
+   "icon": "🎨",
+   "cost": 0,
+   "minutes": 120,
+   "home": true,
+   "needsItem": "easel",
+   "effects": {
+    "energy": -10,
+    "mood": 6
+   },
+   "roll": {
+    "dc": 13,
+    "traits": [
+     "Creative",
+     "Skilled with hands"
+    ],
+    "success": {
+     "text": "Your painting sold quickly.",
+     "money": 110
+    },
+    "fail": {
+     "text": "Nobody wanted this one.",
+     "effects": {
+      "mood": -6
+     }
+    }
+   }
+  },
+  {
+   "id": "x-treadmill",
+   "name": "Treadmill",
+   "label": "Run on the treadmill",
+   "icon": "🏃",
+   "cost": 0,
+   "minutes": 45,
+   "home": true,
+   "needsItem": "treadmill",
+   "effects": {
+    "energy": -20,
+    "hygiene": -25,
+    "mood": 3
+   },
+   "roll": {
+    "dc": 9,
+    "traits": [
+     "Athletic",
+     "Strong",
+     "Sports"
+    ],
+    "success": {
+     "text": "A good run.",
+     "effects": {
+      "mood": 5
+     }
+    },
+    "fail": {
+     "text": "You gave up halfway.",
+     "effects": {
+      "mood": -2
+     }
+    }
+   }
+  },
+  {
+   "id": "x-gig",
+   "name": "Quick gig",
+   "label": "Do a quick gig: deliveries (2 h)",
+   "icon": "🛵",
+   "cost": -25,
+   "minutes": 120,
+   "tags": [
+    "work"
+   ],
+   "effects": {
+    "energy": -15,
+    "hunger": -10,
+    "hygiene": -10
+   }
+  },
+  {
+   "id": "x-workout",
+   "name": "Workout",
+   "label": "Work out at the gym",
+   "icon": "🏋️",
+   "cost": 15,
+   "minutes": 90,
+   "tags": [
+    "sport"
+   ],
+   "effects": {
+    "energy": -25,
+    "hygiene": -30,
+    "mood": 4,
+    "thirst": -10
+   },
+   "roll": {
+    "dc": 9,
+    "traits": [
+     "Athletic",
+     "Strong",
+     "Sports"
+    ],
+    "success": {
+     "text": "A great workout.",
+     "effects": {
+      "mood": 6
+     }
+    },
+    "fail": {
+     "text": "A sloppy workout; your heart was not in it.",
+     "effects": {
+      "mood": -2
+     }
+    }
+   }
+  },
+  {
+   "id": "x-run",
+   "name": "Run",
+   "label": "Go for a run",
+   "icon": "👟",
+   "cost": 0,
+   "minutes": 40,
+   "tags": [
+    "outdoor"
+   ],
+   "effects": {
+    "energy": -15,
+    "hygiene": -20,
+    "mood": 6,
+    "thirst": -10
+   }
+  },
+  {
+   "id": "out-work",
+   "name": "Odd job",
+   "label": "Pick up an odd job",
+   "icon": "💼",
+   "cost": -60,
+   "minutes": 240,
+   "anywhere": true,
+   "outing": true,
+   "effects": {
+    "energy": -30,
+    "mood": -5
+   }
+  },
+  {
+   "id": "out-groceries",
+   "name": "Grocery run",
+   "label": "Do the groceries",
+   "icon": "🛒",
+   "cost": 40,
+   "minutes": 60,
+   "anywhere": true,
+   "outing": true,
+   "effects": {
+    "energy": -5
+   }
+  },
+  {
+   "id": "out-night",
+   "name": "Night out",
+   "label": "Go out for the night",
+   "icon": "🍸",
+   "cost": 60,
+   "minutes": 240,
+   "anywhere": true,
+   "outing": true,
+   "effects": {
+    "mood": 25,
+    "energy": -20
+   }
+  },
+  {
+   "id": "out-beach",
+   "name": "Beach afternoon",
+   "label": "Go to the beach",
+   "icon": "🏖",
+   "cost": 0,
+   "minutes": 180,
+   "anywhere": true,
+   "outing": true,
+   "effects": {
+    "mood": 15,
+    "hygiene": -10
+   }
+  }
+ ],
+ "sleep": {
+  "until": 420,
+  "restore": {
+   "energy": 100,
+   "life": 10,
+   "mood": 5
+  },
+  "homeOnly": true
+ },
+ "sheet": {
+  "age": {
+   "min": 18,
+   "max": 60,
+   "default": 24
+  },
+  "appearance": [
+   {
+    "id": "hair",
+    "label": "Hair",
+    "options": [
+     "Black",
+     "Brown",
+     "Blond",
+     "Red",
+     "Gray"
+    ]
+   },
+   {
+    "id": "hairStyle",
+    "label": "Hair style",
+    "options": [
+     "Short",
+     "Medium",
+     "Long",
+     "Curly",
+     "Shaved"
+    ]
+   },
+   {
+    "id": "eyes",
+    "label": "Eyes",
+    "options": [
+     "Brown",
+     "Black",
+     "Green",
+     "Blue",
+     "Gray"
+    ]
+   },
+   {
+    "id": "skin",
+    "label": "Skin",
+    "options": [
+     "Fair",
+     "Olive",
+     "Tan",
+     "Deep"
+    ]
+   },
+   {
+    "id": "build",
+    "label": "Build",
+    "options": [
+     "Slim",
+     "Average",
+     "Athletic",
+     "Strong",
+     "Heavy"
+    ]
+   }
+  ],
+  "traits": [
+   {
+    "id": "proficiency",
+    "label": "Proficiency",
+    "max": 2,
+    "options": [
+     "Strong",
+     "Smart",
+     "Charming",
+     "Creative",
+     "Athletic",
+     "Handy",
+     "Musical",
+     "Good with numbers",
+     "Good cook",
+     "Tech-savvy"
+    ]
+   },
+   {
+    "id": "personality",
+    "label": "Personality",
+    "max": 3,
+    "options": [
+     "Outgoing",
+     "Shy",
+     "Calm",
+     "Hot-headed",
+     "Cheerful",
+     "Serious",
+     "Romantic",
+     "Ambitious",
+     "Lazy",
+     "Curious",
+     "Sarcastic",
+     "Kind"
+    ]
+   },
+   {
+    "id": "interests",
+    "label": "Interests",
+    "max": 3,
+    "options": [
+     "Sports",
+     "Music",
+     "Games",
+     "Books",
+     "Cooking",
+     "Fashion",
+     "Technology",
+     "Nature",
+     "Art",
+     "Movies",
+     "Nightlife",
+     "Travel"
+    ]
+   }
+  ]
+ },
+ "catalogs": {
+  "origins": [
+   {
+    "id": "newhousemate",
+    "name": "New housemate",
+    "desc": "You took the last free bedroom.",
+    "money": 800,
+    "home": "rooms",
+    "skills": [
+     "perception",
+     "persuasion"
+    ],
+    "feature": "New in the house: everyone wants to know who you are.",
+    "attributes": {
+     "cha": 1,
+     "wis": 1
+    }
+   }
+  ],
+  "courses": [
+   {
+    "id": "cooking",
+    "name": "Cooking class",
+    "area": "Cooking",
+    "days": 3,
+    "cost": 150,
+    "grants": [
+     "Good cook"
+    ],
+    "icon": "🍳",
+    "desc": "Knife skills, sauces and timing. Your meals come out better."
+   },
+   {
+    "id": "fitness",
+    "name": "Fitness coach certificate",
+    "area": "Sports",
+    "days": 4,
+    "cost": 250,
+    "grants": [
+     "Athletic"
+    ],
+    "icon": "🏋️",
+    "desc": "Training plans and nutrition. Workouts go better."
+   },
+   {
+    "id": "firstaid",
+    "name": "Lifeguard & first aid",
+    "area": "Health",
+    "days": 2,
+    "cost": 150,
+    "grants": [
+     "Calm"
+    ],
+    "icon": "🛟",
+    "desc": "Rescue and first aid. Needed to work as a lifeguard."
+   },
+   {
+    "id": "programming",
+    "name": "Programming bootcamp",
+    "area": "Technology",
+    "days": 5,
+    "cost": 600,
+    "grants": [
+     "Tech-savvy"
+    ],
+    "icon": "💻",
+    "desc": "Code, apps and the web. Needed for software jobs."
+   },
+   {
+    "id": "finance",
+    "name": "Finance & accounting",
+    "area": "Business",
+    "days": 5,
+    "cost": 500,
+    "grants": [
+     "Good with numbers"
+    ],
+    "icon": "📊",
+    "desc": "Budgets, markets and spreadsheets. Needed for finance jobs."
+   },
+   {
+    "id": "engineering",
+    "name": "Engineering degree",
+    "area": "Technology",
+    "days": 7,
+    "cost": 900,
+    "grants": [
+     "Handy",
+     "Smart"
+    ],
+    "icon": "⚙️",
+    "desc": "Machines and structures. Needed to work as an engineer."
+   },
+   {
+    "id": "medicine",
+    "name": "Medical school",
+    "area": "Health",
+    "days": 10,
+    "cost": 2000,
+    "grants": [
+     "Smart"
+    ],
+    "icon": "🩺",
+    "desc": "Long and hard. Needed to work as a doctor."
+   },
+   {
+    "id": "nursing",
+    "name": "Nursing course",
+    "area": "Health",
+    "days": 5,
+    "cost": 600,
+    "grants": [
+     "Kind"
+    ],
+    "icon": "💉",
+    "desc": "Patient care. Needed to work as a nurse."
+   },
+   {
+    "id": "education",
+    "name": "Teaching certificate",
+    "area": "Education",
+    "days": 4,
+    "cost": 400,
+    "grants": [
+     "Kind"
+    ],
+    "icon": "🍎",
+    "desc": "How to teach. Needed to work as a teacher."
+   },
+   {
+    "id": "science",
+    "name": "Research methods",
+    "area": "Science",
+    "days": 6,
+    "cost": 700,
+    "grants": [
+     "Curious"
+    ],
+    "icon": "🔬",
+    "desc": "Experiments and papers. Needed to work as a researcher."
+   },
+   {
+    "id": "mechanics",
+    "name": "Auto mechanics",
+    "area": "Trades",
+    "days": 4,
+    "cost": 350,
+    "grants": [
+     "Handy"
+    ],
+    "icon": "🔧",
+    "desc": "Engines and repairs. Needed to work as a mechanic."
+   },
+   {
+    "id": "publicadmin",
+    "name": "Public administration",
+    "area": "Business",
+    "days": 5,
+    "cost": 500,
+    "grants": [
+     "Serious"
+    ],
+    "icon": "🏛️",
+    "desc": "How the city works. Needed to work at City Hall."
+   },
+   {
+    "id": "hospitality",
+    "name": "Hospitality & service",
+    "area": "Service",
+    "days": 2,
+    "cost": 120,
+    "grants": [
+     "Charming"
+    ],
+    "icon": "🛎️",
+    "desc": "Guests, customers and smiles. Helps in hotels, bars and shops."
+   },
+   {
+    "id": "music",
+    "name": "Music lessons",
+    "area": "Arts",
+    "days": 4,
+    "cost": 300,
+    "grants": [
+     "Musical"
+    ],
+    "icon": "🎸",
+    "desc": "An instrument and some theory. Busking goes better."
+   },
+   {
+    "id": "art",
+    "name": "Art & design",
+    "area": "Arts",
+    "days": 4,
+    "cost": 300,
+    "grants": [
+     "Creative"
+    ],
+    "icon": "🎨",
+    "desc": "Drawing, color and design. Paintings sell better."
+   },
+   {
+    "id": "speaking",
+    "name": "Public speaking",
+    "area": "Social",
+    "days": 3,
+    "cost": 200,
+    "grants": [
+     "Outgoing"
+    ],
+    "icon": "🎤",
+    "desc": "Confidence in front of people. Helps in interviews."
+   }
+  ],
+  "shop": [
+   {
+    "id": "bed",
+    "name": "King size bed",
+    "desc": "Sleep better: you wake up in a better mood.",
+    "icon": "🛏️",
+    "price": 900,
+    "sleepMood": 10
+   },
+   {
+    "id": "coffee",
+    "name": "Coffee machine",
+    "desc": "Make coffee at home (energy).",
+    "icon": "☕",
+    "price": 250
+   },
+   {
+    "id": "car",
+    "name": "Sports car",
+    "desc": "Travel takes half the time.",
+    "icon": "🚗",
+    "price": 18000,
+    "travel": 0.5
+   },
+   {
+    "id": "bike",
+    "name": "Bicycle",
+    "desc": "Travel takes a quarter less time.",
+    "icon": "🚲",
+    "price": 450,
+    "travel": 0.75
+   },
+   {
+    "id": "pc",
+    "name": "Gaming PC",
+    "desc": "Freelance or stream from home.",
+    "icon": "🖥️",
+    "price": 2200
+   },
+   {
+    "id": "easel",
+    "name": "Easel and paints",
+    "desc": "Paint at home; a good painting sells.",
+    "icon": "🎨",
+    "price": 300
+   },
+   {
+    "id": "treadmill",
+    "name": "Treadmill",
+    "desc": "Work out at home.",
+    "icon": "🏃",
+    "price": 1200
+   }
+  ]
+ },
+ "occupations": [
+  {
+   "id": "barista",
+   "name": "Café on the boardwalk",
+   "place": "",
+   "ranks": [
+    {
+     "name": "Attendant",
+     "pay": 15
+    },
+    {
+     "name": "Barista",
+     "pay": 20
+    },
+    {
+     "name": "Manager",
+     "pay": 25
+    }
+   ],
+   "shift": 6,
+   "cost": {
+    "energy": 25,
+    "mood": 5
+   },
+   "likes": [
+    "Good cook",
+    "Charming",
+    "Outgoing"
+   ],
+   "hours": [
+    7,
+    19
+   ],
+   "promote": [
+    4,
+    8
+   ]
+  },
+  {
+   "id": "cook",
+   "name": "Seafood restaurant",
+   "place": "",
+   "ranks": [
+    {
+     "name": "Kitchen hand",
+     "pay": 16
+    },
+    {
+     "name": "Line cook",
+     "pay": 22
+    },
+    {
+     "name": "Sous-chef",
+     "pay": 30
+    }
+   ],
+   "shift": 8,
+   "cost": {
+    "energy": 25,
+    "mood": 5
+   },
+   "likes": [
+    "Good cook",
+    "Strong"
+   ],
+   "hours": [
+    11,
+    23
+   ],
+   "promote": [
+    4,
+    8
+   ]
+  },
+  {
+   "id": "trainer",
+   "name": "Gym downtown",
+   "place": "",
+   "ranks": [
+    {
+     "name": "Assistant",
+     "pay": 16
+    },
+    {
+     "name": "Personal trainer",
+     "pay": 24
+    },
+    {
+     "name": "Head coach",
+     "pay": 32
+    }
+   ],
+   "shift": 6,
+   "cost": {
+    "energy": 25,
+    "mood": 5
+   },
+   "likes": [
+    "Athletic",
+    "Strong"
+   ],
+   "hours": [
+    6,
+    22
+   ],
+   "promote": [
+    4,
+    8
+   ],
+   "courses": [
+    "fitness"
+   ]
+  },
+  {
+   "id": "studio",
+   "name": "Design studio",
+   "place": "",
+   "ranks": [
+    {
+     "name": "Intern",
+     "pay": 14
+    },
+    {
+     "name": "Junior architect",
+     "pay": 26
+    },
+    {
+     "name": "Architect",
+     "pay": 40
+    }
+   ],
+   "shift": 8,
+   "cost": {
+    "energy": 25,
+    "mood": 5
+   },
+   "likes": [
+    "Creative",
+    "Smart"
+   ],
+   "hours": [
+    9,
+    18
+   ],
+   "promote": [
+    4,
+    8
+   ],
+   "courses": [
+    "engineering"
+   ]
+  },
+  {
+   "id": "office",
+   "name": "Office in the city",
+   "place": "",
+   "ranks": [
+    {
+     "name": "Receptionist",
+     "pay": 17
+    },
+    {
+     "name": "Assistant",
+     "pay": 22
+    },
+    {
+     "name": "Office manager",
+     "pay": 30
+    }
+   ],
+   "shift": 8,
+   "cost": {
+    "energy": 25,
+    "mood": 5
+   },
+   "likes": [
+    "Good with numbers",
+    "Calm"
+   ],
+   "hours": [
+    8,
+    18
+   ],
+   "promote": [
+    4,
+    8
+   ]
+  }
+ ],
+ "cast": {
+  "routineTemplates": {
+   "home": {
+    "weekday": [
+     [
+      0,
+      "home"
+     ],
+     [
+      9,
+      "leisure"
+     ],
+     [
+      13,
+      "kitchen"
+     ],
+     [
+      15,
+      "leisure"
+     ],
+     [
+      20,
+      "dining"
+     ],
+     [
+      22,
+      "home"
+     ]
+    ],
+    "weekend": [
+     [
+      0,
+      "home"
+     ],
+     [
+      11,
+      "leisure"
+     ],
+     [
+      19,
+      "leisure"
+     ],
+     [
+      23,
+      "home"
+     ]
+    ]
+   },
+   "outworker": {
+    "weekday": [
+     [
+      0,
+      "home"
+     ],
+     [
+      8,
+      "entrance"
+     ],
+     [
+      9,
+      "work"
+     ],
+     [
+      18,
+      "leisure"
+     ],
+     [
+      20,
+      "dining"
+     ],
+     [
+      22,
+      "home"
+     ]
+    ],
+    "weekend": [
+     [
+      0,
+      "home"
+     ],
+     [
+      10,
+      "pool"
+     ],
+     [
+      15,
+      "leisure"
+     ],
+     [
+      22,
+      "home"
+     ]
+    ]
+   },
+   "nightowl": {
+    "weekday": [
+     [
+      0,
+      "leisure"
+     ],
+     [
+      3,
+      "home"
+     ],
+     [
+      13,
+      "kitchen"
+     ],
+     [
+      14,
+      "leisure"
+     ],
+     [
+      21,
+      "pool"
+     ]
+    ],
+    "weekend": [
+     [
+      0,
+      "pool"
+     ],
+     [
+      4,
+      "home"
+     ],
+     [
+      14,
+      "pool"
+     ],
+     [
+      18,
+      "leisure"
+     ]
+    ]
+   },
+   "early": {
+    "weekday": [
+     [
+      0,
+      "home"
+     ],
+     [
+      6,
+      "gym"
+     ],
+     [
+      8,
+      "kitchen"
+     ],
+     [
+      9,
+      "leisure"
+     ],
+     [
+      18,
+      "dining"
+     ],
+     [
+      21,
+      "home"
+     ]
+    ],
+    "weekend": [
+     [
+      0,
+      "home"
+     ],
+     [
+      7,
+      "gym"
+     ],
+     [
+      9,
+      "pool"
+     ],
+     [
+      14,
+      "leisure"
+     ],
+     [
+      21,
+      "home"
+     ]
+    ]
+   }
+  },
+  "examples": [
+   {
+    "name": "Marisol",
+    "age": 27,
+    "occupation": "trainer",
+    "home": "rooms",
+    "routine": "early",
+    "leisure": [
+     "gym",
+     "pool",
+     "kitchen"
+    ],
+    "description": "{{char}} is Marisol, 27, a personal trainer. Tanned, athletic, dark curls always up in a high ponytail, a whistle she wears as a joke. Disciplined, blunt and loyal; she wrote the rules on the fridge and is the only one who follows them. She is Tomas's older sister and still bosses him around.",
+    "first_mes": "*Marisol looks up from her protein shake, eyebrow raised.* So you're the new one. Rule one: the kitchen gets cleaned after you use it. Rule two... actually, just read the fridge.",
+    "ties": [
+     {
+      "to": "Tomas",
+      "type": "sibling",
+      "tone": "close"
+     },
+     {
+      "to": "Celine",
+      "type": "friend",
+      "tone": "good"
+     }
+    ]
+   },
+   {
+    "name": "Tomas",
+    "age": 24,
+    "occupation": null,
+    "home": "rooms2",
+    "routine": "nightowl",
+    "leisure": [
+     "living",
+     "pool"
+    ],
+    "description": "{{char}} is Tomas, 24, a music producer who works from his bedroom. Messy blond hair, headphones around his neck, band T-shirts. Easygoing, funny, a flirt who never commits; he lives at night and borrows everyone's food. Marisol is his older sister. He used to date Celine, and it ended badly.",
+    "first_mes": "*Tomas leans in the doorway, headphones buzzing.* Hey, roommate. If you hear bass at 3 a.m., that's art. You're welcome.",
+    "ties": [
+     {
+      "to": "Celine",
+      "type": "ex",
+      "tone": "tense"
+     },
+     {
+      "to": "Rafa",
+      "type": "bestfriend",
+      "tone": "close"
+     }
+    ]
+   },
+   {
+    "name": "Celine",
+    "age": 29,
+    "occupation": "studio",
+    "home": "rooms2",
+    "routine": "outworker",
+    "leisure": [
+     "pool",
+     "living",
+     "dining"
+    ],
+    "description": "{{char}} is Celine, 29, a junior architect at a firm in the city. Short auburn bob, glasses, linen shirts, always sketching. Thoughtful, dry humor, a little guarded; she takes the house seriously and the people in it seriously too. She dated Tomas last year and has not forgiven him.",
+    "first_mes": "*Celine closes her sketchbook and gives you a small, measuring smile.* Welcome. The good mugs are the blue ones. Don't let Tomas borrow anything.",
+    "ties": [
+     {
+      "to": "Ivy",
+      "type": "friend",
+      "tone": "good"
+     }
+    ]
+   },
+   {
+    "name": "Rafa",
+    "age": 31,
+    "occupation": "cook",
+    "home": "rooms3",
+    "routine": "outworker",
+    "leisure": [
+     "pool",
+     "kitchen",
+     "living"
+    ],
+    "description": "{{char}} is Rafa, 31, a line cook at a seafood restaurant downtown. Broad-shouldered, beard, burn scars on his forearms, a booming laugh. Generous and protective; he cooks for the whole house on Sundays and settles fights with food. He is married to Ivy.",
+    "first_mes": "*Rafa wipes his hands on a towel and grins.* New housemate! You eat fish? Good. Sunday dinner is mandatory, Ivy's rule.",
+    "ties": [
+     {
+      "to": "Ivy",
+      "type": "spouse",
+      "tone": "close"
+     }
+    ]
+   },
+   {
+    "name": "Ivy",
+    "age": 30,
+    "occupation": null,
+    "home": "rooms3",
+    "routine": "home",
+    "leisure": [
+     "pool",
+     "living"
+    ],
+    "description": "{{char}} is Ivy, 30, a freelance illustrator who works at the dining table. Long black hair, tattoos of flowers along one arm, oversized sweaters. Warm, curious and nosy; she knows every secret in the house and keeps most of them. She is married to Rafa and plays matchmaker for everyone else.",
+    "first_mes": "*Ivy pats the sofa next to her.* Sit, sit. Tell me everything. Where are you from, who are you running from, are you single?",
+    "ties": [
+     {
+      "to": "Rafa",
+      "type": "spouse",
+      "tone": "close"
+     }
+    ]
+   }
+  ]
+ },
+ "lore": [
+  {
+   "keys": [
+    "house",
+    "Shared House"
+   ],
+   "constant": true,
+   "content": "The Shared House is a big modern house by the sea, rented for one summer by a group of adults. Ground floor: living room, kitchen, dining room, entrance hall, laundry, home gym, a bathroom and the garage; outside the pool and the front entrance. Second floor: six bedrooms and three bathrooms. Third floor, under the roof: four more bedrooms (one with twin beds), three bathrooms and the storage room."
+  },
+  {
+   "keys": [
+    "rules",
+    "fridge"
+   ],
+   "content": "The house rules on the fridge (written by Marisol): clean the kitchen after you use it; label your food; no guests overnight without telling the house; Sunday dinner together. Nobody but Marisol follows them."
+  },
+  {
+   "keys": [
+    "Sunday dinner"
+   ],
+   "content": "Every Sunday evening Rafa cooks for the whole house at the dining table. Skipping it is a big deal to Ivy."
+  }
+ ],
+ "features": {
+  "phone": true,
+  "device": "Phone",
+  "deviceLook": "phone",
+  "socialKind": "feed",
+  "messageKind": "texts",
+  "apps": [
+   {
+    "id": "grimoire",
+    "name": "Techniques",
+    "icon": "sparkles",
+    "color": "#7b5cff",
+    "on": true
+   }
+  ],
+  "needs": false,
+  "bills": false,
+  "breakdowns": false,
+  "neighbors": false,
+  "reputation": false,
+  "living": false
+ },
+ "ai": {
+  "voice": "casual; group-chat energy"
+ },
+ "presetActions": true,
+ "presetCrises": true,
+ "presetRpg": true,
+ "presetCombat": true,
+ "habits": [
+  {
+   "id": "early",
+   "name": "Early riser",
+   "trait": "Early riser",
+   "desc": "Up and doing things before 8, five days in a week.",
+   "hours": [
+    5,
+    8
+   ],
+   "count": 5,
+   "days": 7,
+   "daily": {
+    "energy": 3
+   }
+  },
+  {
+   "id": "owl",
+   "name": "Night owl",
+   "trait": "Night owl",
+   "desc": "Out and about after midnight, four times in a week.",
+   "hours": [
+    0,
+    4
+   ],
+   "count": 4,
+   "days": 7
+  },
+  {
+   "id": "coffee",
+   "name": "Coffee addict",
+   "trait": "Coffee addict",
+   "desc": "Coffee eight times in a week.",
+   "actions": [
+    "coffee",
+    "x-coffee"
+   ],
+   "count": 8,
+   "days": 7,
+   "daily": {
+    "mood": -2
+   }
+  },
+  {
+   "id": "fit",
+   "name": "Fitness buff",
+   "trait": "Athletic",
+   "desc": "Working out or running five times in ten days.",
+   "actions": [
+    "x-workout",
+    "x-run",
+    "x-treadmill"
+   ],
+   "count": 5,
+   "days": 10,
+   "daily": {
+    "mood": 2
+   }
+  },
+  {
+   "id": "party",
+   "name": "Party animal",
+   "trait": "Nightlife",
+   "desc": "Drinks out six times in a week.",
+   "actions": [
+    "drink"
+   ],
+   "count": 6,
+   "days": 7,
+   "daily": {
+    "energy": -3
+   }
+  },
+  {
+   "id": "chef",
+   "name": "Home chef",
+   "trait": "Good cook",
+   "desc": "Cooking at home five times in a week.",
+   "actions": [
+    "cook"
+   ],
+   "count": 5,
+   "days": 7
+  },
+  {
+   "id": "clean",
+   "name": "Neat freak",
+   "trait": "Tidy",
+   "desc": "Showering every day for a week.",
+   "actions": [
+    "shower",
+    "gymshower"
+   ],
+   "count": 7,
+   "days": 7
+  }
+ ],
+ "festivals": [],
+ "pets": [
+  {
+   "id": "dog",
+   "name": "Dog",
+   "icon": "🐕",
+   "price": 300,
+   "follows": true,
+   "mood": 4,
+   "desc": "A loyal friend who walks with you everywhere.",
+   "where": [
+    "mall"
+   ]
+  },
+  {
+   "id": "cat",
+   "name": "Cat",
+   "icon": "🐈",
+   "price": 150,
+   "mood": 3,
+   "desc": "Waits for you at home (on your keyboard).",
+   "where": [
+    "mall"
+   ]
+  },
+  {
+   "id": "parrot",
+   "name": "Parrot",
+   "icon": "🦜",
+   "price": 400,
+   "mood": 3,
+   "desc": "Talks back. A lot.",
+   "where": [
+    "mall"
+   ]
+  },
+  {
+   "id": "horse",
+   "name": "Horse",
+   "icon": "🐎",
+   "price": 2500,
+   "follows": true,
+   "mount": true,
+   "speed": 0.6,
+   "carry": 10,
+   "mood": 3,
+   "desc": "Kept at the farms and the Green Valley ranch: ride out (trips take less time).",
+   "where": [
+    "farms",
+    "ranch"
+   ]
+  }
+ ],
+ "presetLife2": true,
+ "factions": [],
+ "realm": {
+  "name": "The hill",
+  "government": "republic",
+  "leadership": "A house meeting on Sundays",
+  "power": "balanced"
+ },
+ "presetRealm": true,
+ "institutions": [],
+ "presetSchools": true,
+ "goods": [
+  {
+   "id": "beans",
+   "name": "Coffee beans",
+   "icon": "☕",
+   "price": 8,
+   "kind": "food",
+   "cheap": [
+    "farms"
+   ],
+   "dear": [
+    "finance"
+   ]
+  },
+  {
+   "id": "produce",
+   "name": "Fresh produce",
+   "icon": "🥕",
+   "price": 4,
+   "kind": "food",
+   "cheap": [
+    "farms"
+   ],
+   "dear": [
+    "downtown"
+   ]
+  },
+  {
+   "id": "seafood",
+   "name": "Seafood",
+   "icon": "🦐",
+   "price": 12,
+   "kind": "food",
+   "cheap": [
+    "docks"
+   ],
+   "dear": [
+    "mall"
+   ]
+  },
+  {
+   "id": "electronics",
+   "name": "Electronics",
+   "icon": "📱",
+   "price": 60,
+   "kind": "goods",
+   "cheap": [
+    "docks"
+   ],
+   "dear": [
+    "campus"
+   ]
+  },
+  {
+   "id": "fashion",
+   "name": "Designer clothes",
+   "icon": "👗",
+   "price": 45,
+   "kind": "cloth",
+   "cheap": [
+    "mall"
+   ],
+   "dear": [
+    "industrial"
+   ]
+  },
+  {
+   "id": "sneakers",
+   "name": "Counterfeit sneakers",
+   "icon": "👟",
+   "price": 30,
+   "kind": "contraband",
+   "cheap": [
+    "docks"
+   ],
+   "dear": [
+    "mall"
+   ],
+   "illegal": true
+  },
+  {
+   "id": "comics",
+   "name": "Vintage comics",
+   "icon": "📚",
+   "price": 150,
+   "kind": "rare",
+   "dear": [
+    "campus"
+   ]
+  },
+  {
+   "id": "camping_gear",
+   "name": "Camping gear",
+   "icon": "⛺",
+   "price": 60,
+   "kind": "gear"
+  },
+  {
+   "id": "scrap",
+   "name": "Scrap metal",
+   "icon": "⚙️",
+   "price": 6,
+   "kind": "ore",
+   "cheap": [
+    "industrial"
+   ],
+   "dear": [
+    "finance"
+   ]
+  },
+  {
+   "id": "supplies",
+   "name": "Medical supplies",
+   "icon": "🧴",
+   "price": 10,
+   "kind": "goods",
+   "cheap": [
+    "hospital"
+   ],
+   "dear": [
+    "industrial"
+   ]
+  },
+  {
+   "id": "medkit",
+   "name": "First aid kit",
+   "icon": "🩹",
+   "price": 30,
+   "kind": "potion",
+   "cures": true
+  },
+  {
+   "id": "scope",
+   "name": "Red-dot sight",
+   "icon": "🎯",
+   "price": 90,
+   "kind": "arms",
+   "socket": {
+    "slot": "weapon",
+    "kind": "attack",
+    "amount": 1
+   }
+  },
+  {
+   "id": "weights",
+   "name": "Weighted gloves",
+   "icon": "🥊",
+   "price": 70,
+   "kind": "arms",
+   "socket": {
+    "slot": "weapon",
+    "kind": "damage",
+    "amount": 1
+   }
+  },
+  {
+   "id": "kevlar",
+   "name": "Kevlar plate",
+   "icon": "🦺",
+   "price": 120,
+   "kind": "arms",
+   "socket": {
+    "slot": "armor",
+    "kind": "armor",
+    "amount": 1
+   }
+  },
+  {
+   "id": "champion_belt",
+   "name": "Champion's belt",
+   "icon": "🏆",
+   "price": 400,
+   "kind": "rare"
+  }
+ ],
+ "crops": [
+  {
+   "id": "tomatoes",
+   "name": "Tomatoes",
+   "icon": "🍅",
+   "days": 5,
+   "seed": 5,
+   "good": "produce",
+   "yield": 6
+  },
+  {
+   "id": "beans",
+   "name": "Coffee plant",
+   "icon": "☕",
+   "days": 10,
+   "seed": 20,
+   "good": "beans",
+   "yield": 5
+  }
+ ],
+ "businesses": [],
+ "skies": {
+  "events": [
+   {
+    "id": "eclipse",
+    "name": "Solar eclipse",
+    "desc": "the city stops to look up at a dark sun",
+    "every": 40,
+    "days": 1,
+    "effect": "omen",
+    "amount": 3
+   }
+  ],
+  "hazards": [
+   {
+    "id": "heatwave",
+    "name": "Heatwave",
+    "desc": "a record-breaking heat",
+    "climate": "coastal",
+    "season": "summer",
+    "chance": 0.3,
+    "drain": {
+     "thirst": 2,
+     "energy": 1.3
+    }
+   },
+   {
+    "id": "hurricane",
+    "name": "Hurricane warning",
+    "desc": "shops board up their windows; everyone stays in",
+    "climate": "coastal",
+    "season": "autumn",
+    "chance": 0.06,
+    "drain": {
+     "mood": 1.5
+    },
+    "closes": true
+   }
+  ]
+ },
+ "presetEconomy": true,
+ "rpg": {
+  "attributes": [
+   {
+    "id": "str",
+    "name": "Strength",
+    "short": "STR",
+    "desc": "Lifting, climbing, hitting hard."
+   },
+   {
+    "id": "dex",
+    "name": "Dexterity",
+    "short": "DEX",
+    "desc": "Speed, balance, light fingers."
+   },
+   {
+    "id": "con",
+    "name": "Constitution",
+    "short": "CON",
+    "desc": "Health and stamina: more hit points."
+   },
+   {
+    "id": "int",
+    "name": "Intelligence",
+    "short": "INT",
+    "desc": "Memory, reasoning, arcane study."
+   },
+   {
+    "id": "wis",
+    "name": "Wisdom",
+    "short": "WIS",
+    "desc": "Awareness, intuition, faith."
+   },
+   {
+    "id": "cha",
+    "name": "Charisma",
+    "short": "CHA",
+    "desc": "Presence, charm, a silver tongue."
+   }
+  ],
+  "hpAttr": "con",
+  "skills": [
+   {
+    "id": "athletics",
+    "name": "Athletics",
+    "attr": "str"
+   },
+   {
+    "id": "acrobatics",
+    "name": "Acrobatics",
+    "attr": "dex"
+   },
+   {
+    "id": "stealth",
+    "name": "Stealth",
+    "attr": "dex"
+   },
+   {
+    "id": "sleight",
+    "name": "Sleight of hand",
+    "attr": "dex"
+   },
+   {
+    "id": "investigation",
+    "name": "Investigation",
+    "attr": "int"
+   },
+   {
+    "id": "history",
+    "name": "Knowledge",
+    "attr": "int"
+   },
+   {
+    "id": "tech",
+    "name": "Technology",
+    "attr": "int"
+   },
+   {
+    "id": "insight",
+    "name": "Insight",
+    "attr": "wis"
+   },
+   {
+    "id": "medicine",
+    "name": "First aid",
+    "attr": "wis"
+   },
+   {
+    "id": "perception",
+    "name": "Perception",
+    "attr": "wis"
+   },
+   {
+    "id": "survival",
+    "name": "Streetwise",
+    "attr": "wis"
+   },
+   {
+    "id": "deception",
+    "name": "Deception",
+    "attr": "cha"
+   },
+   {
+    "id": "intimidation",
+    "name": "Intimidation",
+    "attr": "cha"
+   },
+   {
+    "id": "performance",
+    "name": "Performance",
+    "attr": "cha"
+   },
+   {
+    "id": "persuasion",
+    "name": "Persuasion",
+    "attr": "cha"
+   }
+  ],
+  "classes": [
+   {
+    "id": "martial",
+    "name": "Martial artist",
+    "desc": "Years in the dojo: body, breath and discipline.",
+    "hit": 10,
+    "key": "wis",
+    "skills": [
+     "athletics",
+     "acrobatics",
+     "insight",
+     "perception"
+    ],
+    "schools": [
+     "karate",
+     "kungfu",
+     "capoeira",
+     "boxing"
+    ],
+    "armor": 2,
+    "weapon": {
+     "name": "fists and feet",
+     "dice": 1,
+     "sides": 8,
+     "attr": "dex"
+    },
+    "ability": {
+     "name": "Flurry",
+     "kind": "rage",
+     "amount": 3,
+     "desc": "A storm of blows: more damage, less guard."
+    },
+    "subAt": 3,
+    "subclasses": [
+     {
+      "id": "karateka",
+      "name": "Karateka",
+      "desc": "Hard, direct strikes.",
+      "school": "karate"
+     },
+     {
+      "id": "kungfu_master",
+      "name": "Kung fu master",
+      "desc": "Flow and inner calm.",
+      "school": "kungfu"
+     },
+     {
+      "id": "capoeirista",
+      "name": "Capoeirista",
+      "desc": "Dance, trickery and kicks.",
+      "school": "capoeira"
+     },
+     {
+      "id": "boxer",
+      "name": "Boxer",
+      "desc": "Footwork and fists.",
+      "school": "boxing"
+     }
+    ]
+   },
+   {
+    "id": "soldier",
+    "name": "Ex-soldier",
+    "desc": "Trained to fight, still carrying the habits.",
+    "hit": 10,
+    "key": "str",
+    "skills": [
+     "athletics",
+     "intimidation",
+     "perception",
+     "survival"
+    ],
+    "armor": 5,
+    "weapon": {
+     "name": "pistol",
+     "dice": 1,
+     "sides": 8,
+     "attr": "dex",
+     "ranged": true
+    },
+    "ability": {
+     "name": "Suppressing fire",
+     "kind": "mark",
+     "amount": 3,
+     "desc": "Pin a target down: everyone hits it harder."
+    },
+    "subAt": 3,
+    "subclasses": [
+     {
+      "id": "commando",
+      "name": "Commando",
+      "desc": "Close-quarters expert.",
+      "skill": "stealth"
+     },
+     {
+      "id": "sharpshooter",
+      "name": "Sharpshooter",
+      "desc": "One shot, one problem solved.",
+      "skill": "perception"
+     }
+    ]
+   },
+   {
+    "id": "hacker",
+    "name": "Hacker",
+    "desc": "Systems, cameras and locks bend to your keyboard.",
+    "hit": 6,
+    "key": "int",
+    "skills": [
+     "tech",
+     "investigation",
+     "stealth",
+     "deception"
+    ],
+    "armor": 0,
+    "weapon": {
+     "name": "taser",
+     "dice": 1,
+     "sides": 6,
+     "attr": "dex",
+     "ranged": true,
+     "element": "lightning"
+    },
+    "ability": {
+     "name": "Kill the lights",
+     "kind": "hide",
+     "desc": "Cameras and lights go dark: your next attack lands unseen."
+    },
+    "subAt": 3,
+    "subclasses": [
+     {
+      "id": "netrunner",
+      "name": "Netrunner",
+      "desc": "Lives online.",
+      "skill": "tech"
+     },
+     {
+      "id": "social_engineer",
+      "name": "Social engineer",
+      "desc": "The weakest link is people.",
+      "skill": "persuasion"
+     }
+    ]
+   },
+   {
+    "id": "medic",
+    "name": "Medic",
+    "desc": "Paramedic training: you keep people alive.",
+    "hit": 8,
+    "key": "wis",
+    "skills": [
+     "medicine",
+     "insight",
+     "perception",
+     "persuasion"
+    ],
+    "armor": 2,
+    "weapon": {
+     "name": "baton",
+     "dice": 1,
+     "sides": 6,
+     "attr": "str"
+    },
+    "ability": {
+     "name": "Patch up",
+     "kind": "heal",
+     "amount": 30,
+     "desc": "Heal the most hurt ally."
+    },
+    "subAt": 3,
+    "subclasses": [
+     {
+      "id": "trauma",
+      "name": "Trauma surgeon",
+      "desc": "Miracles in the worst moments.",
+      "skill": "medicine"
+     },
+     {
+      "id": "counselor",
+      "name": "Counselor",
+      "desc": "Minds heal too.",
+      "skill": "insight"
+     }
+    ]
+   },
+   {
+    "id": "detective",
+    "name": "Detective",
+    "desc": "You notice what others miss.",
+    "hit": 8,
+    "key": "int",
+    "skills": [
+     "investigation",
+     "insight",
+     "perception",
+     "intimidation",
+     "survival"
+    ],
+    "armor": 2,
+    "weapon": {
+     "name": "revolver",
+     "dice": 1,
+     "sides": 8,
+     "attr": "dex",
+     "ranged": true
+    },
+    "ability": {
+     "name": "Read the opponent",
+     "kind": "mark",
+     "amount": 4,
+     "desc": "Find the weak spot: the whole party deals more damage to it."
+    },
+    "subAt": 3,
+    "subclasses": [
+     {
+      "id": "private_eye",
+      "name": "Private eye",
+      "desc": "Shadows and stakeouts.",
+      "skill": "stealth"
+     },
+     {
+      "id": "inspector",
+      "name": "Inspector",
+      "desc": "The badge opens doors.",
+      "skill": "intimidation"
+     }
+    ]
+   },
+   {
+    "id": "influencer",
+    "name": "Influencer",
+    "desc": "A million followers and a way with words.",
+    "hit": 6,
+    "key": "cha",
+    "skills": [
+     "persuasion",
+     "performance",
+     "deception",
+     "insight"
+    ],
+    "armor": 0,
+    "weapon": {
+     "name": "pepper spray",
+     "dice": 1,
+     "sides": 4,
+     "attr": "dex",
+     "ranged": true
+    },
+    "ability": {
+     "name": "Hype",
+     "kind": "inspire",
+     "amount": 3,
+     "desc": "Everyone feels like the main character: their next blow lands truer."
+    },
+    "subAt": 3,
+    "subclasses": [
+     {
+      "id": "streamer",
+      "name": "Streamer",
+      "desc": "Always live.",
+      "skill": "performance"
+     },
+     {
+      "id": "activist",
+      "name": "Activist",
+      "desc": "A cause and a crowd.",
+      "skill": "persuasion"
+     }
+    ]
+   }
+  ],
+  "xp": [
+   100,
+   300,
+   600,
+   1000,
+   1500,
+   2100,
+   2800,
+   3600,
+   4500,
+   5500,
+   6600
+  ],
+  "focusName": "Ki",
+  "schools": [
+   {
+    "id": "karate",
+    "name": "Karate",
+    "desc": "Hard strikes and an iron body."
+   },
+   {
+    "id": "kungfu",
+    "name": "Kung fu",
+    "desc": "Flow, balance and inner calm."
+   },
+   {
+    "id": "capoeira",
+    "name": "Capoeira",
+    "desc": "Dance, deception and sweeping kicks."
+   },
+   {
+    "id": "boxing",
+    "name": "Boxing",
+    "desc": "Footwork, guard and fists."
+   }
+  ],
+  "spells": [
+   {
+    "id": "focused_strike",
+    "name": "Focused strike",
+    "school": "karate",
+    "level": 1,
+    "cost": 1,
+    "desc": "All your Ki in one strike.",
+    "effect": {
+     "kind": "scene"
+    },
+    "combat": "damage"
+   },
+   {
+    "id": "iron_body",
+    "name": "Iron body",
+    "school": "karate",
+    "level": 1,
+    "cost": 2,
+    "desc": "Muscles like armor: +3 armor in a fight.",
+    "effect": {
+     "kind": "scene"
+    },
+    "combat": "shield"
+   },
+   {
+    "id": "breaking_blow",
+    "name": "Breaking blow",
+    "school": "karate",
+    "level": 2,
+    "cost": 3,
+    "desc": "The strike that splits boards (and jaws).",
+    "effect": {
+     "kind": "scene"
+    },
+    "combat": "damage"
+   },
+   {
+    "id": "crane",
+    "name": "Crane stance",
+    "school": "kungfu",
+    "level": 1,
+    "cost": 1,
+    "desc": "Perfect balance: +3 armor in a fight.",
+    "effect": {
+     "kind": "scene"
+    },
+    "combat": "shield"
+   },
+   {
+    "id": "inner_calm",
+    "name": "Inner calm",
+    "school": "kungfu",
+    "level": 1,
+    "cost": 1,
+    "desc": "Breathe: recover some strength.",
+    "effect": {
+     "kind": "heal",
+     "amount": 15
+    }
+   },
+   {
+    "id": "dragon_palm",
+    "name": "Palm of the dragon",
+    "school": "kungfu",
+    "level": 2,
+    "cost": 3,
+    "desc": "An open palm that hits like a truck.",
+    "effect": {
+     "kind": "scene"
+    },
+    "combat": "damage"
+   },
+   {
+    "id": "meditation",
+    "name": "Meditation",
+    "school": "kungfu",
+    "level": 1,
+    "cost": 1,
+    "desc": "A clear mind: +2 to your next check.",
+    "effect": {
+     "kind": "bonus",
+     "amount": 2
+    }
+   },
+   {
+    "id": "meia_lua",
+    "name": "Meia lua",
+    "school": "capoeira",
+    "level": 1,
+    "cost": 1,
+    "desc": "A spinning half-moon kick.",
+    "effect": {
+     "kind": "scene"
+    },
+    "combat": "damage"
+   },
+   {
+    "id": "ginga",
+    "name": "Ginga",
+    "school": "capoeira",
+    "level": 1,
+    "cost": 2,
+    "desc": "Never where they expect: your next Acrobatics or Stealth check rolls twice.",
+    "effect": {
+     "kind": "advantage",
+     "skills": [
+      "acrobatics",
+      "stealth",
+      "deception"
+     ]
+    }
+   },
+   {
+    "id": "martelo",
+    "name": "Martelo",
+    "school": "capoeira",
+    "level": 2,
+    "cost": 2,
+    "desc": "The hammer kick.",
+    "effect": {
+     "kind": "scene"
+    },
+    "combat": "damage"
+   },
+   {
+    "id": "jab_cross",
+    "name": "Jab-cross",
+    "school": "boxing",
+    "level": 1,
+    "cost": 1,
+    "desc": "The classic one-two.",
+    "effect": {
+     "kind": "scene"
+    },
+    "combat": "damage"
+   },
+   {
+    "id": "rope_a_dope",
+    "name": "Rope-a-dope",
+    "school": "boxing",
+    "level": 1,
+    "cost": 1,
+    "desc": "Cover up and let them tire: +3 armor.",
+    "effect": {
+     "kind": "scene"
+    },
+    "combat": "shield"
+   },
+   {
+    "id": "haymaker",
+    "name": "Haymaker",
+    "school": "boxing",
+    "level": 2,
+    "cost": 3,
+    "desc": "Everything behind one punch.",
+    "effect": {
+     "kind": "scene"
+    },
+    "combat": "damage"
+   }
+  ],
+  "titles": [
+   {
+    "id": "seasoned",
+    "name": "the Seasoned",
+    "desc": "Reach level 5.",
+    "when": {
+     "level": 5
+    }
+   },
+   {
+    "id": "veteran",
+    "name": "the Veteran",
+    "desc": "Reach level 10.",
+    "when": {
+     "level": 10
+    }
+   },
+   {
+    "id": "smooth",
+    "name": "the Smooth Talker",
+    "desc": "Win 10 social checks.",
+    "when": {
+     "count": "socialWins",
+     "n": 10
+    }
+   },
+   {
+    "id": "fixer",
+    "name": "the Fixer",
+    "desc": "Finish 5 missions.",
+    "when": {
+     "count": "quests",
+     "n": 5
+    }
+   },
+   {
+    "id": "legend",
+    "name": "Neighborhood Legend",
+    "desc": "Earn 100 renown.",
+    "when": {
+     "renown": 100
+    }
+   },
+   {
+    "id": "brawler",
+    "name": "the Undefeated",
+    "desc": "Win 10 fights.",
+    "when": {
+     "count": "fights",
+     "n": 10
+    }
+   }
+  ],
+  "campEvery": 8,
+  "bestiary": [
+   {
+    "id": "mugger",
+    "icon": "🔪",
+    "name": "Mugger",
+    "level": 1,
+    "hp": 10,
+    "ac": 11,
+    "atk": 3,
+    "dice": 1,
+    "sides": 6,
+    "bonus": 1,
+    "row": "front",
+    "tags": [
+     "town",
+     "road"
+    ],
+    "desc": "A knife and nothing to lose."
+   },
+   {
+    "id": "ganger",
+    "icon": "🧢",
+    "name": "Gang member",
+    "level": 1,
+    "hp": 12,
+    "ac": 12,
+    "atk": 3,
+    "dice": 1,
+    "sides": 6,
+    "bonus": 2,
+    "row": "front",
+    "tags": [
+     "town",
+     "tower"
+    ],
+    "desc": "Colors, attitude and a chain."
+   },
+   {
+    "id": "dog",
+    "icon": "🐕",
+    "name": "Guard dog",
+    "level": 1,
+    "hp": 9,
+    "ac": 12,
+    "atk": 4,
+    "dice": 1,
+    "sides": 6,
+    "bonus": 2,
+    "row": "front",
+    "tags": [
+     "town",
+     "wild"
+    ],
+    "desc": "Trained to bite first."
+   },
+   {
+    "id": "bat",
+    "icon": "🏏",
+    "name": "Thug with a bat",
+    "level": 2,
+    "hp": 16,
+    "ac": 12,
+    "atk": 4,
+    "dice": 1,
+    "sides": 8,
+    "bonus": 2,
+    "row": "front",
+    "tags": [
+     "town",
+     "tower"
+    ],
+    "desc": "Swings for the fences."
+   },
+   {
+    "id": "gunman",
+    "icon": "🔫",
+    "name": "Gunman",
+    "level": 2,
+    "hp": 12,
+    "ac": 13,
+    "atk": 5,
+    "dice": 1,
+    "sides": 8,
+    "bonus": 2,
+    "ranged": true,
+    "row": "back",
+    "tags": [
+     "town",
+     "road",
+     "tower"
+    ],
+    "desc": "Shoots from behind cover."
+   },
+   {
+    "id": "security",
+    "icon": "👮",
+    "name": "Security guard",
+    "level": 2,
+    "hp": 18,
+    "ac": 14,
+    "atk": 4,
+    "dice": 1,
+    "sides": 6,
+    "bonus": 2,
+    "row": "front",
+    "tags": [
+     "town"
+    ],
+    "desc": "Paid to stop you, not to like it."
+   },
+   {
+    "id": "bouncer",
+    "icon": "💪",
+    "name": "Bouncer",
+    "level": 3,
+    "hp": 26,
+    "ac": 12,
+    "atk": 5,
+    "dice": 2,
+    "sides": 6,
+    "bonus": 3,
+    "row": "front",
+    "tags": [
+     "town",
+     "tower"
+    ],
+    "desc": "A wall in a black shirt."
+   },
+   {
+    "id": "boss",
+    "icon": "😎",
+    "name": "Gang boss",
+    "level": 5,
+    "hp": 45,
+    "ac": 15,
+    "atk": 6,
+    "dice": 2,
+    "sides": 8,
+    "bonus": 3,
+    "row": "front",
+    "tags": [
+     "town",
+     "tower",
+     "boss"
+    ],
+    "desc": "Gold chains, cold eyes."
+   }
+  ],
+  "talents": [
+   {
+    "id": "tough",
+    "name": "Toughness",
+    "desc": "More hit points.",
+    "tier": 1,
+    "effect": {
+     "kind": "hp",
+     "amount": 6
+    }
+   },
+   {
+    "id": "keen",
+    "name": "Keen senses",
+    "desc": "+2 Perception.",
+    "tier": 1,
+    "effect": {
+     "kind": "skill",
+     "amount": 2,
+     "skill": "perception"
+    }
+   },
+   {
+    "id": "silver",
+    "name": "Silver tongue",
+    "desc": "+2 Persuasion.",
+    "tier": 1,
+    "effect": {
+     "kind": "skill",
+     "amount": 2,
+     "skill": "persuasion"
+    }
+   },
+   {
+    "id": "street",
+    "name": "Street smart",
+    "desc": "+3 on nights on the road.",
+    "tier": 1,
+    "effect": {
+     "kind": "camp",
+     "amount": 3
+    }
+   },
+   {
+    "id": "will",
+    "name": "Iron will",
+    "desc": "+2 Ki.",
+    "tier": 2,
+    "effect": {
+     "kind": "focus",
+     "amount": 2
+    },
+    "requires": [
+     "tough"
+    ]
+   },
+   {
+    "id": "ma_breath",
+    "name": "Breath control",
+    "desc": "+3 Ki.",
+    "tier": 1,
+    "effect": {
+     "kind": "focus",
+     "amount": 3
+    },
+    "cls": "martial"
+   },
+   {
+    "id": "ma_speed",
+    "name": "Lightning reflexes",
+    "desc": "+2 initiative.",
+    "tier": 2,
+    "effect": {
+     "kind": "initiative",
+     "amount": 2
+    },
+    "cls": "martial",
+    "requires": [
+     "ma_breath"
+    ]
+   },
+   {
+    "id": "ma_power",
+    "name": "Devastating strikes",
+    "desc": "+2 damage.",
+    "tier": 3,
+    "effect": {
+     "kind": "damage",
+     "amount": 2
+    },
+    "cls": "martial",
+    "requires": [
+     "ma_speed"
+    ]
+   },
+   {
+    "id": "so_aim",
+    "name": "Marksman",
+    "desc": "+1 to hit.",
+    "tier": 1,
+    "effect": {
+     "kind": "attack",
+     "amount": 1
+    },
+    "cls": "soldier"
+   },
+   {
+    "id": "so_vest",
+    "name": "Body armor",
+    "desc": "+1 armor.",
+    "tier": 2,
+    "effect": {
+     "kind": "armor",
+     "amount": 1
+    },
+    "cls": "soldier",
+    "requires": [
+     "so_aim"
+    ]
+   },
+   {
+    "id": "so_hollow",
+    "name": "Hollow points",
+    "desc": "+2 damage.",
+    "tier": 3,
+    "effect": {
+     "kind": "damage",
+     "amount": 2
+    },
+    "cls": "soldier",
+    "requires": [
+     "so_vest"
+    ]
+   },
+   {
+    "id": "ha_code",
+    "name": "Script kiddie no more",
+    "desc": "+2 Technology.",
+    "tier": 1,
+    "effect": {
+     "kind": "skill",
+     "amount": 2,
+     "skill": "tech"
+    },
+    "cls": "hacker"
+   },
+   {
+    "id": "ha_mod",
+    "name": "Modded taser",
+    "desc": "+2 damage.",
+    "tier": 2,
+    "effect": {
+     "kind": "damage",
+     "amount": 2
+    },
+    "cls": "hacker",
+    "requires": [
+     "ha_code"
+    ]
+   },
+   {
+    "id": "ha_ghost",
+    "name": "Ghost",
+    "desc": "+2 Stealth.",
+    "tier": 3,
+    "effect": {
+     "kind": "skill",
+     "amount": 2,
+     "skill": "stealth"
+    },
+    "cls": "hacker",
+    "requires": [
+     "ha_mod"
+    ]
+   },
+   {
+    "id": "me_kit",
+    "name": "Full kit",
+    "desc": "+2 First aid.",
+    "tier": 1,
+    "effect": {
+     "kind": "skill",
+     "amount": 2,
+     "skill": "medicine"
+    },
+    "cls": "medic"
+   },
+   {
+    "id": "me_calm",
+    "name": "Steady hands",
+    "desc": "+1 to hit.",
+    "tier": 2,
+    "effect": {
+     "kind": "attack",
+     "amount": 1
+    },
+    "cls": "medic",
+    "requires": [
+     "me_kit"
+    ]
+   },
+   {
+    "id": "me_tough",
+    "name": "Seen it all",
+    "desc": "More hit points.",
+    "tier": 3,
+    "effect": {
+     "kind": "hp",
+     "amount": 8
+    },
+    "cls": "medic",
+    "requires": [
+     "me_calm"
+    ]
+   },
+   {
+    "id": "de_eye",
+    "name": "Eye for detail",
+    "desc": "+2 Investigation.",
+    "tier": 1,
+    "effect": {
+     "kind": "skill",
+     "amount": 2,
+     "skill": "investigation"
+    },
+    "cls": "detective"
+   },
+   {
+    "id": "de_draw",
+    "name": "Quick draw",
+    "desc": "+2 initiative.",
+    "tier": 2,
+    "effect": {
+     "kind": "initiative",
+     "amount": 2
+    },
+    "cls": "detective",
+    "requires": [
+     "de_eye"
+    ]
+   },
+   {
+    "id": "de_shot",
+    "name": "Called shot",
+    "desc": "+2 damage.",
+    "tier": 3,
+    "effect": {
+     "kind": "damage",
+     "amount": 2
+    },
+    "cls": "detective",
+    "requires": [
+     "de_draw"
+    ]
+   },
+   {
+    "id": "in_charm",
+    "name": "Charisma",
+    "desc": "+2 Performance.",
+    "tier": 1,
+    "effect": {
+     "kind": "skill",
+     "amount": 2,
+     "skill": "performance"
+    },
+    "cls": "influencer"
+   },
+   {
+    "id": "in_crowd",
+    "name": "The crowd loves you",
+    "desc": "+2 initiative.",
+    "tier": 2,
+    "effect": {
+     "kind": "initiative",
+     "amount": 2
+    },
+    "cls": "influencer",
+    "requires": [
+     "in_charm"
+    ]
+   },
+   {
+    "id": "in_viral",
+    "name": "Viral",
+    "desc": "+2 Ki.",
+    "tier": 3,
+    "effect": {
+     "kind": "focus",
+     "amount": 2
+    },
+    "cls": "influencer",
+    "requires": [
+     "in_crowd"
+    ]
+   }
+  ],
+  "mercNames": [
+   "Marcus",
+   "Dee",
+   "Rico",
+   "Tanya",
+   "Viktor",
+   "Jules",
+   "Ray",
+   "Nina",
+   "Tomas",
+   "Kat"
+  ],
+  "mercWage": 40
+ },
+ "recipes": [
+  {
+   "id": "medkit",
+   "name": "First aid kit",
+   "needs": {
+    "supplies": 2
+   },
+   "makes": "medkit",
+   "skill": "medicine",
+   "dc": 10,
+   "at": [
+    "home",
+    "hospital"
+   ]
+  },
+  {
+   "id": "knuckles",
+   "name": "Weighted gloves",
+   "needs": {
+    "scrap": 3
+   },
+   "makes": "weights",
+   "skill": "athletics",
+   "dc": 12,
+   "at": [
+    "industrial",
+    "docks"
+   ]
+  },
+  {
+   "id": "plate",
+   "name": "Kevlar plate",
+   "needs": {
+    "scrap": 4,
+    "fashion": 1
+   },
+   "makes": "kevlar",
+   "skill": "tech",
+   "dc": 13,
+   "at": [
+    "industrial"
+   ],
+   "risky": true
+  },
+  {
+   "id": "belt",
+   "name": "A champion's belt of your own",
+   "needs": {
+    "scrap": 5,
+    "comics": 1
+   },
+   "makes": "champion_belt",
+   "skill": "performance",
+   "dc": 15,
+   "at": [
+    "stadium"
+   ],
+   "legendary": true
+  }
+ ],
+ "towers": [],
+ "presetAdventure": true,
+ "scenario": {
+  "premise": "It is the first week of the summer lease. Five housemates have moved into the big house on the hill, each with their own reasons for being here, and you have just taken the last free bedroom. The rules are on the fridge; nobody follows them."
+ },
+ "retired": {
+  "places": {
+   "gameroom": "living",
+   "backyard": "frontyard",
+   "rooftop": "frontyard",
+   "basement": "living",
+   "attic": "living"
+  }
+ },
+ "plan": {
+  "on": true,
+  "floors": [
+   {
+    "id": "f1",
+    "name": "Floor 1",
+    "image": "plan1-day.jpg",
+    "images": {
+     "afternoon": "plan1-afternoon.jpg",
+     "night": "plan1-night.jpg"
+    },
+    "ratio": 1.8335
+   },
+   {
+    "id": "f2",
+    "name": "Floor 2",
+    "image": "plan2-day.jpg",
+    "images": {
+     "afternoon": "plan2-afternoon.jpg",
+     "night": "plan2-night.jpg"
+    },
+    "ratio": 1.8335
+   },
+   {
+    "id": "f3",
+    "name": "Floor 3",
+    "image": "plan3-day.jpg",
+    "images": {
+     "afternoon": "plan3-afternoon.jpg",
+     "night": "plan3-night.jpg"
+    },
+    "ratio": 1.8335
+   }
+  ],
+  "rooms": [
+   {
+    "id": "dining",
+    "floor": "f1",
+    "x": 15,
+    "y": 15.5,
+    "w": 15,
+    "h": 26
+   },
+   {
+    "id": "kitchen",
+    "floor": "f1",
+    "x": 30.5,
+    "y": 15.5,
+    "w": 22.5,
+    "h": 26
+   },
+   {
+    "id": "living",
+    "floor": "f1",
+    "x": 15,
+    "y": 48,
+    "w": 19.5,
+    "h": 25.5
+   },
+   {
+    "id": "entrance",
+    "floor": "f1",
+    "x": 35,
+    "y": 48,
+    "w": 20,
+    "h": 25
+   },
+   {
+    "id": "laundry",
+    "floor": "f1",
+    "x": 54.3,
+    "y": 15,
+    "w": 7,
+    "h": 22.5
+   },
+   {
+    "id": "gym",
+    "floor": "f1",
+    "x": 61.8,
+    "y": 15,
+    "w": 14.7,
+    "h": 22.5
+   },
+   {
+    "id": "bathroom",
+    "floor": "f1",
+    "x": 66.8,
+    "y": 38,
+    "w": 10.2,
+    "h": 9.5
+   },
+   {
+    "id": "garage",
+    "floor": "f1",
+    "x": 63.3,
+    "y": 49,
+    "w": 17.2,
+    "h": 31.6
+   },
+   {
+    "id": "pool",
+    "floor": "f1",
+    "x": 76,
+    "y": 8,
+    "w": 19,
+    "h": 40
+   },
+   {
+    "id": "frontyard",
+    "floor": "f1",
+    "x": 35,
+    "y": 76,
+    "w": 29,
+    "h": 22
+   },
+   {
+    "id": "spot:rooms:0",
+    "floor": "f2",
+    "x": 14.8,
+    "y": 15,
+    "w": 17.7,
+    "h": 25.5
+   },
+   {
+    "id": "spot:rooms:1",
+    "floor": "f2",
+    "x": 14.5,
+    "y": 48.5,
+    "w": 13.5,
+    "h": 24.7
+   },
+   {
+    "id": "spot:rooms2:0",
+    "floor": "f2",
+    "x": 32.8,
+    "y": 15,
+    "w": 21.2,
+    "h": 22.5
+   },
+   {
+    "id": "spot:rooms2:1",
+    "floor": "f2",
+    "x": 63.3,
+    "y": 48.5,
+    "w": 17.2,
+    "h": 32
+   },
+   {
+    "id": "spot:rooms3:0",
+    "floor": "f2",
+    "x": 62,
+    "y": 15,
+    "w": 14.5,
+    "h": 22.5
+   },
+   {
+    "id": "spot:rooms3:1",
+    "floor": "f2",
+    "x": 76.8,
+    "y": 15,
+    "w": 16.2,
+    "h": 32.6
+   },
+   {
+    "id": "spot:rooms4:0",
+    "floor": "f3",
+    "x": 18,
+    "y": 15,
+    "w": 14.5,
+    "h": 22
+   },
+   {
+    "id": "spot:rooms4:1",
+    "floor": "f3",
+    "x": 33,
+    "y": 15,
+    "w": 21,
+    "h": 22
+   },
+   {
+    "id": "spot:rooms4:2",
+    "floor": "f3",
+    "x": 62,
+    "y": 15,
+    "w": 15.3,
+    "h": 22
+   },
+   {
+    "id": "spot:rooms4:3",
+    "floor": "f3",
+    "x": 16.8,
+    "y": 48.5,
+    "w": 17.4,
+    "h": 24.8
+   },
+   {
+    "id": "storage",
+    "floor": "f3",
+    "x": 63.5,
+    "y": 48.5,
+    "w": 14,
+    "h": 24.8
+   },
+   {
+    "id": "bathroom2",
+    "floor": "f2",
+    "x": 54.3,
+    "y": 15,
+    "w": 7,
+    "h": 22.5
+   },
+   {
+    "id": "bathroom3",
+    "floor": "f2",
+    "x": 66.8,
+    "y": 38,
+    "w": 10.5,
+    "h": 9.5
+   },
+   {
+    "id": "bathroom4",
+    "floor": "f2",
+    "x": 55.5,
+    "y": 48.5,
+    "w": 7.2,
+    "h": 24.7
+   },
+   {
+    "id": "bathroom5",
+    "floor": "f3",
+    "x": 54.3,
+    "y": 15,
+    "w": 7,
+    "h": 22
+   },
+   {
+    "id": "bathroom6",
+    "floor": "f3",
+    "x": 66.8,
+    "y": 37.6,
+    "w": 11,
+    "h": 10
+   },
+   {
+    "id": "bathroom7",
+    "floor": "f3",
+    "x": 55.5,
+    "y": 48.5,
+    "w": 7.8,
+    "h": 24.8
+   }
+  ]
+ }
+}

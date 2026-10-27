@@ -1,6 +1,10 @@
 // Games and saves. A new game creates native SillyTavern objects: the cast's cards (when the world's example
 // cast is used), the player's persona, the world's lorebook and a group chat. The save lives in that chat.
-import { worldFile, cssUrl } from '../core/world.js';
+import { pictureAt } from './daynight.js';
+import { addXp, makeSheet, syncLife } from './rpg.js';
+import { rpgOf } from '../core/rpgdef.js';
+import { SCHEMA } from '../core/saves.js';
+import { worldFile, cssUrl, isScenario, SCENARIO_STARTS } from '../core/world.js';
 import { DIFFICULTIES } from './bills.js';
 import { placeOf as placeOf2 } from './places.js';
 import { TUT, settings as settings2 } from '../core/store.js';
@@ -9,11 +13,11 @@ import { settings, saveSettings, state, game, setGame, saveGame, notify, toast, 
 import { loadWorld, getWorld, exampleTag } from '../core/world.js';
 import { setWorldDicts } from '../core/tr.js';
 import { lang } from '../core/i18n.js';
-import { characters, charOf, createCharacter, createPersona, usePersona, createGroup, openGame, groupOf, clearGreetings, writeLorebook, bindChatLore, setPresent, saveMeta, chat, currentChatId, selectedGroup, pastChats, deleteChat, deleteGroup, setPersonaSheet, personaSheet, personaName, recentChats, ctx, deleteScenarioChat, saveName, copyGroupChat, groupChatId, } from '../st/bridge.js';
+import { characters, charOf, createCharacter, createPersona, usePersona, createGroup, openGame, groupOf, clearGreetings, writeLorebook, bindChatLore, setPresent, saveMeta, chat, currentChatId, selectedGroup, pastChats, deleteChat, deleteGroup, setPersonaSheet, personaSheet, personaName, recentChats, ctx, deleteScenarioChat, saveName, copyGroupChat, groupChatId, readChatMeta, } from '../st/bridge.js';
 import { playerHomeId } from './places.js';
 import { presentAt } from './people.js';
 import { sceneText, refreshPrompt } from './prompt.js';
-import { liveTogether, setTie, normalizeHomes } from './living.js';
+import { liveTogether, setTie, normalizeHomes, startingStand } from './living.js';
 import { applyGameLore } from './lore.js';
 const pick = (list) => list[Math.floor(Math.random() * list.length)];
 // A square portrait with initials on a gradient (used when no image is chosen).
@@ -72,14 +76,60 @@ async function exampleCards(w) {
     }
     return out;
 }
-export function homeSpot(w, zoneId, taken) {
-    const zone = w.homes.zones.find(z => z.id === zoneId) ?? w.homes.zones[0];
-    const free = zone.spots.filter(s => !taken.has(`${s[0]},${s[1]}`));
-    const s = free.length ? pick(free) : pick(zone.spots);
-    taken.add(`${s[0]},${s[1]}`);
-    return { zone: zone.id, x: s[0], y: s[1], n: zone.spots.indexOf(s) + 1 }; // homes are numbered: House 1, House 2…
+export { spotKey, takenHomes, homeSpot } from './homes.js';
+import { spotKey, homeSpot, takenHomes } from './homes.js';
+// Home: someone given a "second flat" at a bedroom (more people than bedrooms) shares that bedroom instead.
+export function shareRooms(g) { for (const r of Object.values(g.cast)) {
+    delete r.home.unit;
+    r.occupation = null;
+} } // (and no ready-made jobs in a Home)
+// Home: a character joins the house in the middle of a game (a free bedroom, or sharing one).
+export async function addResident(g, w, avatar) {
+    if (g.cast[avatar])
+        return null;
+    const r = resident(w, avatar, takenHomes(g), g.player.home);
+    delete r.home.unit;
+    r.occupation = null;
+    const st = SCENARIO_STARTS.find(s => s.id === g.cfg?.start?.id);
+    r.met = !!st?.met;
+    g.cast[avatar] = r;
+    normalizeHomes(g);
+    note(g, '{0} moved into the house.', [r.name], [avatar], g.player.loc, 'event');
+    await syncScene();
+    return r;
 }
-export function resident(w, avatar, taken) {
+// Home: someone moves out of the house (their card and chats stay in SillyTavern; their memories of the house stay in
+// the story's facts). Plans with them are called off.
+export function removeResident(g, avatar) {
+    const r = g.cast[avatar];
+    if (!r)
+        return;
+    const soc = g.social;
+    if (soc) {
+        soc.with = (soc.with ?? []).filter((c) => c.avatar !== avatar);
+        for (const a of soc.appts ?? [])
+            if (a.avatar === avatar && (a.state === 'set' || a.state === 'met'))
+                a.state = 'cancelled';
+        if (soc.solo === avatar)
+            soc.solo = '';
+    }
+    for (const x of Object.values(g.cast))
+        if (x.homeWith === avatar)
+            delete x.homeWith;
+    delete g.cast[avatar];
+    normalizeHomes(g);
+    note(g, '{0} moved out of the house.', [r.name], [avatar], g.player.loc, 'event');
+}
+// Home: moves someone to another bedroom (a spot of a housing area); with someone there already, they share it.
+export function moveToRoom(g, avatar, h) {
+    const r = g.cast[avatar];
+    if (!r)
+        return;
+    r.home = { zone: h.zone, x: h.x, y: h.y };
+    delete r.homeWith;
+    normalizeHomes(g);
+}
+export function resident(w, avatar, taken, avoid) {
     const ch = charOf(avatar);
     const card = ch?.data?.extensions?.mundi ?? {};
     // one of this world's own people: her job, home and routine come from the world (also in copied worlds)
@@ -89,7 +139,7 @@ export function resident(w, avatar, taken) {
     const templateId = meta.world === w.id && meta.routine ? meta.routine : (occupation ? pick(['office', 'early']) : pick(Object.keys(w.cast.routineTemplates)));
     const routine = structuredClone(w.cast.routineTemplates[templateId] ?? Object.values(w.cast.routineTemplates)[0]);
     const zone = meta.world === w.id && meta.home ? meta.home : pick(w.homes.zones).id;
-    return { avatar, name: ch?.name ?? avatar, occupation, home: homeSpot(w, zone, taken), routine, leisure: meta.world === w.id ? meta.leisure ?? [] : [], met: false };
+    return { avatar, name: ch?.name ?? avatar, occupation, home: homeSpot(w, zone, taken, avoid), routine, leisure: meta.world === w.id ? meta.leisure ?? [] : [], met: false };
 }
 export async function startNewGame(o) {
     const w = o.world;
@@ -103,8 +153,11 @@ export async function startNewGame(o) {
     if (personaFile) {
         o.hero.name = personaName(personaFile);
         const sheet = personaSheet(personaFile);
-        if (sheet?.traits)
+        // the origin, traits and words chosen in the new game win; the persona keeps them for its next game here
+        const chosen = Object.values(o.hero.traits ?? {}).some(v => (Array.isArray(v) ? v.length : !!v));
+        if (!chosen && sheet?.traits && sheet.world === w.id)
             o.hero.traits = sheet.traits;
+        setPersonaSheet(personaFile, { ...(sheet ?? {}), world: w.id, origin: o.hero.origin, traits: JSON.parse(JSON.stringify(o.hero.traits ?? {})), bio: o.hero.bio ?? '' });
     }
     else {
         state.busy = 'Creating your character';
@@ -130,7 +183,11 @@ export async function startNewGame(o) {
     const origin = w.catalogs.origins?.find(x => x.id === o.hero.origin) ?? w.catalogs.origins?.[0];
     const picked = o.home && w.homes.zones.find(z => z.id === o.home.zone);
     if (picked)
-        taken.add(`${o.home.x},${o.home.y}`);
+        taken.add(spotKey(o.home.zone, o.home.x, o.home.y));
+    // homes chosen for households are nobody else's
+    for (const h of o.households ?? [])
+        if (h.home && w.homes.zones.some(z => z.id === h.home.zone))
+            taken.add(spotKey(h.home.zone, h.home.x, h.home.y));
     const home = picked ? { zone: o.home.zone, x: o.home.x, y: o.home.y, n: o.home.n } : homeSpot(w, origin?.home ?? w.homes.zones[0].id, taken);
     const zone = w.homes.zones.find(z => z.id === home.zone);
     const save = {
@@ -141,10 +198,44 @@ export async function startNewGame(o) {
             money: Math.round((origin?.money ?? 0) * (DIFFICULTIES.find(d => d.id === (o.difficulty ?? 'normal'))?.start ?? 1)), traits: JSON.parse(JSON.stringify(o.hero.traits ?? {})), origin: origin?.id ?? '', job: null, rentPaidDay: w.time.startDay,
         },
         cast: {}, tick: {}, log: [],
-        ...{ cfg: { difficulty: o.difficulty ?? 'normal' } },
+        ...{ cfg: { difficulty: o.difficulty ?? 'normal', ...(o.mode ? { mode: o.mode } : {}) }, schema: SCHEMA },
     };
+    // a persona's words about you in this world (its own description stays as it is)
+    if (o.persona && o.hero.bio?.trim())
+        save.player.bio = o.hero.bio.trim().slice(0, 1200);
+    // nobody lives in your home unless you chose them (your household)
     for (const a of cast)
-        save.cast[a] = resident(w, a, taken);
+        save.cast[a] = resident(w, a, taken, save.player.home);
+    // jobs chosen at the start: the job, and a routine that goes to work (or none that does)
+    for (const [a, id] of Object.entries(o.jobs ?? {})) {
+        const r = save.cast[a];
+        if (!r)
+            continue;
+        const job = id === 'none' ? null : w.occupations.find(x => x.id === id);
+        if (id !== 'none' && !job)
+            continue;
+        r.occupation = job?.id ?? null;
+        const goes = (t) => [...(t?.weekday ?? []), ...(t?.weekend ?? [])].some((s) => s[1] === 'work');
+        if (!!job !== goes(r.routine)) {
+            const tpl = Object.entries(w.cast.routineTemplates).find(([k, t]) => goes(t) === !!job && (!job || k === 'office' || k === 'early')) ?? Object.entries(w.cast.routineTemplates).find(([, t]) => goes(t) === !!job);
+            if (tpl)
+                r.routine = structuredClone(tpl[1]);
+        }
+    }
+    // RPG: the character sheet (class, attributes, skills; the background adds its own)
+    if ((o.mode ?? w.mode) === 'rpg' && rpgOf(w) && o.rpg) {
+        save.rpg = makeSheet(w, { ...o.rpg, origin });
+        syncLife(save, w);
+    }
+    // memories carried over from another life (another game with some of the same people): memories only
+    if (o.memoriesFrom) {
+        try {
+            await portMemories(save, o.memoriesFrom);
+        }
+        catch (e) {
+            console.warn('[Mundi] memories', e);
+        }
+    }
     // your household moves in with you; each other household shares the home of its first member
     for (const f of o.family ?? []) {
         if (!save.cast[f.avatar])
@@ -157,17 +248,94 @@ export async function startNewGame(o) {
         const [head, ...rest] = h.members.filter(a => save.cast[a]);
         if (!head)
             continue;
+        if (h.home && w.homes.zones.some(z => z.id === h.home.zone)) {
+            save.cast[head].home = { zone: h.home.zone, x: h.home.x, y: h.home.y, n: h.home.n };
+            delete save.cast[head].homeWith;
+        }
         for (const a of rest)
             liveTogether(save, head, a);
         for (const t of h.ties)
             if (save.cast[t.a] && save.cast[t.b])
                 setTie(save, t);
     }
+    // relations: the world's own (between its example people) and the ones chosen for this game (anyone with anyone)
+    const exAvatar = new Map();
+    for (const a of Object.keys(save.cast)) {
+        const tag = charOf(a)?.data?.extensions?.mundi?.example;
+        const ex = w.cast.examples.find(e => exampleTag(w, e) === tag);
+        if (ex)
+            exAvatar.set(ex.name, a);
+    }
+    for (const ex of w.cast.examples)
+        for (const t of ex.ties ?? []) {
+            const a = exAvatar.get(ex.name), b = exAvatar.get(t.to);
+            if (a && b && a !== b)
+                setTie(save, { a, b, type: t.type, tone: t.tone });
+        }
+    for (const t of o.ties ?? []) {
+        if ((t.a !== '__you' && !save.cast[t.a]) || (t.b !== '__you' && !save.cast[t.b]) || t.a === t.b)
+            continue;
+        setTie(save, t);
+        const other = t.a === '__you' ? t.b : t.b === '__you' ? t.a : '';
+        if (other) { // with you: where you stand with them from day one
+            const st = startingStand(t.type);
+            const soc = (save.social ??= {});
+            (soc.bond ??= {})[other] = st.bond;
+            const liv = (save.living ??= {});
+            (liv.approval ??= {})[other] = st.approval;
+            save.cast[other].met = true;
+            if (['dating', 'partner', 'spouse'].includes(t.type)) {
+                (soc.partner ??= []).push(other);
+                ((save.romance ??= {})[other] = { value: 70, status: t.type === 'spouse' ? 'married' : 'dating' });
+            }
+        }
+        else if (['dating', 'partner', 'spouse'].includes(t.type)) {
+            const liv = (save.living ??= {});
+            (liv.pairs ??= []).push([t.a, t.b]);
+            if (t.type === 'spouse')
+                ((liv.pairInfo ??= {})[[t.a, t.b].sort().join('|')] = { since: save.day, stage: 'married' });
+        }
+    }
+    // a scenario: how you fit in the house (you know everyone already, or nobody), unless a relation said otherwise
+    const st0 = isScenario(w) && o.start ? SCENARIO_STARTS.find(s => s.id === o.start.id) : undefined;
+    if (st0) {
+        if (o.rooms)
+            save.cfg.rooms = o.rooms.filter(id => w.places.some(p => p.id === id));
+        if (o.rooms)
+            save.cfg.roomsSeen = w.places.filter(p => !p.link).map(p => p.id); // the rooms there were to choose from
+        if (o.extraRooms?.length)
+            save.cfg.extraRooms = o.extraRooms.filter(r => r?.id && r?.name).map(r => ({ id: r.id, name: String(r.name).slice(0, 60), map: w.maps[0]?.id ?? '', x: 50, y: 50, tags: r.tags ?? ['leisure'], desc: String(r.desc ?? '').slice(0, 400), ...(r.bg ? { bg: r.bg } : {}), closed: [] }));
+        if (o.roomActs && Object.keys(o.roomActs).length)
+            save.cfg.roomActs = o.roomActs;
+        save.cfg.start = { id: st0.id, ...(st0.id === 'custom' && o.start.text?.trim() ? { text: o.start.text.trim().slice(0, 4000) } : {}) };
+        if (st0.met)
+            for (const r of Object.values(save.cast)) {
+                const soc = (save.social ??= {});
+                const liv = (save.living ??= {});
+                if (!r.met) {
+                    (soc.bond ??= {})[r.avatar] ??= st0.bond ?? 0;
+                    (liv.approval ??= {})[r.avatar] ??= st0.approval ?? 0;
+                }
+                r.met = true;
+            }
+    }
+    // where each one stands with you, from a preset
+    for (const [a, v] of Object.entries(o.approval ?? {})) {
+        if (!save.cast[a] || !Number.isFinite(v))
+            continue;
+        const liv = (save.living ??= {});
+        (liv.approval ??= {})[a] = Math.max(-100, Math.min(100, v));
+        const soc = (save.social ??= {});
+        (soc.bond ??= {})[a] = Math.max(0, Math.min(100, Math.round(50 + v / 2)));
+        save.cast[a].met = true;
+    }
+    if (isScenario(w))
+        shareRooms(save); // Home: more people than bedrooms share a room (no second flat in a house)
     normalizeHomes(save);
     // the world's lorebooks and the characters' lorebooks chosen to stay on in this world
     const books = [...new Set([...(w.lorebooks ?? []), ...(o.lore ?? [])])];
     if (books.length)
-        save.cfg = { lore: books };
+        save.cfg = { ...save.cfg, lore: books }; // keeps the difficulty
     Object.values(save.cast).slice(0, origin?.knows ?? 0).forEach(r => { r.met = true; });
     setGame(save);
     await bindChatLore(loreName);
@@ -261,6 +429,7 @@ export function markMet(g, avatar) {
         return false;
     r.met = true;
     note(g, '{u} met {0} for the first time, at {1}.', [r.name, placeName(g, w, g.player.loc)], [r.avatar], g.player.loc, 'meet');
+    addXp(g, w, 10, 'met someone'); // RPG: meeting people is experience too
     return true;
 }
 export function syncScene() {
@@ -292,12 +461,35 @@ export function syncScene() {
             hs(g).queue.push({ text: said, present: [], directive: '' });
         }
         await setPresent(gid, Object.keys(g.cast), talking);
+        // Home: the room's dress code (the outfits are looked up in the background; the next sync catches up)
+        {
+            const { applyDress, dressAt } = await import('./dress.js');
+            const { outfitsOf, hasOutfit } = await import('../ui/outfits.js');
+            const code = dressAt(g, g.player.loc);
+            applyDress(g, w, a => { const l = outfitsOf(a); if (!code)
+                return l; const h = hasOutfit(a, code); return h === null ? null : h ? [...(l ?? []), code] : (l ?? []); });
+        }
         followBackground(g, w);
         refreshPrompt();
         saveGame();
         void import('./hostile.js').then(h => h.flushEvents()); // the police arriving, someone coming to…
     }).catch(e => console.warn('[Mundi] scene sync', e));
     return syncing;
+}
+/* ---------- memories from another life ---------- */
+// Only memories travel between games (Life-Sim ↔ RPG, or two games of the same people): what the people of this cast
+// remember from the other game, marked as from another life. Nothing else (money, skills, jobs) comes along.
+export async function portMemories(save, chatId) {
+    const meta = await readChatMeta(chatId);
+    const old = meta?.mundi;
+    if (!old)
+        return 0;
+    const here = new Set(Object.keys(save.cast));
+    const list = (old.facts ?? []).filter(f => (f.who ?? []).some((a) => here.has(a))).slice(-120);
+    const facts = (save.facts ??= []);
+    for (const f of list)
+        facts.push({ ...f, id: `life2:${f.id}`, at: 0, place: '', t: `(In another life) ${f.t}` });
+    return list.length;
 }
 export async function listSaves() {
     const rows = [];
@@ -354,9 +546,11 @@ function followBackground(g, w) {
     const p = placeOf2(g, w, g.player.loc);
     if (!p)
         return;
-    let img = p.bg ?? '';
-    if (!img && p.home)
-        img = w.homes.kinds[p.id === 'home:player' ? g.player.home.kind : (w.homes.zones.find(z => z.id === g.cast[p.id.slice(5)]?.home.zone)?.kind ?? '')]?.image ?? '';
+    let img = pictureAt(w, g.minutes, p.bg, w.places.find(x => x.id === p.id)?.bgs) ?? '';
+    if (!img && p.home) {
+        const k = w.homes.kinds[p.id === 'home:player' ? g.player.home.kind : (w.homes.zones.find(z => z.id === g.cast[p.id.slice(5)]?.home.zone)?.kind ?? '')];
+        img = (k && pictureAt(w, g.minutes, k.image, k.images)) ?? '';
+    }
     if (!img)
         return;
     const url = cssUrl(worldFile(w, img));

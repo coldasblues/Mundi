@@ -2,6 +2,7 @@
 // are now) and "come with me" (she goes along with you from place to place). Each one depends on how close you
 // are and on her routine: she says no when she works or sleeps then, or already has plans.
 // Plans you keep raise the bond; standing her up lowers it (and she texts you about it).
+import { lex } from '../core/lexicon.js';
 import { approve, approveAll } from './living.js';
 import { addStatus } from './needs.js';
 import { feel } from './life.js';
@@ -83,8 +84,8 @@ export async function invite(g: Save, w: WorldDef, avatar: string, place: string
     if (ans.ok) { add(g, avatar, place, from, kind, false, title); remember(g, inviteFact(kind, title), [r.name, where, at, title.trim()], [avatar], g.player.loc, 'plan'); }
     const what = (kind === 'date' ? 'a date' : 'hanging out') + (title.trim() ? ` ("${title.trim()}")` : '');
     const note = ans.ok
-        ? `${r.name} happily accepts ${what} at ${where}, ${when(g, from)}, in one short message.`
-        : `${r.name} declines in one short, kind message. Reason: ${ans.why.replace(/^They (are|do|work|already have) /, (_m, v) => `${r.name} ${({ are: 'is', do: 'does', work: 'works', already: 'already has' } as any)[v.split(' ')[0]] ?? v} `).replace(/^__never__/, `${r.name} `)}`;
+        ? `${r.name} happily accepts ${what} at ${where}, ${when(g, from)}, in one short ${lex(w, 'msgNoun')}.`
+        : `${r.name} declines in one short, kind ${lex(w, 'msgNoun')}. Reason: ${ans.why.replace(/^They (are|do|work|already have) /, (_m, v) => `${r.name} ${({ are: 'is', do: 'does', work: 'works', already: 'already has' } as any)[v.split(' ')[0]] ?? v} `).replace(/^__never__/, `${r.name} `)}`;
     await textFrom(g, w, avatar, note, ans.ok ? 'Sure! See you there.' : 'Sorry, I can\'t then.', mine);
     return ans;
 }
@@ -113,18 +114,21 @@ export async function callOver(g: Save, w: WorldDef, avatar: string, mine: strin
     const where = here === playerHomeId ? `${personaName()}'s place (not ${r.name}'s home: ${r.name} has to come over)` : placeOf(g, w, here)?.name ?? '';
     if (ans.ok) { social(g).appts = social(g).appts.filter(a => !(a.avatar === avatar && a.come && livePlan(a))); add(g, avatar, here, from, kind, true); }
     const note = ans.ok
-        ? `${r.name} agrees to come to ${where} now and says they will be there in about ${trip} minutes, in one short message.`
-        : `${r.name} says they can't come over to ${where} right now, in one short, kind message. Reason: ${ans.why.replace(/^They (are|do|work|already have) /, (_m, v) => `${r.name} ${({ are: 'is', do: 'does', work: 'works', already: 'already has' } as any)[v.split(' ')[0]] ?? v} `).replace(/^__never__/, `${r.name} `)}`;
+        ? `${r.name} agrees to come to ${where} now and says they will be there in about ${trip} minutes, in one short ${lex(w, 'msgNoun')}.`
+        : `${r.name} says they can't come over to ${where} right now, in one short, kind ${lex(w, 'msgNoun')}. Reason: ${ans.why.replace(/^They (are|do|work|already have) /, (_m, v) => `${r.name} ${({ are: 'is', do: 'does', work: 'works', already: 'already has' } as any)[v.split(' ')[0]] ?? v} `).replace(/^__never__/, `${r.name} `)}`;
     await textFrom(g, w, avatar, note, ans.ok ? 'On my way!' : 'I can\'t right now, sorry.', mine);
     return { ...ans, at: from };
 }
+
+// Someone who lives with you (your household, your family): going home is going to their home too.
+export const housemate = (g: Save, avatar: string) => (g.cast[avatar] as any)?.homeWith === '__you' || ((g as any).living?.ties ?? []).some((t: any) => (t.a === avatar && t.b === '__you' || t.b === avatar && t.a === '__you') && ['parent', 'child', 'sibling', 'spouse', 'partner', 'roommate'].includes(t.type));
 
 // "Come with me": she is here with you and goes along wherever you go, for a few hours.
 export function askAlong(g: Save, w: WorldDef, avatar: string): Answer {
     const r = g.cast[avatar];
     const now = nowAbs(g);
     if (!r) return { ok: false, why: '' };
-    if (!close(g, avatar, ALONG_BOND) && !matched(g, avatar)) return { ok: false, why: 'They do not know you well enough yet.' };
+    if (!close(g, avatar, ALONG_BOND) && !matched(g, avatar) && !housemate(g, avatar)) return { ok: false, why: 'They do not know you well enough yet.' };
     if (isWorking(w, r, now) && routineAt(g, w, r, now) === g.player.loc) return { ok: false, why: 'They are working.' };
     const s = social(g);
     if (!s.with.some(c => c.avatar === avatar)) { s.with.push({ avatar, until: now + ALONG_LENGTH }); remember(g, '{0} went along with {u} for a while.', [r.name], [avatar]); }
@@ -135,6 +139,7 @@ export function askAlong(g: Save, w: WorldDef, avatar: string): Answer {
 export function letGo(g: Save, avatar: string) {
     const s = social(g);
     s.with = s.with.filter(c => c.avatar !== avatar);
+    if ((g as any).party?.members) (g as any).party.members = (g as any).party.members.filter((m: any) => m.avatar !== avatar);   // letting a companion go: they leave the party too
     if ((s as any).solo === avatar) (s as any).solo = '';   // talking alone with them ends when they go
 }
 
@@ -187,9 +192,9 @@ export function planTick(g: Save, w: WorldDef): PlanNews[] {
             remember(g, '{u} stood {0} up: {0} waited at {1}, and {u} never came.', [nameOf(a.avatar), placeName(a.place)], [a.avatar], a.place, 'plan');
             out.push({ text: `${nameOf(a.avatar)} waited for you at ${placeName(a.place)}, but you never came.`, kind: 'warn', texted: a.avatar });
             const r = g.cast[a.avatar];
-            textFrom(g, w, a.avatar, `${r.name} waited a whole hour for ${personaName()} at ${placeName(a.place)} for ${a.kind === 'date' ? 'their date' : 'their meet-up'}, but ${personaName()} never showed up and never warned them. They text one short message: upset and angry, in their own way.`,
-                'I waited an hour for you. You didn\'t even text. Seriously?')
-                .then((t) => { s.unread[a.avatar] = (s.unread[a.avatar] ?? 0) + 1; remember(g, '{0} texted {u}, angry about being stood up: "{1}"', [r.name, t.length > 160 ? `${t.slice(0, 157)}…` : t], [a.avatar], a.place, 'plan'); })
+            textFrom(g, w, a.avatar, `${r.name} waited a whole hour for ${personaName()} at ${placeName(a.place)} for ${a.kind === 'date' ? 'their date' : 'their meet-up'}, but ${personaName()} never showed up and never warned them. They ${lex(w, 'msgWrite')} one short ${lex(w, 'msgNoun')}: upset and angry, in their own way.`,
+                lex(w, 'stoodUpFallback'))
+                .then((t) => { s.unread[a.avatar] = (s.unread[a.avatar] ?? 0) + 1; remember(g, lex(w, 'stoodUpFact'), [r.name, t.length > 160 ? `${t.slice(0, 157)}…` : t], [a.avatar], a.place, 'plan'); })
                 .catch(() => { /* offline */ });
         }
     }
@@ -216,7 +221,7 @@ export function beforeTravel(g: Save, w: WorldDef, to: string): string[] {
     for (const c of [...social(g).with]) {
         const r = g.cast[c.avatar];
         if (!r) { letGo(g, c.avatar); continue; }
-        if (to === playerHomeId && !close(g, c.avatar, HOME_BOND)) { letGo(g, c.avatar); out.push(`${r.name} said goodbye: they are not ready to go to your home.`); }
+        if (to === playerHomeId && !close(g, c.avatar, HOME_BOND) && !housemate(g, c.avatar)) { letGo(g, c.avatar); out.push(`${r.name} said goodbye: they are not ready to go to your home.`); }
     }
     return out;
 }

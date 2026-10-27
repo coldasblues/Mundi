@@ -4,7 +4,7 @@
 
 **Open worlds inside SillyTavern.** Mundi turns a SillyTavern group chat into a life you live: a city with a map and a clock, needs to look after, a job, bills, people with their own days, and the story the AI writes around what you do.
 
-<p align="center"><img src="docs/map.jpg" alt="The map of Porto Alto"></p>
+<p align="center"><img src="docs/map.jpg" alt="Midtown, the map of Porto Alto"></p>
 
 It is a SillyTavern **extension** (no server plugin). Everything is built on what SillyTavern already has: your character cards, personas, lorebooks and group chats. A save *is* a chat.
 
@@ -20,8 +20,20 @@ It is a SillyTavern **extension** (no server plugin). Everything is built on wha
 - **Make it yours.** Layouts (Visual novel, Classic, Cards), colors with transparency, presets that tint the HUD glass, a world creator for your own maps and rules.
 - **Phones.** Upright and sideways layouts, with their own scale for the HUD.
 - **A tour.** Stella shows you around in a practice world. No AI needed.
+- **Home mode.** A more role-play focused way to play: one house, the characters you choose, no work or bills. Pick the rooms, draw a floor plan, go out and come back.
+- **In your language.** The interface is in English, Português (Brasil) and Español (Settings → Interface → Language).
 
-Two worlds come with it: **Porto Alto** (a modern coastal city) and **Valdoria** (a medieval kingdom, RPG mode coming in a later update).
+It comes with **Porto Alto**, a modern coastal state with five cities (Midtown, Palm Coast, Maple Heights, Pinecrest and Green Valley), and **The Shared House** for Home mode. The medieval style (Valdoria) and the RPG mode are coming in a later update.
+
+See [CHANGELOG.md](CHANGELOG.md) for what changed in each version.
+
+## Screenshots (0.2)
+
+| | | |
+|---|---|---|
+| ![Midtown, the map of Porto Alto](docs/map.jpg) | ![Palm Coast, the beach city](docs/map-palmcoast.jpg) | ![Choosing a city of Porto Alto](docs/map-cities.jpg) |
+| ![The floor plan of the Shared House](docs/house-plan.jpg) | ![At home, in the bedroom](docs/home-bedroom.jpg) | ![An apartment at 13:30](docs/home-apartment.jpg) |
+| ![Sky Hotel & Rooftop Bar](docs/scene-sky.jpg) | ![The university](docs/scene-university.jpg) | ![The stadium](docs/scene-stadium.jpg) |
 
 ## What this fork adds
 
@@ -75,7 +87,6 @@ On a phone:
 
 <p align="center">
   <img src="docs/phone-scene.jpg" width="23%" alt="A scene on a phone">
-  <img src="docs/phone-map.jpg" width="23%" alt="The map on a phone">
   <img src="docs/phone-homes.jpg" width="23%" alt="The Homes app">
   <img src="docs/phone-profile.jpg" width="23%" alt="The Profile app">
 </p>

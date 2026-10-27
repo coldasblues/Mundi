@@ -3,13 +3,14 @@
 // moving, a new tier filling the bar and changing its color), and the work screen with its choices.
 import { esc, game, notify, saveGame, toast, state } from '../core/store.js';
 import { getWorld } from '../core/world.js';
+import { sysOn } from '../sim/romance.js';
 import { chat, quiet, sendCanned, setPrompt, thumb } from '../st/bridge.js';
 import { icon } from './icons.js';
 import { ACT } from './reg.js';
 import { ASKS, canAsk, coolingDown, readiness, applyAnswer, pushTooSoon, endRelationship, romOf, friendTier, romanceTier, tierPct, FRIEND_TIERS, ROMANCE_TIERS } from '../sim/romance.js';
 import { bondOf, social } from '../sim/social.js';
 import { presentAt } from '../sim/people.js';
-import { WORK_MODES, workShift, jobDef } from '../sim/work.js';
+import { WORK_MODES, workShift, jobDef, rankOf } from '../sim/work.js';
 import { tooTired } from '../sim/needs.js';
 import { note } from '../sim/facts.js';
 import { diaryTtsButton } from './addons.js';
@@ -28,7 +29,7 @@ export function relBar(avatar, romance = true) {
     const b = bondOf(g, avatar);
     const ft = friendTier(b);
     const rt = romanceTier(g, avatar);
-    return `<span class="mu-tierbar" title="${esc(ft.name)}"><i style="width:${tierPct(ft, b)}%;background:${ft.color}"></i></span>${romance && rt.id !== 'none' ? `<span class="mu-tierbar is-love" title="${esc(rt.name)}"><i style="width:${tierPct(rt, romOf(g, avatar).value)}%;background:${rt.color}"></i></span>` : ''}`;
+    return `<span class="mu-tierbar" title="${esc(ft.name)}"><i style="width:${tierPct(ft, b)}%;background:${ft.color}"></i></span>${romance && rt.id !== 'none' && sysOn(g, 'romance') ? `<span class="mu-tierbar is-love" title="${esc(rt.name)}"><i style="width:${tierPct(rt, romOf(g, avatar).value)}%;background:${rt.color}"></i></span>` : ''}`;
 }
 /* ---------- the buttons on a person's card ---------- */
 export function romanceButtons(avatar) {
@@ -43,7 +44,7 @@ export function romanceButtons(avatar) {
             ${canCelebrate(g, k) ? `<button data-act="kid-bday" data-who="${esc(avatar)}">🎂<span>Celebrate their birthday</span></button>`
             : last ? '' : `<small class="mu-muted">Next birthday in ${daysToBirthday(g, k)} day${daysToBirthday(g, k) === 1 ? '' : 's'}.</small>`}</div>`;
     }
-    if (romanceBlocked(g, avatar))
+    if (romanceBlocked(g, avatar) || !sysOn(g, 'romance'))
         return '';
     const r = romOf(g, avatar);
     const p = pregnancy(g);
@@ -259,7 +260,7 @@ function workHtml() {
     const job = jobDef(w, g.player.job?.id);
     if (!job)
         return '';
-    const rank = job.ranks[g.player.job.rank];
+    const rank = rankOf(g, job);
     return `<div class="mu-recap-veil" data-act="work-cancel-bg"><section class="mu-recap mu-workpick mh-glass" role="dialog" aria-label="Work">
         <header><small>${esc(job.name)} · ${esc(rank.name)} · ${job.shift} h</small><h3>How will you work today?</h3></header>
         <div class="mu-work-modes">${WORK_MODES.map(m => `<button class="mu-work-mode" data-act="work-go" data-mode="${m.id}"><i>${m.icon}</i><b>${esc(m.name)}</b><small>${esc(m.desc)}</small></button>`).join('')}</div>

@@ -2,11 +2,14 @@
 // The engine owns the numbers. The AI only plays the scenes: when you ask someone out or propose, the engine tells the
 // AI how ready that person is, the AI writes the reaction, and a tiny follow-up question ("did they accept?") lets
 // the engine apply the result. At night, the diary call also gives a verdict on the day's relationships.
-import { nowAbs, type Save } from '../core/store.js';
+import { nowAbs, cfg, type Save } from '../core/store.js';
 import { social, bondOf, bump } from './social.js';
 import { approvalOf, approve } from './living.js';
 import { note } from './facts.js';
 import { romanceBlocked, canTryForBaby } from './family.js';
+import { getWorld, systemOn, type SystemId } from '../core/world.js';
+// Is a system on in this save's world (romance, children)?
+export const sysOn = (g: Save, id: SystemId) => systemOn(getWorld(g.world), id);
 
 export type RomStatus = 'none' | 'dating' | 'engaged' | 'married';
 export interface Rom { value: number; status: RomStatus; cooldown?: number }
@@ -60,7 +63,7 @@ export const ASKS: Record<AskKind, { label: string; line: (n: string) => string;
     marry: { label: 'Get married', line: n => `*asks ${n} to set the date and get married*`, to: 'married', from: ['engaged'] },
     baby: { label: 'Try for a baby', line: n => `*asks ${n} if they want to try for a baby together*`, to: null, from: ['dating', 'engaged', 'married'] },
 };
-export const canAsk = (g: Save, avatar: string, k: AskKind) => !romanceBlocked(g, avatar) && ASKS[k].from.includes(romOf(g, avatar).status) && (k !== 'baby' || canTryForBaby(g, avatar));
+export const canAsk = (g: Save, avatar: string, k: AskKind) => sysOn(g, k === 'baby' ? 'family' : 'romance') && !romanceBlocked(g, avatar) && ASKS[k].from.includes(romOf(g, avatar).status) && (k !== 'baby' || canTryForBaby(g, avatar));
 export const coolingDown = (g: Save, avatar: string) => (romOf(g, avatar).cooldown ?? 0) > nowAbs(g);
 
 // How ready they are: told to the AI so it does not simply say yes (models like to please).
@@ -73,7 +76,26 @@ export function readiness(g: Save, avatar: string, name: string, k: AskKind): st
     const lean = score >= need + 15 ? 'would very likely say yes' : score >= need ? 'would probably say yes, maybe with some nerves' : score >= need - 15 ? 'is unsure: it could go either way, and asking may feel too soon'
         : 'would most likely say no, or feel uncomfortable: it is too soon';
     return `[{{user}} is asking ${name} ${k === 'date' ? 'to be a couple' : k === 'propose' ? 'to marry them' : k === 'marry' ? 'to get married now' : 'to try for a baby together'}. Where they stand: ${ft}, romance: ${rt}${a <= -15 ? `, and ${name} disapproves of how {{user}} behaves` : ''}. Realistically ${name} ${lean}. ` +
+        (k === 'date' && partnersOf(g).some(a => a !== avatar) ? (polyOn(g) ? `${name} knows {{user}} is already with someone; relationships are open here, so that is fine. ` : `${name} knows {{user}} is already with someone else, which matters to most people. `) : '') +
         `Let ${name}'s personality decide within that; do not make ${name} agree just to please. Write ${name}'s honest reaction, and make the answer clear (yes, no, or that they need time to think).]`;
+}
+
+// Open relationships (World → Rules): no jealousy, several partners at once, and everyone knows it.
+export const polyOn = (g: Save) => !!cfg(g).poly;
+export const partnersOf = (g: Save) => Object.entries(R(g)).filter(([, r]) => r.status !== 'none').map(([a]) => a);
+// A new romance while you are with someone else: unless relationships are open, each partner who learns of it is hurt.
+function jealousy(g: Save, avatar: string, name: string): string[] {
+    if (polyOn(g)) return [];
+    const out: string[] = [];
+    for (const other of partnersOf(g)) {
+        if (other === avatar) continue;
+        const who = g.cast[other]?.name ?? other;
+        addRomance(g, other, -20); bump(g, other, -12); approve(g, other, -15);
+        ((g as any).jealous ??= {})[other] = { of: avatar, day: g.day };
+        note(g, '{0} found out that {u} is also with {1}, and is hurt.', [who, name], [other, avatar], g.player.loc, 'love');
+        out.push(`${who} found out about ${name}: romance −20, bond −12.`);
+    }
+    return out;
 }
 
 // After the reply: the engine applies the answer.
@@ -81,9 +103,10 @@ export function applyAnswer(g: Save, avatar: string, name: string, k: AskKind, a
     const r = romOf(g, avatar);
     if (answer === 'yes') {
         if (k === 'baby') { r.cooldown = 0; addRomance(g, avatar, 5); return ''; }   // the engine then decides (family.ts)
+        const hurt = k === 'date' ? jealousy(g, avatar, name) : [];
         r.status = ASKS[k].to!; r.cooldown = 0; addRomance(g, avatar, 15); bump(g, avatar, 5); syncPartner(g, avatar);
         note(g, k === 'date' ? '{u} and {0} started dating.' : k === 'propose' ? '{u} and {0} got engaged.' : '{u} and {0} got married.', [name], [avatar], g.player.loc, 'love');
-        return k === 'date' ? `You and ${name} are now dating!` : k === 'propose' ? `You and ${name} are engaged!` : `You and ${name} are married!`;
+        return [k === 'date' ? `You and ${name} are now dating!` : k === 'propose' ? `You and ${name} are engaged!` : `You and ${name} are married!`, ...hurt].join(' ');
     }
     const day = 1440;
     if (answer === 'maybe') { r.cooldown = nowAbs(g) + day; note(g, '{0} asked {u} for some time to think about it.', [name], [avatar], g.player.loc, 'love'); return `${name} wants some time to think.`; }
@@ -121,7 +144,7 @@ export function applyVerdict(g: Save, people: { avatar: string; name: string }[]
         const df = Math.max(-3, Math.min(3, Number(m[2]))) * 3, dr = Math.max(-3, Math.min(3, Number(m[3]))) * 3;
         const f0 = bondOf(g, p.avatar), r0 = romValue(g, p.avatar);
         if (df) bump(g, p.avatar, df);
-        if (dr && !romanceBlocked(g, p.avatar)) addRomance(g, p.avatar, dr);
+        if (dr && sysOn(g, 'romance') && !romanceBlocked(g, p.avatar)) addRomance(g, p.avatar, dr);
         out.push({ avatar: p.avatar, name: p.name, why: m[4].trim().slice(0, 160), f0, f1: bondOf(g, p.avatar), r0, r1: romValue(g, p.avatar) });
     }
     return out;
@@ -131,7 +154,14 @@ export function applyVerdict(g: Save, people: { avatar: string; name: string }[]
 export function romanceLine(g: Save, present: { avatar: string; name: string }[]) {
     const parts = present.map(r => {
         const f = friendTier(bondOf(g, r.avatar)).name.toLowerCase(), rt = romanceTier(g, r.avatar);
-        return `${r.name}: ${f}${rt.id !== 'none' ? `, ${rt.name.toLowerCase()}` : ''}`;
+        return `${r.name}: ${f}${rt.id !== 'none' && sysOn(g, 'romance') ? `, ${rt.name.toLowerCase()}` : ''}`;
     });
-    return parts.length ? `How {{user}} stands with them: ${parts.join('; ')}.` : '';
+    if (!parts.length) return '';
+    const mine = partnersOf(g).map(a => g.cast[a]?.name ?? a);
+    const love = !sysOn(g, 'romance') || !mine.length ? '' : polyOn(g)
+        ? ` In this world relationships are open: {{user}} is with ${mine.join(' and ')}, everyone knows and nobody is jealous of it.`
+        : mine.length > 1 ? ` {{user}} is seeing ${mine.join(' and ')} at the same time; each one expects to be the only one.` : '';
+    const jl = (g as any).jealous ?? {};
+    const hurt = polyOn(g) ? [] : present.filter(r => jl[r.avatar] && g.day - jl[r.avatar].day < 7).map(r => `${r.name} is still hurt that {{user}} is also with ${g.cast[jl[r.avatar].of]?.name ?? 'someone else'}`);
+    return `How {{user}} stands with them: ${parts.join('; ')}.${love}${hurt.length ? ` ${hurt.join('; ')}.` : ''}`;
 }

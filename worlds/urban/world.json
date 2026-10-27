@@ -1,0 +1,8437 @@
+{
+ "format": 1,
+ "id": "urban",
+ "name": "Nova Vega",
+ "kind": "Modern",
+ "version": "0.1.0",
+ "description": "A neon coastal city where superpowers are real: heroes stream their patrols and villains rob armored trucks. You just moved here; maybe you have a power too.",
+ "tags": [
+  "lifesim",
+  "rpg",
+  "fantasy"
+ ],
+ "madeFor": "rpg",
+ "retired": {
+  "maps": {
+   "city": "midtown"
+  }
+ },
+ "setting": "Nova Vega is a modern coastal city of today, with a historic downtown, a financial district, a university, beaches and a busy waterfront. Everyone in it is an adult. Phones, cars and social media work as in the real world. Nova Vega is the biggest city of Costa Serena, a country of today: Midtown is its center, with Maple Heights and Palm Coast as its neighborhoods. An hour or more away by road are other towns of the same country: the farm town of Green Valley, in the Central Plains, and the mountain village of Pinecrest, in the North Highlands. In this world about one person in a thousand has a superpower, and everyone knows it: it has been so for decades. Heroes are celebrities with sponsors and followers, villains make the news, and the Department of Superhuman Affairs registers powered people. Powers are part of everyday life (a courier who runs at 200 km/h, a firefighter who breathes smoke); the word \"magic\" is not used.",
+ "cover": "../modern/midtown.jpg",
+ "currency": {
+  "name": "dollar",
+  "symbol": "$"
+ },
+ "time": {
+  "startDay": 1,
+  "startMinutes": 600,
+  "speed": 60,
+  "periods": [
+   {
+    "id": "dawn",
+    "name": "Dawn",
+    "from": 0
+   },
+   {
+    "id": "morning",
+    "name": "Morning",
+    "from": 360
+   },
+   {
+    "id": "afternoon",
+    "name": "Afternoon",
+    "from": 720
+   },
+   {
+    "id": "evening",
+    "name": "Evening",
+    "from": 1080
+   },
+   {
+    "id": "night",
+    "name": "Night",
+    "from": 1320,
+    "prices": 1.15
+   }
+  ]
+ },
+ "maps": [
+  {
+   "id": "midtown",
+   "name": "Midtown",
+   "image": "../modern/midtown.jpg",
+   "ratio": 1.7914,
+   "climate": "coastal",
+   "town": true,
+   "area": "Nova Vega"
+  },
+  {
+   "id": "pinecrest",
+   "name": "Pinecrest",
+   "image": "../modern/pinecrest.jpg",
+   "ratio": 1.7914,
+   "parent": "midtown",
+   "trip": 90,
+   "climate": "cold",
+   "area": "North Highlands"
+  },
+  {
+   "id": "greenvalley",
+   "name": "Green Valley",
+   "image": "../modern/greenvalley.jpg",
+   "ratio": 1.7914,
+   "parent": "midtown",
+   "trip": 60,
+   "climate": "temperate",
+   "area": "Central Plains"
+  },
+  {
+   "id": "maple",
+   "name": "Maple Heights",
+   "image": "../modern/maple.jpg",
+   "ratio": 1.7914,
+   "parent": "midtown",
+   "trip": 30,
+   "climate": "coastal",
+   "area": "Nova Vega"
+  },
+  {
+   "id": "palmcoast",
+   "name": "Palm Coast",
+   "image": "../modern/palmcoast.jpg",
+   "ratio": 1.7914,
+   "parent": "midtown",
+   "trip": 30,
+   "climate": "coastal",
+   "area": "Nova Vega"
+  }
+ ],
+ "places": [
+  {
+   "id": "downtown",
+   "name": "Old Town",
+   "map": "midtown",
+   "x": 22,
+   "y": 77,
+   "tags": [
+    "work",
+    "leisure"
+   ],
+   "desc": "the old blocks of the center: brick buildings, cafés, shops and a fountain garden.",
+   "event": "The streets are always busy.",
+   "closed": []
+  },
+  {
+   "id": "cafe",
+   "name": "Downtown Café",
+   "map": "midtown",
+   "x": 38,
+   "y": 74,
+   "tags": [
+    "work",
+    "food"
+   ],
+   "desc": "a small coffee shop with big windows and the smell of fresh bread.",
+   "event": "The espresso machine hisses.",
+   "closed": [
+    "dawn"
+   ]
+  },
+  {
+   "id": "mall",
+   "name": "Shopping Mall",
+   "map": "midtown",
+   "x": 76,
+   "y": 40,
+   "tags": [
+    "work",
+    "leisure",
+    "shop"
+   ],
+   "desc": "a big glass building with shops, a cinema and a food court.",
+   "event": "The mall is packed.",
+   "closed": []
+  },
+  {
+   "id": "finance",
+   "name": "Financial District",
+   "map": "midtown",
+   "x": 26,
+   "y": 12,
+   "tags": [
+    "work"
+   ],
+   "desc": "office skyscrapers, banks and business restaurants.",
+   "event": "People in suits hurry by.",
+   "closed": [
+    "dawn",
+    "night"
+   ]
+  },
+  {
+   "id": "industrial",
+   "name": "Industrial Zone",
+   "map": "midtown",
+   "x": 94,
+   "y": 88,
+   "tags": [
+    "work"
+   ],
+   "desc": "warehouses, workshops and parking garages on the east edge of the center.",
+   "event": "Machines hum in the distance.",
+   "closed": [
+    "dawn",
+    "night"
+   ]
+  },
+  {
+   "id": "campus",
+   "name": "University",
+   "map": "midtown",
+   "x": 60,
+   "y": 63,
+   "tags": [
+    "work",
+    "study"
+   ],
+   "desc": "buildings with gardens on the hill, students and a library.",
+   "event": "There are students in the hallways.",
+   "closed": [
+    "dawn",
+    "night"
+   ]
+  },
+  {
+   "id": "herouni",
+   "name": "Harbor Hero University",
+   "map": "maple",
+   "x": 56,
+   "y": 64,
+   "tags": [
+    "work",
+    "study"
+   ],
+   "desc": "a glass campus by the river where powered people learn control, rescue work and hero law; the training dome glows at night.",
+   "event": "Cadets practice in the training dome.",
+   "closed": [
+    "dawn"
+   ]
+  },
+  {
+   "id": "stadium",
+   "name": "Stadium & Gym",
+   "map": "palmcoast",
+   "x": 33,
+   "y": 18,
+   "tags": [
+    "leisure",
+    "sport",
+    "work"
+   ],
+   "desc": "a stadium with a running track and a gym, surrounded by woods.",
+   "event": "Someone is training on the track.",
+   "closed": []
+  },
+  {
+   "id": "waterfront",
+   "name": "Sky Hotel & Rooftop Bar",
+   "map": "midtown",
+   "x": 28,
+   "y": 40,
+   "tags": [
+    "work",
+    "leisure",
+    "food"
+   ],
+   "desc": "a tall hotel with a rooftop pool and a bar with a view over the whole city.",
+   "event": "Music drifts down from the rooftop.",
+   "closed": []
+  },
+  {
+   "id": "beach",
+   "name": "Beach",
+   "map": "palmcoast",
+   "x": 35,
+   "y": 70,
+   "tags": [
+    "leisure"
+   ],
+   "desc": "a strip of sand along the bay, with kiosks and boats in the distance.",
+   "event": "The tide is calm.",
+   "closed": []
+  },
+  {
+   "id": "park",
+   "name": "Lakeside Park",
+   "map": "maple",
+   "x": 68,
+   "y": 52,
+   "tags": [
+    "leisure"
+   ],
+   "desc": "a pond with ducks, a gazebo, a playground and shady paths.",
+   "event": "Families and runners pass through.",
+   "closed": []
+  },
+  {
+   "id": "ferris",
+   "name": "Amusement Park",
+   "map": "palmcoast",
+   "x": 65,
+   "y": 73,
+   "tags": [
+    "leisure"
+   ],
+   "desc": "a small seaside amusement park by the boardwalk, with a ferris wheel and carousels.",
+   "event": "Screams of joy come from the roller coaster.",
+   "closed": []
+  },
+  {
+   "id": "docks",
+   "name": "Port & Fish Market",
+   "map": "midtown",
+   "x": 4,
+   "y": 19,
+   "tags": [
+    "work",
+    "shop",
+    "food"
+   ],
+   "desc": "the old port on the bay, with boats and a market of fresh fish by the quay.",
+   "event": "Vendors call out the catch of the day.",
+   "closed": [
+    "dawn"
+   ]
+  },
+  {
+   "id": "civic",
+   "name": "City Hall",
+   "map": "midtown",
+   "x": 54,
+   "y": 40,
+   "tags": [
+    "service"
+   ],
+   "desc": "the domed city hall and its square, with fountains and benches.",
+   "event": "Pigeons cross the square.",
+   "closed": [
+    "dawn",
+    "evening",
+    "night"
+   ],
+   "roles": [
+    "contracts",
+    "guarded",
+    "jail"
+   ]
+  },
+  {
+   "id": "hospital",
+   "name": "City Hospital",
+   "map": "midtown",
+   "x": 87,
+   "y": 66,
+   "tags": [
+    "service"
+   ],
+   "desc": "the city's main hospital, white corridors and a busy emergency room.",
+   "event": "An ambulance pulls in.",
+   "closed": []
+  },
+  {
+   "id": "bridge",
+   "name": "Gorge Bridge",
+   "map": "pinecrest",
+   "x": 62,
+   "y": 62,
+   "tags": [
+    "leisure"
+   ],
+   "desc": "a wooden bridge over the roaring waterfall gorge below Pinecrest.",
+   "event": "The wind blows hard over the water.",
+   "closed": []
+  },
+  {
+   "id": "mountains",
+   "name": "North Campsite",
+   "map": "pinecrest",
+   "x": 80,
+   "y": 72,
+   "tags": [
+    "leisure"
+   ],
+   "desc": "a campsite among pine trees by the mountain road, with tents and a fire pit.",
+   "event": "Smoke rises from a campfire.",
+   "closed": []
+  },
+  {
+   "id": "station",
+   "map": "midtown",
+   "name": "Train Station",
+   "x": 78,
+   "y": 6,
+   "tags": [
+    "service",
+    "work"
+   ],
+   "desc": "the central train station, where trains leave for the rest of the country.",
+   "event": "A train pulls into the platform.",
+   "closed": [
+    "dawn",
+    "night"
+   ]
+  },
+  {
+   "id": "school",
+   "map": "maple",
+   "name": "School & Sports Field",
+   "x": 64,
+   "y": 14,
+   "tags": [
+    "leisure",
+    "service"
+   ],
+   "desc": "a neighborhood school with a basketball court and a football field open to everyone.",
+   "event": "Kids are playing football on the field.",
+   "closed": []
+  },
+  {
+   "id": "farms",
+   "map": "greenvalley",
+   "name": "Farms",
+   "x": 88,
+   "y": 30,
+   "tags": [
+    "work",
+    "food"
+   ],
+   "desc": "fields, barns and silos on the north side, where the city buys its vegetables.",
+   "event": "A tractor works the field.",
+   "closed": [
+    "dawn"
+   ]
+  },
+  {
+   "id": "woods",
+   "map": "pinecrest",
+   "name": "Riverside Woods",
+   "x": 5,
+   "y": 48,
+   "tags": [
+    "leisure"
+   ],
+   "desc": "woods on the hillside west of the village, with trails and a small campsite.",
+   "event": "Birds sing in the trees.",
+   "closed": []
+  },
+  {
+   "id": "pinecamp",
+   "map": "pinecrest",
+   "name": "Pine Woods Camp",
+   "x": 94,
+   "y": 30,
+   "tags": [
+    "leisure"
+   ],
+   "desc": "a pine forest above the village with tents and picnic tables.",
+   "event": "Someone is grilling by the tents.",
+   "closed": []
+  },
+  {
+   "id": "pc_square",
+   "name": "Pinecrest Square",
+   "map": "pinecrest",
+   "x": 44,
+   "y": 37,
+   "tags": [
+    "shop",
+    "food",
+    "leisure"
+   ],
+   "desc": "the little village square: a bakery, a ski-and-hike shop and a fountain.",
+   "closed": [
+    "night"
+   ],
+   "event": "Hikers buy bread and maps."
+  },
+  {
+   "id": "pc_chapel",
+   "name": "Chapel of St. Bernard",
+   "map": "pinecrest",
+   "x": 30,
+   "y": 31,
+   "tags": [
+    "service"
+   ],
+   "desc": "an old stone chapel with a bell tower; candles and silence.",
+   "closed": [
+    "night"
+   ]
+  },
+  {
+   "id": "pc_lodge",
+   "name": "Pine Lodge",
+   "map": "pinecrest",
+   "x": 91,
+   "y": 59,
+   "tags": [
+    "food",
+    "leisure"
+   ],
+   "desc": "a log lodge with a fireplace, hot chocolate, beer and rooms for climbers.",
+   "closed": [],
+   "event": "Climbers trade stories by the fire."
+  },
+  {
+   "id": "pc_cablecar",
+   "name": "Summit Cable Car",
+   "map": "pinecrest",
+   "x": 70,
+   "y": 4,
+   "tags": [
+    "leisure",
+    "work"
+   ],
+   "desc": "the red cable car that climbs to the summit viewpoint.",
+   "closed": [
+    "dawn",
+    "night"
+   ]
+  },
+  {
+   "id": "pc_falls",
+   "name": "Silver Falls Trail",
+   "map": "pinecrest",
+   "x": 82,
+   "y": 6,
+   "tags": [
+    "leisure"
+   ],
+   "desc": "a trail and a wooden bridge over the roaring waterfall gorge.",
+   "closed": []
+  },
+  {
+   "id": "pc_farm",
+   "name": "Highland Sheep Farm",
+   "map": "pinecrest",
+   "x": 28,
+   "y": 85,
+   "tags": [
+    "work",
+    "food"
+   ],
+   "desc": "terraced vegetable plots, a barn and a flock of sheep.",
+   "closed": [
+    "dawn"
+   ],
+   "event": "Sheep everywhere."
+  },
+  {
+   "id": "gv_store",
+   "name": "Valley General Store",
+   "map": "greenvalley",
+   "x": 57,
+   "y": 46,
+   "tags": [
+    "shop",
+    "food"
+   ],
+   "desc": "a wooden general store with a porch: feed, groceries, tools and gossip.",
+   "closed": [
+    "night"
+   ]
+  },
+  {
+   "id": "gv_saloon",
+   "name": "The Rusty Spur",
+   "map": "greenvalley",
+   "x": 66,
+   "y": 54,
+   "tags": [
+    "food",
+    "leisure"
+   ],
+   "desc": "a country saloon with a jukebox, pie and cold beer.",
+   "closed": [
+    "dawn"
+   ],
+   "event": "Farmers argue about the weather."
+  },
+  {
+   "id": "gv_church",
+   "name": "Little White Church",
+   "map": "greenvalley",
+   "x": 43,
+   "y": 47,
+   "tags": [
+    "service"
+   ],
+   "desc": "a white wooden church with a small cemetery.",
+   "closed": [
+    "night"
+   ]
+  },
+  {
+   "id": "gv_ranch",
+   "name": "Miller Horse Ranch",
+   "map": "greenvalley",
+   "x": 37,
+   "y": 15,
+   "tags": [
+    "work",
+    "leisure"
+   ],
+   "desc": "paddocks and stables: horses for riding lessons and for sale.",
+   "closed": [
+    "night"
+   ],
+   "event": "A foal was born this week."
+  },
+  {
+   "id": "gv_creek",
+   "name": "Willow Creek",
+   "map": "greenvalley",
+   "x": 62,
+   "y": 85,
+   "tags": [
+    "leisure"
+   ],
+   "desc": "a lazy creek with reeds, frogs and a fishing spot.",
+   "closed": []
+  },
+  {
+   "id": "mh_plaza",
+   "name": "Maple Plaza",
+   "map": "maple",
+   "x": 30,
+   "y": 38,
+   "tags": [
+    "shop",
+    "food",
+    "work"
+   ],
+   "desc": "a strip mall: a pizzeria, a pharmacy, a nail salon and a video game shop.",
+   "closed": [
+    "night"
+   ]
+  },
+  {
+   "id": "mh_market",
+   "name": "FreshWay Market",
+   "map": "maple",
+   "x": 52,
+   "y": 30,
+   "tags": [
+    "shop",
+    "food",
+    "work"
+   ],
+   "desc": "a big supermarket with a full parking lot.",
+   "closed": [
+    "dawn"
+   ]
+  },
+  {
+   "id": "mh_clinic",
+   "name": "Maple Urgent Care",
+   "map": "maple",
+   "x": 42,
+   "y": 82,
+   "tags": [
+    "health",
+    "service"
+   ],
+   "desc": "a small clinic with an ambulance bay.",
+   "closed": []
+  },
+  {
+   "id": "mt_court",
+   "name": "Nova Vega Courthouse",
+   "map": "midtown",
+   "x": 44,
+   "y": 50,
+   "tags": [
+    "service",
+    "work"
+   ],
+   "desc": "a domed courthouse with marble steps; trials, lawyers and reporters.",
+   "closed": [
+    "dawn",
+    "evening",
+    "night"
+   ]
+  },
+  {
+   "id": "mt_plaza",
+   "name": "Fountain Plaza",
+   "map": "midtown",
+   "x": 51,
+   "y": 80,
+   "tags": [
+    "leisure"
+   ],
+   "desc": "a round plaza with a fountain, benches and street musicians.",
+   "closed": []
+  },
+  {
+   "id": "mt_pier",
+   "name": "Pier 7 Ferry",
+   "map": "midtown",
+   "x": 6,
+   "y": 88,
+   "tags": [
+    "service",
+    "leisure"
+   ],
+   "desc": "the ferry piers on the bay.",
+   "closed": [
+    "night"
+   ]
+  },
+  {
+   "id": "mt_tower",
+   "name": "Meridian Tower",
+   "map": "midtown",
+   "x": 42,
+   "y": 15,
+   "tags": [
+    "work"
+   ],
+   "desc": "a glass office tower: startups, law firms and a sky lobby.",
+   "closed": [
+    "dawn",
+    "night"
+   ]
+  },
+  {
+   "id": "pl_marina",
+   "name": "Palm Coast Marina",
+   "map": "palmcoast",
+   "x": 14,
+   "y": 45,
+   "tags": [
+    "leisure",
+    "work"
+   ],
+   "desc": "yachts, jet skis and boat rentals.",
+   "closed": [
+    "night"
+   ]
+  },
+  {
+   "id": "pl_boardwalk",
+   "name": "The Boardwalk",
+   "map": "palmcoast",
+   "x": 46,
+   "y": 66,
+   "tags": [
+    "shop",
+    "food",
+    "leisure",
+    "work"
+   ],
+   "desc": "a wooden boardwalk of surf shops, juice bars and a beach bar.",
+   "closed": [
+    "dawn"
+   ],
+   "event": "Music from the beach bar."
+  },
+  {
+   "id": "pl_resort",
+   "name": "Coral Resort",
+   "map": "palmcoast",
+   "x": 39,
+   "y": 41,
+   "tags": [
+    "food",
+    "leisure",
+    "work"
+   ],
+   "desc": "a resort hotel with pools and palm trees.",
+   "closed": []
+  },
+  {
+   "id": "pl_cafes",
+   "name": "Palm Street Cafés",
+   "map": "palmcoast",
+   "x": 68,
+   "y": 58,
+   "tags": [
+    "food",
+    "leisure"
+   ],
+   "desc": "a street of cafés and restaurants with umbrellas.",
+   "closed": [
+    "dawn"
+   ]
+  },
+  {
+   "id": "pl_trails",
+   "name": "Mangrove Trails",
+   "map": "palmcoast",
+   "x": 88,
+   "y": 20,
+   "tags": [
+    "leisure"
+   ],
+   "desc": "jungle paths, ponds and birds.",
+   "closed": []
+  }
+ ],
+ "homes": {
+  "zones": [
+   {
+    "id": "downtown",
+    "name": "Old Town lofts",
+    "map": "midtown",
+    "kind": "apartment",
+    "rent": 120,
+    "desc": "old brick apartment blocks in the center",
+    "spots": [
+     [
+      8,
+      58
+     ],
+     [
+      15,
+      64
+     ],
+     [
+      21,
+      58
+     ],
+     [
+      6,
+      68
+     ],
+     [
+      17,
+      72
+     ]
+    ]
+   },
+   {
+    "id": "east",
+    "name": "East Side flats",
+    "map": "midtown",
+    "kind": "apartment",
+    "rent": 80,
+    "desc": "apartment blocks with roof gardens by the industrial edge",
+    "spots": [
+     [
+      64,
+      80
+     ],
+     [
+      72,
+      84
+     ],
+     [
+      66,
+      93
+     ]
+    ]
+   },
+   {
+    "id": "waterfront",
+    "name": "Skyline Towers",
+    "map": "midtown",
+    "kind": "apartment",
+    "rent": 350,
+    "desc": "flats high up in the glass towers",
+    "spots": [
+     [
+      11,
+      14
+     ],
+     [
+      16,
+      30
+     ],
+     [
+      32,
+      22
+     ],
+     [
+      48,
+      8
+     ],
+     [
+      62,
+      10
+     ],
+     [
+      90,
+      8
+     ]
+    ]
+   },
+   {
+    "id": "north",
+    "name": "Maple Heights houses",
+    "map": "maple",
+    "kind": "house",
+    "rent": 180,
+    "desc": "family houses with lawns and pools in the leafy suburb",
+    "spots": [
+     [
+      6,
+      6
+     ],
+     [
+      17,
+      3
+     ],
+     [
+      24,
+      5
+     ],
+     [
+      13,
+      17
+     ],
+     [
+      5,
+      25
+     ],
+     [
+      23,
+      22
+     ],
+     [
+      3,
+      36
+     ],
+     [
+      14,
+      34
+     ],
+     [
+      7,
+      42
+     ],
+     [
+      12,
+      51
+     ],
+     [
+      4,
+      58
+     ],
+     [
+      21,
+      58
+     ],
+     [
+      17,
+      63
+     ],
+     [
+      29,
+      67
+     ],
+     [
+      14,
+      74
+     ],
+     [
+      6,
+      81
+     ],
+     [
+      22,
+      84
+     ],
+     [
+      34,
+      68
+     ],
+     [
+      42,
+      60
+     ],
+     [
+      48,
+      52
+     ],
+     [
+      93,
+      32
+     ],
+     [
+      85,
+      44
+     ],
+     [
+      96,
+      49
+     ],
+     [
+      92,
+      57
+     ],
+     [
+      82,
+      9
+     ],
+     [
+      90,
+      14
+     ],
+     [
+      96,
+      6
+     ]
+    ]
+   },
+   {
+    "id": "south",
+    "name": "Palm Coast bungalows",
+    "map": "palmcoast",
+    "kind": "house",
+    "rent": 150,
+    "desc": "bungalows with pools among the palms, near the beach",
+    "spots": [
+     [
+      60,
+      12
+     ],
+     [
+      65,
+      17
+     ],
+     [
+      52,
+      24
+     ],
+     [
+      61,
+      27
+     ],
+     [
+      71,
+      24
+     ],
+     [
+      75,
+      27
+     ],
+     [
+      79,
+      32
+     ],
+     [
+      51,
+      42
+     ],
+     [
+      56,
+      46
+     ],
+     [
+      73,
+      41
+     ],
+     [
+      75,
+      46
+     ],
+     [
+      82,
+      36
+     ],
+     [
+      86,
+      39
+     ],
+     [
+      88,
+      45
+     ],
+     [
+      82,
+      52
+     ],
+     [
+      67,
+      21
+     ],
+     [
+      57,
+      31
+     ]
+    ]
+   },
+   {
+    "id": "pc_homes",
+    "name": "Pinecrest chalets",
+    "map": "pinecrest",
+    "kind": "house",
+    "rent": 120,
+    "desc": "stone and timber chalets on the mountainside",
+    "spots": [
+     [
+      28,
+      10
+     ],
+     [
+      22,
+      15
+     ],
+     [
+      19,
+      22
+     ],
+     [
+      34,
+      18
+     ],
+     [
+      15,
+      27
+     ],
+     [
+      14,
+      37
+     ],
+     [
+      22,
+      35
+     ],
+     [
+      9,
+      48
+     ],
+     [
+      26,
+      49
+     ],
+     [
+      23,
+      58
+     ],
+     [
+      37,
+      26
+     ],
+     [
+      51,
+      17
+     ],
+     [
+      54,
+      27
+     ],
+     [
+      64,
+      5
+     ],
+     [
+      93,
+      13
+     ],
+     [
+      73,
+      90
+     ],
+     [
+      95,
+      88
+     ],
+     [
+      27,
+      70
+     ]
+    ]
+   },
+   {
+    "id": "gv_homes",
+    "name": "Green Valley farmhouses",
+    "map": "greenvalley",
+    "kind": "house",
+    "rent": 100,
+    "desc": "farmhouses with porches and big yards",
+    "spots": [
+     [
+      20,
+      12
+     ],
+     [
+      48,
+      38
+     ],
+     [
+      34,
+      57
+     ],
+     [
+      24,
+      62
+     ],
+     [
+      22,
+      53
+     ],
+     [
+      52,
+      54
+     ],
+     [
+      45,
+      62
+     ],
+     [
+      38,
+      69
+     ],
+     [
+      59,
+      62
+     ],
+     [
+      77,
+      62
+     ],
+     [
+      83,
+      67
+     ],
+     [
+      65,
+      41
+     ]
+    ]
+   },
+   {
+    "id": "mh_apts",
+    "name": "Maple Court apartments",
+    "map": "maple",
+    "kind": "apartment",
+    "rent": 140,
+    "desc": "three-story apartment blocks with carports",
+    "spots": [
+     [
+      74,
+      68
+     ],
+     [
+      86,
+      70
+     ],
+     [
+      72,
+      84
+     ],
+     [
+      88,
+      86
+     ]
+    ]
+   },
+   {
+    "id": "pl_apts",
+    "name": "Seaside apartments",
+    "map": "palmcoast",
+    "kind": "apartment",
+    "rent": 300,
+    "desc": "apartments a few blocks from the sand",
+    "spots": [
+     [
+      39,
+      10
+     ],
+     [
+      17,
+      10
+     ],
+     [
+      84,
+      72
+     ],
+     [
+      92,
+      85
+     ],
+     [
+      85,
+      92
+     ]
+    ]
+   }
+  ],
+  "kinds": {
+   "apartment": {
+    "name": "Apartment",
+    "desc": "an apartment with a living room, a bedroom and a balcony",
+    "image": "../modern/bedroom.jpg",
+    "bills": {
+     "water": 15,
+     "power": 25
+    }
+   },
+   "house": {
+    "name": "House",
+    "desc": "a house with a living room, a bedroom and a yard",
+    "image": "../modern/bedroom.jpg",
+    "bills": {
+     "water": 25,
+     "power": 45
+    }
+   }
+  },
+  "expenses": [
+   {
+    "id": "water",
+    "name": "Water",
+    "icon": "drop",
+    "blocks": [
+     "shower",
+     "water",
+     "cook",
+     "x-coffee"
+    ]
+   },
+   {
+    "id": "power",
+    "name": "Power",
+    "icon": "bolt",
+    "blocks": [
+     "cook",
+     "x-coffee",
+     "x-freelance",
+     "x-treadmill",
+     "x-tv"
+    ]
+   }
+  ],
+  "breakables": [
+   {
+    "id": "shower",
+    "name": "the shower",
+    "blocks": [
+     "shower",
+     "basin"
+    ]
+   },
+   {
+    "id": "stove",
+    "name": "the stove",
+    "blocks": [
+     "cook"
+    ]
+   },
+   {
+    "id": "sink",
+    "name": "the kitchen sink",
+    "blocks": [
+     "water"
+    ]
+   }
+  ],
+  "repairCost": 90
+ },
+ "statuses": [
+  {
+   "id": "life",
+   "name": "Life",
+   "icon": "❤",
+   "color": "#ff4d7a",
+   "start": 100,
+   "max": 100,
+   "hud": true,
+   "zero": {
+    "text": "You pass out and wake up at the City Hospital. The bill is {cost}.",
+    "place": "hospital",
+    "cost": 300,
+    "restore": 60
+   },
+   "rpg": true
+  },
+  {
+   "id": "energy",
+   "name": "Energy",
+   "icon": "⚡",
+   "color": "#ffc233",
+   "start": 100,
+   "max": 100,
+   "hud": true,
+   "decay": null,
+   "zero": {
+    "text": "Exhausted, you fall asleep where you are and wake up at home.",
+    "place": "home",
+    "restore": 40,
+    "crisis": {
+     "after": 0,
+     "text": "",
+     "seen": "{u} collapsed from exhaustion at {0}."
+    }
+   }
+  },
+  {
+   "id": "hunger",
+   "name": "Hunger",
+   "icon": "🍽",
+   "color": "#ff8a3d",
+   "start": 85,
+   "max": 100,
+   "hud": true,
+   "decay": {
+    "amount": 10,
+    "everyMinutes": 120
+   },
+   "zero": {
+    "text": "You are starving.",
+    "drain": {
+     "status": "life",
+     "amount": 5,
+     "everyMinutes": 60
+    },
+    "crisis": {
+     "after": 180,
+     "text": "You feel faint from hunger and nearly collapse. A stranger helps you sit down and gives you something to eat.",
+     "restore": 25,
+     "mood": -15,
+     "shame": 0,
+     "seen": "{u} nearly fainted from hunger at {0}."
+    }
+   }
+  },
+  {
+   "id": "thirst",
+   "name": "Thirst",
+   "icon": "💧",
+   "color": "#3db8ff",
+   "start": 85,
+   "max": 100,
+   "hud": true,
+   "decay": {
+    "amount": 10,
+    "everyMinutes": 90
+   },
+   "zero": {
+    "text": "You are badly dehydrated.",
+    "drain": {
+     "status": "life",
+     "amount": 5,
+     "everyMinutes": 60
+    },
+    "crisis": {
+     "after": 120,
+     "text": "Dizzy and dehydrated, you have to sit down. A stranger hands you a bottle of water.",
+     "restore": 25,
+     "mood": -10,
+     "shame": 0,
+     "seen": "{u} almost passed out from thirst at {0}."
+    }
+   }
+  },
+  {
+   "id": "mood",
+   "name": "Mood",
+   "icon": "☺",
+   "color": "#b88cff",
+   "start": 70,
+   "max": 100,
+   "hud": true,
+   "decay": {
+    "amount": 2,
+    "everyMinutes": 180
+   },
+   "zero": {
+    "crisis": {
+     "after": 240,
+     "text": "Everything feels too heavy. You break down and have to go home.",
+     "place": "home",
+     "restore": 25,
+     "shame": 0,
+     "seen": "{u} broke down at {0}."
+    }
+   }
+  },
+  {
+   "id": "hygiene",
+   "name": "Hygiene",
+   "icon": "🧼",
+   "color": "#5ec8e6",
+   "start": 100,
+   "max": 100,
+   "hud": true,
+   "decay": {
+    "amount": 4,
+    "everyMinutes": 60,
+    "awakeOnly": true
+   },
+   "zero": {
+    "text": "You badly need a wash: people keep their distance and your mood sinks.",
+    "drain": {
+     "status": "mood",
+     "amount": 2,
+     "everyMinutes": 60
+    },
+    "crisis": {
+     "after": 360,
+     "text": "People step away from you, and someone says something about the smell. Your face burns.",
+     "mood": -15,
+     "shame": 5,
+     "seen": "People at {0} kept away from {u}, who badly needed a wash."
+    }
+   }
+  }
+ ],
+ "actions": [
+  {
+   "id": "coffee",
+   "name": "Coffee",
+   "label": "Have a coffee",
+   "icon": "☕",
+   "cost": 5,
+   "minutes": 10,
+   "tags": [
+    "food"
+   ],
+   "effects": {
+    "energy": 15,
+    "thirst": 10
+   }
+  },
+  {
+   "id": "snack",
+   "name": "Snack",
+   "label": "Grab a snack",
+   "icon": "🥪",
+   "cost": 12,
+   "minutes": 15,
+   "anywhere": true,
+   "effects": {
+    "hunger": 30,
+    "energy": 3
+   }
+  },
+  {
+   "id": "meal",
+   "name": "Meal",
+   "label": "Eat a meal",
+   "icon": "🍝",
+   "cost": 30,
+   "minutes": 40,
+   "tags": [
+    "food"
+   ],
+   "effects": {
+    "hunger": 60,
+    "mood": 5,
+    "energy": 8
+   }
+  },
+  {
+   "id": "drink",
+   "name": "Drink",
+   "label": "Drink something",
+   "icon": "🥤",
+   "cost": 5,
+   "minutes": 5,
+   "anywhere": true,
+   "effects": {
+    "thirst": 40,
+    "energy": 2
+   }
+  },
+  {
+   "id": "cook",
+   "name": "Cook",
+   "label": "Cook at home",
+   "icon": "🍳",
+   "cost": 8,
+   "minutes": 45,
+   "home": true,
+   "effects": {
+    "hunger": 55,
+    "mood": 3,
+    "energy": 5
+   },
+   "roll": {
+    "dc": 9,
+    "traits": [
+     "Good cook",
+     "Creative",
+     "Cooking"
+    ],
+    "success": {
+     "text": "It came out really good.",
+     "effects": {
+      "mood": 4
+     }
+    },
+    "fail": {
+     "text": "A bit burnt, but it fills you up.",
+     "effects": {
+      "mood": -3
+     }
+    }
+   }
+  },
+  {
+   "id": "water",
+   "name": "Water",
+   "label": "Drink water",
+   "icon": "💧",
+   "cost": 0,
+   "minutes": 5,
+   "home": true,
+   "effects": {
+    "thirst": 45,
+    "energy": 2
+   }
+  },
+  {
+   "id": "relax",
+   "name": "Relax",
+   "label": "Take a walk",
+   "icon": "🌿",
+   "cost": 0,
+   "minutes": 60,
+   "tags": [
+    "leisure"
+   ],
+   "effects": {
+    "mood": 12,
+    "energy": -5
+   }
+  },
+  {
+   "id": "doctor",
+   "name": "Doctor",
+   "label": "See a doctor",
+   "icon": "🩺",
+   "cost": 80,
+   "minutes": 60,
+   "place": "hospital",
+   "effects": {
+    "life": 40
+   }
+  },
+  {
+   "id": "shower",
+   "name": "Shower",
+   "label": "Take a shower",
+   "icon": "🚿",
+   "cost": 0,
+   "minutes": 20,
+   "home": true,
+   "effects": {
+    "hygiene": 100,
+    "mood": 3,
+    "energy": 5
+   }
+  },
+  {
+   "id": "washup",
+   "name": "Go to the bathroom",
+   "label": "Go to the bathroom",
+   "icon": "🧴",
+   "cost": 0,
+   "minutes": 10,
+   "tags": [
+    "food",
+    "shop",
+    "service",
+    "sport",
+    "study"
+   ],
+   "effects": {
+    "hygiene": 50
+   }
+  },
+  {
+   "id": "fish",
+   "name": "Fishing",
+   "label": "Go fishing",
+   "icon": "🎣",
+   "cost": 0,
+   "minutes": 90,
+   "place": "docks",
+   "effects": {
+    "energy": -10
+   },
+   "roll": {
+    "dc": 12,
+    "traits": [
+     "Athletic",
+     "Calm"
+    ],
+    "success": {
+     "text": "You caught a good fish and sold it at the market.",
+     "money": 45,
+     "effects": {
+      "mood": 6
+     }
+    },
+    "fail": {
+     "text": "Nothing bit today.",
+     "effects": {
+      "mood": -5
+     }
+    }
+   }
+  },
+  {
+   "id": "fix",
+   "name": "Repairs",
+   "label": "Fix something at home",
+   "icon": "🔧",
+   "cost": 0,
+   "minutes": 60,
+   "home": true,
+   "effects": {
+    "energy": -10
+   },
+   "roll": {
+    "dc": 13,
+    "traits": [
+     "Handy",
+     "Smart"
+    ],
+    "success": {
+     "text": "You fixed the leaky faucet yourself.",
+     "effects": {
+      "mood": 10
+     }
+    },
+    "fail": {
+     "text": "You made it worse and had to buy a new part.",
+     "money": -25,
+     "effects": {
+      "mood": -8
+     }
+    }
+   }
+  },
+  {
+   "id": "busk",
+   "name": "Busking",
+   "label": "Play music for tips",
+   "icon": "🎸",
+   "cost": 0,
+   "minutes": 60,
+   "tags": [
+    "leisure"
+   ],
+   "effects": {
+    "energy": -8
+   },
+   "roll": {
+    "dc": 14,
+    "traits": [
+     "Musical",
+     "Charming",
+     "Outgoing"
+    ],
+    "success": {
+     "text": "A small crowd gathered and tipped well.",
+     "money": 35,
+     "effects": {
+      "mood": 8
+     }
+    },
+    "fail": {
+     "text": "People walked past without stopping.",
+     "effects": {
+      "mood": -6
+     }
+    }
+   }
+  },
+  {
+   "id": "gymshower",
+   "name": "Shower at the gym",
+   "label": "Shower at the gym",
+   "icon": "🚿",
+   "cost": 0,
+   "minutes": 20,
+   "tags": [
+    "sport"
+   ],
+   "effects": {
+    "hygiene": 100,
+    "energy": 5
+   }
+  },
+  {
+   "id": "cinema",
+   "name": "Watch a movie",
+   "label": "Watch a movie at the cinema",
+   "icon": "🎬",
+   "cost": 25,
+   "minutes": 150,
+   "place": "mall",
+   "effects": {
+    "mood": 20,
+    "energy": -5
+   }
+  },
+  {
+   "id": "x-tv",
+   "name": "TV",
+   "label": "Watch TV",
+   "icon": "📺",
+   "cost": 0,
+   "minutes": 60,
+   "home": true,
+   "effects": {
+    "mood": 6,
+    "energy": -2
+   }
+  },
+  {
+   "id": "x-coffee",
+   "name": "Coffee",
+   "label": "Make coffee",
+   "icon": "☕",
+   "cost": 0,
+   "minutes": 10,
+   "home": true,
+   "needsItem": "coffee",
+   "effects": {
+    "energy": 20,
+    "thirst": 5
+   }
+  },
+  {
+   "id": "x-freelance",
+   "name": "Freelance",
+   "label": "Freelance on the computer",
+   "icon": "🖥️",
+   "cost": -70,
+   "minutes": 180,
+   "home": true,
+   "needsItem": "pc",
+   "effects": {
+    "energy": -15,
+    "mood": -4,
+    "hygiene": -5
+   }
+  },
+  {
+   "id": "x-paint",
+   "name": "Painting",
+   "label": "Paint something to sell",
+   "icon": "🎨",
+   "cost": 0,
+   "minutes": 120,
+   "home": true,
+   "needsItem": "easel",
+   "effects": {
+    "energy": -10,
+    "mood": 6
+   },
+   "roll": {
+    "dc": 13,
+    "traits": [
+     "Creative",
+     "Skilled with hands"
+    ],
+    "success": {
+     "text": "Your painting sold quickly.",
+     "money": 110
+    },
+    "fail": {
+     "text": "Nobody wanted this one.",
+     "effects": {
+      "mood": -6
+     }
+    }
+   }
+  },
+  {
+   "id": "x-guitar",
+   "name": "Guitar practice",
+   "label": "Practice guitar",
+   "icon": "🎸",
+   "cost": 0,
+   "minutes": 60,
+   "home": true,
+   "needsItem": "guitar",
+   "effects": {
+    "energy": -6,
+    "mood": 5
+   },
+   "roll": {
+    "dc": 10,
+    "traits": [
+     "Musical",
+     "Creative"
+    ],
+    "success": {
+     "text": "You nailed a tricky song.",
+     "effects": {
+      "mood": 3
+     }
+    },
+    "fail": {
+     "text": "Your fingers would not cooperate today.",
+     "effects": {
+      "mood": -2
+     }
+    }
+   }
+  },
+  {
+   "id": "x-treadmill",
+   "name": "Treadmill",
+   "label": "Run on the treadmill",
+   "icon": "🏃",
+   "cost": 0,
+   "minutes": 45,
+   "home": true,
+   "needsItem": "treadmill",
+   "effects": {
+    "energy": -20,
+    "hygiene": -25,
+    "mood": 3
+   },
+   "roll": {
+    "dc": 9,
+    "traits": [
+     "Athletic",
+     "Strong",
+     "Sports"
+    ],
+    "success": {
+     "text": "A good run.",
+     "effects": {
+      "mood": 5
+     }
+    },
+    "fail": {
+     "text": "You gave up halfway.",
+     "effects": {
+      "mood": -2
+     }
+    }
+   }
+  },
+  {
+   "id": "x-gig",
+   "name": "Quick gig",
+   "label": "Do a quick gig: deliveries (2 h)",
+   "icon": "🛵",
+   "cost": -25,
+   "minutes": 120,
+   "tags": [
+    "work"
+   ],
+   "effects": {
+    "energy": -15,
+    "hunger": -10,
+    "hygiene": -10
+   }
+  },
+  {
+   "id": "x-workout",
+   "name": "Workout",
+   "label": "Work out at the gym",
+   "icon": "🏋️",
+   "cost": 15,
+   "minutes": 90,
+   "tags": [
+    "sport"
+   ],
+   "effects": {
+    "energy": -25,
+    "hygiene": -30,
+    "mood": 4,
+    "thirst": -10
+   },
+   "roll": {
+    "dc": 9,
+    "traits": [
+     "Athletic",
+     "Strong",
+     "Sports"
+    ],
+    "success": {
+     "text": "A great workout.",
+     "effects": {
+      "mood": 6
+     }
+    },
+    "fail": {
+     "text": "A sloppy workout; your heart was not in it.",
+     "effects": {
+      "mood": -2
+     }
+    }
+   }
+  },
+  {
+   "id": "x-run",
+   "name": "Run",
+   "label": "Go for a run",
+   "icon": "👟",
+   "cost": 0,
+   "minutes": 40,
+   "tags": [
+    "leisure"
+   ],
+   "notTags": [
+    "sport"
+   ],
+   "effects": {
+    "energy": -15,
+    "hygiene": -20,
+    "mood": 6,
+    "thirst": -10
+   }
+  }
+ ],
+ "sleep": {
+  "until": 420,
+  "restore": {
+   "energy": 100,
+   "life": 10,
+   "mood": 5
+  },
+  "homeOnly": true
+ },
+ "rent": {
+  "everyDays": 7,
+  "text": "Rent for your home: {cost}."
+ },
+ "sheet": {
+  "age": {
+   "min": 18,
+   "max": 60,
+   "default": 24
+  },
+  "appearance": [
+   {
+    "id": "hair",
+    "label": "Hair",
+    "options": [
+     "Black",
+     "Brown",
+     "Blond",
+     "Red",
+     "Gray"
+    ]
+   },
+   {
+    "id": "hairStyle",
+    "label": "Hair style",
+    "options": [
+     "Short",
+     "Medium",
+     "Long",
+     "Curly",
+     "Shaved"
+    ]
+   },
+   {
+    "id": "eyes",
+    "label": "Eyes",
+    "options": [
+     "Brown",
+     "Black",
+     "Green",
+     "Blue",
+     "Gray"
+    ]
+   },
+   {
+    "id": "skin",
+    "label": "Skin",
+    "options": [
+     "Fair",
+     "Olive",
+     "Tan",
+     "Deep"
+    ]
+   },
+   {
+    "id": "build",
+    "label": "Build",
+    "options": [
+     "Slim",
+     "Average",
+     "Athletic",
+     "Strong",
+     "Heavy"
+    ]
+   }
+  ],
+  "traits": [
+   {
+    "id": "proficiency",
+    "label": "Proficiency",
+    "max": 2,
+    "options": [
+     "Strong",
+     "Smart",
+     "Charming",
+     "Creative",
+     "Athletic",
+     "Handy",
+     "Musical",
+     "Good with numbers",
+     "Good cook",
+     "Tech-savvy"
+    ]
+   },
+   {
+    "id": "personality",
+    "label": "Personality",
+    "max": 3,
+    "options": [
+     "Outgoing",
+     "Shy",
+     "Calm",
+     "Hot-headed",
+     "Cheerful",
+     "Serious",
+     "Romantic",
+     "Ambitious",
+     "Lazy",
+     "Curious",
+     "Sarcastic",
+     "Kind"
+    ]
+   },
+   {
+    "id": "interests",
+    "label": "Interests",
+    "max": 3,
+    "options": [
+     "Sports",
+     "Music",
+     "Games",
+     "Books",
+     "Cooking",
+     "Fashion",
+     "Technology",
+     "Nature",
+     "Art",
+     "Movies",
+     "Nightlife",
+     "Travel"
+    ]
+   }
+  ]
+ },
+ "catalogs": {
+  "origins": [
+   {
+    "id": "newcomer",
+    "name": "Newcomer",
+    "desc": "You arrive knowing nobody. The default choice.",
+    "money": 2000,
+    "home": "downtown",
+    "skills": [
+     "survival",
+     "perception"
+    ],
+    "feature": "Fresh eyes: you notice what locals stopped seeing.",
+    "attributes": {
+     "wis": 1,
+     "dex": 1
+    }
+   },
+   {
+    "id": "local",
+    "name": "Local kid",
+    "desc": "You grew up here: you already know two people and live on the East Side.",
+    "money": 1200,
+    "home": "east",
+    "knows": 2,
+    "skills": [
+     "survival",
+     "persuasion"
+    ],
+    "feature": "Born here: the neighborhood looks out for you.",
+    "attributes": {
+     "con": 1,
+     "cha": 1
+    }
+   },
+   {
+    "id": "student",
+    "name": "Student",
+    "desc": "You came for the university and live near the campus.",
+    "money": 1000,
+    "home": "north",
+    "skills": [
+     "history",
+     "investigation"
+    ],
+    "feature": "Library card: campus resources and professors help you.",
+    "attributes": {
+     "int": 1,
+     "wis": 1
+    }
+   },
+   {
+    "id": "heir",
+    "name": "Heir",
+    "desc": "Family money: a flat on the waterfront, but no job yet.",
+    "money": 15000,
+    "home": "waterfront",
+    "skills": [
+     "persuasion",
+     "history"
+    ],
+    "feature": "Old money: doors open, and so do wallets.",
+    "attributes": {
+     "cha": 1,
+     "int": 1
+    }
+   }
+  ],
+  "courses": [
+   {
+    "id": "cooking",
+    "name": "Cooking class",
+    "area": "Cooking",
+    "days": 3,
+    "cost": 150,
+    "grants": [
+     "Good cook"
+    ],
+    "icon": "🍳",
+    "desc": "Knife skills, sauces and timing. Your meals come out better."
+   },
+   {
+    "id": "fitness",
+    "name": "Fitness coach certificate",
+    "area": "Sports",
+    "days": 4,
+    "cost": 250,
+    "grants": [
+     "Athletic"
+    ],
+    "icon": "🏋️",
+    "desc": "Training plans and nutrition. Workouts go better."
+   },
+   {
+    "id": "firstaid",
+    "name": "Lifeguard & first aid",
+    "area": "Health",
+    "days": 2,
+    "cost": 150,
+    "grants": [
+     "Calm"
+    ],
+    "icon": "🛟",
+    "desc": "Rescue and first aid. Needed to work as a lifeguard."
+   },
+   {
+    "id": "programming",
+    "name": "Programming bootcamp",
+    "area": "Technology",
+    "days": 5,
+    "cost": 600,
+    "grants": [
+     "Tech-savvy"
+    ],
+    "icon": "💻",
+    "desc": "Code, apps and the web. Needed for software jobs."
+   },
+   {
+    "id": "finance",
+    "name": "Finance & accounting",
+    "area": "Business",
+    "days": 5,
+    "cost": 500,
+    "grants": [
+     "Good with numbers"
+    ],
+    "icon": "📊",
+    "desc": "Budgets, markets and spreadsheets. Needed for finance jobs."
+   },
+   {
+    "id": "engineering",
+    "name": "Engineering degree",
+    "area": "Technology",
+    "days": 7,
+    "cost": 900,
+    "grants": [
+     "Handy",
+     "Smart"
+    ],
+    "icon": "⚙️",
+    "desc": "Machines and structures. Needed to work as an engineer."
+   },
+   {
+    "id": "medicine",
+    "name": "Medical school",
+    "area": "Health",
+    "days": 10,
+    "cost": 2000,
+    "grants": [
+     "Smart"
+    ],
+    "icon": "🩺",
+    "desc": "Long and hard. Needed to work as a doctor."
+   },
+   {
+    "id": "nursing",
+    "name": "Nursing course",
+    "area": "Health",
+    "days": 5,
+    "cost": 600,
+    "grants": [
+     "Kind"
+    ],
+    "icon": "💉",
+    "desc": "Patient care. Needed to work as a nurse."
+   },
+   {
+    "id": "education",
+    "name": "Teaching certificate",
+    "area": "Education",
+    "days": 4,
+    "cost": 400,
+    "grants": [
+     "Kind"
+    ],
+    "icon": "🍎",
+    "desc": "How to teach. Needed to work as a teacher."
+   },
+   {
+    "id": "science",
+    "name": "Research methods",
+    "area": "Science",
+    "days": 6,
+    "cost": 700,
+    "grants": [
+     "Curious"
+    ],
+    "icon": "🔬",
+    "desc": "Experiments and papers. Needed to work as a researcher."
+   },
+   {
+    "id": "mechanics",
+    "name": "Auto mechanics",
+    "area": "Trades",
+    "days": 4,
+    "cost": 350,
+    "grants": [
+     "Handy"
+    ],
+    "icon": "🔧",
+    "desc": "Engines and repairs. Needed to work as a mechanic."
+   },
+   {
+    "id": "publicadmin",
+    "name": "Public administration",
+    "area": "Business",
+    "days": 5,
+    "cost": 500,
+    "grants": [
+     "Serious"
+    ],
+    "icon": "🏛️",
+    "desc": "How the city works. Needed to work at City Hall."
+   },
+   {
+    "id": "hospitality",
+    "name": "Hospitality & service",
+    "area": "Service",
+    "days": 2,
+    "cost": 120,
+    "grants": [
+     "Charming"
+    ],
+    "icon": "🛎️",
+    "desc": "Guests, customers and smiles. Helps in hotels, bars and shops."
+   },
+   {
+    "id": "music",
+    "name": "Music lessons",
+    "area": "Arts",
+    "days": 4,
+    "cost": 300,
+    "grants": [
+     "Musical"
+    ],
+    "icon": "🎸",
+    "desc": "An instrument and some theory. Busking goes better."
+   },
+   {
+    "id": "art",
+    "name": "Art & design",
+    "area": "Arts",
+    "days": 4,
+    "cost": 300,
+    "grants": [
+     "Creative"
+    ],
+    "icon": "🎨",
+    "desc": "Drawing, color and design. Paintings sell better."
+   },
+   {
+    "id": "speaking",
+    "name": "Public speaking",
+    "area": "Social",
+    "days": 3,
+    "cost": 200,
+    "grants": [
+     "Outgoing"
+    ],
+    "icon": "🎤",
+    "desc": "Confidence in front of people. Helps in interviews."
+   }
+  ],
+  "shop": [
+   {
+    "id": "bed",
+    "name": "King size bed",
+    "desc": "Sleep better: you wake up in a better mood.",
+    "icon": "🛏️",
+    "price": 900,
+    "sleepMood": 10
+   },
+   {
+    "id": "coffee",
+    "name": "Coffee machine",
+    "desc": "Make coffee at home (energy).",
+    "icon": "☕",
+    "price": 250
+   },
+   {
+    "id": "car",
+    "name": "Sports car",
+    "desc": "Travel takes half the time.",
+    "icon": "🚗",
+    "price": 18000,
+    "travel": 0.5
+   },
+   {
+    "id": "bike",
+    "name": "Bicycle",
+    "desc": "Travel takes a quarter less time.",
+    "icon": "🚲",
+    "price": 450,
+    "travel": 0.75
+   },
+   {
+    "id": "pc",
+    "name": "Gaming PC",
+    "desc": "Freelance or stream from home.",
+    "icon": "🖥️",
+    "price": 2200
+   },
+   {
+    "id": "easel",
+    "name": "Easel and paints",
+    "desc": "Paint at home; a good painting sells.",
+    "icon": "🎨",
+    "price": 300
+   },
+   {
+    "id": "guitar",
+    "name": "Acoustic guitar",
+    "desc": "Practice at home (the Guitar hobby).",
+    "icon": "🎸",
+    "price": 350
+   },
+   {
+    "id": "treadmill",
+    "name": "Treadmill",
+    "desc": "Work out at home.",
+    "icon": "🏃",
+    "price": 1200
+   }
+  ]
+ },
+ "occupations": [
+  {
+   "id": "barista",
+   "name": "Barista",
+   "place": "cafe",
+   "ranks": [
+    {
+     "name": "Attendant",
+     "pay": 15
+    },
+    {
+     "name": "Barista",
+     "pay": 20
+    },
+    {
+     "name": "Manager",
+     "pay": 25
+    }
+   ],
+   "shift": 6,
+   "cost": {
+    "energy": 25,
+    "hunger": 15,
+    "thirst": 15,
+    "mood": 5,
+    "hygiene": 15
+   },
+   "likes": [
+    "Good cook",
+    "Charming",
+    "Outgoing"
+   ],
+   "hours": [
+    7,
+    19
+   ],
+   "promote": [
+    4,
+    8
+   ]
+  },
+  {
+   "id": "courier",
+   "name": "Courier",
+   "place": "downtown",
+   "ranks": [
+    {
+     "name": "Courier",
+     "pay": 14
+    },
+    {
+     "name": "Route lead",
+     "pay": 20
+    }
+   ],
+   "shift": 5,
+   "cost": {
+    "energy": 35,
+    "hunger": 15,
+    "thirst": 15,
+    "mood": 5,
+    "hygiene": 15
+   },
+   "likes": [
+    "Athletic",
+    "Strong"
+   ],
+   "hours": [
+    8,
+    20
+   ],
+   "promote": [
+    4
+   ]
+  },
+  {
+   "id": "analyst",
+   "name": "Financial analyst",
+   "place": "finance",
+   "ranks": [
+    {
+     "name": "Intern",
+     "pay": 20
+    },
+    {
+     "name": "Junior",
+     "pay": 35
+    },
+    {
+     "name": "Mid-level",
+     "pay": 55
+    },
+    {
+     "name": "Senior",
+     "pay": 80
+    }
+   ],
+   "shift": 8,
+   "cost": {
+    "energy": 30,
+    "mood": 5,
+    "hunger": 15,
+    "thirst": 15,
+    "hygiene": 15
+   },
+   "likes": [
+    "Smart",
+    "Good with numbers"
+   ],
+   "needs": [
+    "Smart",
+    "Good with numbers"
+   ],
+   "hours": [
+    8,
+    19
+   ],
+   "promote": [
+    4,
+    8,
+    14
+   ],
+   "courses": [
+    "finance"
+   ]
+  },
+  {
+   "id": "engineer",
+   "name": "Engineer",
+   "place": "industrial",
+   "ranks": [
+    {
+     "name": "Technician",
+     "pay": 25
+    },
+    {
+     "name": "Engineer",
+     "pay": 45
+    },
+    {
+     "name": "Coordinator",
+     "pay": 70
+    }
+   ],
+   "shift": 8,
+   "cost": {
+    "energy": 30,
+    "hunger": 15,
+    "thirst": 15,
+    "mood": 5,
+    "hygiene": 15
+   },
+   "likes": [
+    "Smart",
+    "Handy",
+    "Tech-savvy"
+   ],
+   "needs": [
+    "Smart",
+    "Handy",
+    "Tech-savvy"
+   ],
+   "hours": [
+    7,
+    19
+   ],
+   "promote": [
+    4,
+    8
+   ],
+   "courses": [
+    "engineering"
+   ]
+  },
+  {
+   "id": "trainer",
+   "name": "Gym instructor",
+   "place": "stadium",
+   "ranks": [
+    {
+     "name": "Assistant",
+     "pay": 18
+    },
+    {
+     "name": "Instructor",
+     "pay": 28
+    },
+    {
+     "name": "Head coach",
+     "pay": 40
+    }
+   ],
+   "shift": 6,
+   "cost": {
+    "energy": 35,
+    "hunger": 15,
+    "thirst": 15,
+    "mood": 5,
+    "hygiene": 15
+   },
+   "likes": [
+    "Athletic",
+    "Strong"
+   ],
+   "hours": [
+    6,
+    22
+   ],
+   "promote": [
+    4,
+    8
+   ],
+   "hobby": {
+    "id": "fitness",
+    "level": 3
+   }
+  },
+  {
+   "id": "librarian",
+   "name": "Librarian",
+   "place": "campus",
+   "ranks": [
+    {
+     "name": "Assistant",
+     "pay": 16
+    },
+    {
+     "name": "Librarian",
+     "pay": 28
+    }
+   ],
+   "shift": 6,
+   "cost": {
+    "energy": 20,
+    "hunger": 15,
+    "thirst": 15,
+    "mood": 5,
+    "hygiene": 15
+   },
+   "likes": [
+    "Smart",
+    "Calm",
+    "Books"
+   ],
+   "hours": [
+    8,
+    20
+   ],
+   "promote": [
+    4
+   ]
+  },
+  {
+   "id": "waiter",
+   "name": "Waiter",
+   "place": "waterfront",
+   "ranks": [
+    {
+     "name": "Waiter",
+     "pay": 18
+    },
+    {
+     "name": "Maître d'",
+     "pay": 45
+    }
+   ],
+   "shift": 6,
+   "cost": {
+    "energy": 30,
+    "hunger": 15,
+    "thirst": 15,
+    "mood": 5,
+    "hygiene": 15
+   },
+   "likes": [
+    "Charming",
+    "Outgoing"
+   ],
+   "hours": [
+    11,
+    23
+   ],
+   "promote": [
+    4
+   ]
+  },
+  {
+   "id": "farmhand",
+   "name": "Farmhand",
+   "place": "farms",
+   "ranks": [
+    {
+     "name": "Farmhand",
+     "pay": 13
+    },
+    {
+     "name": "Foreman",
+     "pay": 22
+    }
+   ],
+   "shift": 6,
+   "cost": {
+    "energy": 35,
+    "hunger": 15,
+    "thirst": 15,
+    "mood": 5,
+    "hygiene": 15
+   },
+   "likes": [
+    "Strong",
+    "Athletic",
+    "Nature"
+   ],
+   "hours": [
+    5,
+    17
+   ],
+   "promote": [
+    6
+   ]
+  },
+  {
+   "id": "nurse",
+   "name": "Nurse",
+   "place": "hospital",
+   "ranks": [
+    {
+     "name": "Nursing assistant",
+     "pay": 18
+    },
+    {
+     "name": "Nurse",
+     "pay": 32
+    },
+    {
+     "name": "Head nurse",
+     "pay": 48
+    }
+   ],
+   "shift": 8,
+   "cost": {
+    "energy": 35,
+    "mood": 3,
+    "hunger": 15,
+    "thirst": 15,
+    "hygiene": 15
+   },
+   "likes": [
+    "Kind",
+    "Calm",
+    "Smart"
+   ],
+   "needs": [
+    "Kind",
+    "Calm",
+    "Smart"
+   ],
+   "hours": [
+    0,
+    24
+   ],
+   "promote": [
+    5,
+    12
+   ],
+   "courses": [
+    "nursing"
+   ]
+  },
+  {
+   "id": "cashier",
+   "name": "Cashier",
+   "place": "mall",
+   "ranks": [
+    {
+     "name": "Cashier",
+     "pay": 14
+    },
+    {
+     "name": "Shift lead",
+     "pay": 20
+    },
+    {
+     "name": "Store manager",
+     "pay": 30
+    }
+   ],
+   "shift": 6,
+   "cost": {
+    "energy": 25,
+    "hunger": 15,
+    "thirst": 15,
+    "mood": 5,
+    "hygiene": 15
+   },
+   "likes": [
+    "Outgoing",
+    "Kind",
+    "Good with numbers"
+   ],
+   "hours": [
+    9,
+    22
+   ],
+   "promote": [
+    4,
+    8
+   ]
+  },
+  {
+   "id": "cook",
+   "name": "Cook",
+   "place": "mall",
+   "ranks": [
+    {
+     "name": "Line cook",
+     "pay": 15
+    },
+    {
+     "name": "Cook",
+     "pay": 24
+    },
+    {
+     "name": "Head chef",
+     "pay": 38
+    }
+   ],
+   "shift": 6,
+   "cost": {
+    "energy": 30,
+    "hunger": 15,
+    "thirst": 15,
+    "mood": 5,
+    "hygiene": 15
+   },
+   "likes": [
+    "Good cook",
+    "Creative",
+    "Cooking"
+   ],
+   "hours": [
+    10,
+    23
+   ],
+   "promote": [
+    4,
+    9
+   ],
+   "needs": [
+    "Good cook"
+   ],
+   "branches": [
+    {
+     "at": 3,
+     "options": [
+      {
+       "id": "cook_fine",
+       "name": "Fine dining",
+       "desc": "Tasting menus and perfect plates.",
+       "likes": [
+        "Creative",
+        "Good cook"
+       ],
+       "ranks": [
+        {
+         "name": "Sous chef",
+         "pay": 46
+        },
+        {
+         "name": "Chef de cuisine",
+         "pay": 53
+        },
+        {
+         "name": "Executive chef",
+         "pay": 62
+        }
+       ],
+       "promote": [
+        12,
+        12,
+        12
+       ]
+      },
+      {
+       "id": "cook_biz",
+       "name": "Restaurant business",
+       "desc": "Run the kitchen and the books.",
+       "likes": [
+        "Good with numbers",
+        "Ambitious"
+       ],
+       "ranks": [
+        {
+         "name": "Kitchen manager",
+         "pay": 44
+        },
+        {
+         "name": "Restaurant manager",
+         "pay": 51
+        },
+        {
+         "name": "Operations manager",
+         "pay": 59
+        }
+       ],
+       "promote": [
+        12,
+        12,
+        12
+       ]
+      }
+     ]
+    },
+    {
+     "at": 6,
+     "options": [
+      {
+       "id": "cook_star",
+       "name": "Star cuisine",
+       "desc": "Chase the stars of the guide.",
+       "likes": [
+        "Creative",
+        "Serious"
+       ],
+       "ranks": [
+        {
+         "name": "Starred chef",
+         "pay": 70
+        },
+        {
+         "name": "Two-star chef",
+         "pay": 81
+        },
+        {
+         "name": "Culinary icon",
+         "pay": 94
+        }
+       ],
+       "promote": [
+        13,
+        13,
+        13
+       ],
+       "after": [
+        "cook_fine"
+       ]
+      },
+      {
+       "id": "cook_pastry",
+       "name": "Pastry",
+       "desc": "Desserts people talk about.",
+       "likes": [
+        "Creative",
+        "Cheerful"
+       ],
+       "ranks": [
+        {
+         "name": "Pastry chef",
+         "pay": 66
+        },
+        {
+         "name": "Head pastry chef",
+         "pay": 77
+        },
+        {
+         "name": "Pastry master",
+         "pay": 89
+        }
+       ],
+       "promote": [
+        13,
+        13,
+        13
+       ],
+       "after": [
+        "cook_fine"
+       ]
+      },
+      {
+       "id": "cook_owner",
+       "name": "Your own place",
+       "desc": "Open your own restaurant.",
+       "likes": [
+        "Ambitious",
+        "Outgoing"
+       ],
+       "ranks": [
+        {
+         "name": "Restaurant owner",
+         "pay": 68
+        },
+        {
+         "name": "Owner of two places",
+         "pay": 79
+        },
+        {
+         "name": "Restaurateur",
+         "pay": 92
+        }
+       ],
+       "promote": [
+        13,
+        13,
+        13
+       ],
+       "after": [
+        "cook_biz"
+       ]
+      },
+      {
+       "id": "cook_tv",
+       "name": "Food media",
+       "desc": "Cameras, books and fans.",
+       "likes": [
+        "Charming",
+        "Outgoing"
+       ],
+       "ranks": [
+        {
+         "name": "Food blogger",
+         "pay": 64
+        },
+        {
+         "name": "Cooking show host",
+         "pay": 74
+        },
+        {
+         "name": "Celebrity chef",
+         "pay": 86
+        }
+       ],
+       "promote": [
+        13,
+        13,
+        13
+       ],
+       "after": [
+        "cook_biz",
+        "cook_fine"
+       ]
+      }
+     ]
+    },
+    {
+     "at": 9,
+     "options": [
+      {
+       "id": "cook_legend",
+       "name": "Legendary chef",
+       "desc": "Your name is on every menu in town.",
+       "likes": [],
+       "ranks": [
+        {
+         "name": "Legendary chef",
+         "pay": 120
+        }
+       ],
+       "promote": [
+        18
+       ],
+       "after": [
+        "cook_star",
+        "cook_pastry"
+       ]
+      },
+      {
+       "id": "cook_chain",
+       "name": "Restaurant group",
+       "desc": "A dozen places with your name.",
+       "likes": [],
+       "ranks": [
+        {
+         "name": "Head of a restaurant group",
+         "pay": 125
+        }
+       ],
+       "promote": [
+        18
+       ],
+       "after": [
+        "cook_owner"
+       ]
+      },
+      {
+       "id": "cook_star_tv",
+       "name": "Food star",
+       "desc": "Everyone knows your face.",
+       "likes": [],
+       "ranks": [
+        {
+         "name": "Food star",
+         "pay": 115
+        }
+       ],
+       "promote": [
+        18
+       ],
+       "after": [
+        "cook_tv",
+        "cook_owner"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "stylist",
+   "name": "Hair stylist",
+   "place": "mall",
+   "ranks": [
+    {
+     "name": "Assistant",
+     "pay": 14
+    },
+    {
+     "name": "Stylist",
+     "pay": 24
+    },
+    {
+     "name": "Salon owner",
+     "pay": 38
+    }
+   ],
+   "shift": 6,
+   "cost": {
+    "energy": 25,
+    "hunger": 15,
+    "thirst": 15,
+    "mood": 5,
+    "hygiene": 15
+   },
+   "likes": [
+    "Fashion",
+    "Creative",
+    "Charming"
+   ],
+   "hours": [
+    9,
+    20
+   ],
+   "promote": [
+    4,
+    9
+   ]
+  },
+  {
+   "id": "receptionist",
+   "name": "Hotel receptionist",
+   "place": "waterfront",
+   "ranks": [
+    {
+     "name": "Receptionist",
+     "pay": 17
+    },
+    {
+     "name": "Concierge",
+     "pay": 26
+    },
+    {
+     "name": "Hotel manager",
+     "pay": 42
+    }
+   ],
+   "shift": 8,
+   "cost": {
+    "energy": 25,
+    "hunger": 15,
+    "thirst": 15,
+    "mood": 5,
+    "hygiene": 15
+   },
+   "likes": [
+    "Charming",
+    "Outgoing",
+    "Calm"
+   ],
+   "hours": [
+    6,
+    24
+   ],
+   "promote": [
+    4,
+    9
+   ]
+  },
+  {
+   "id": "bartender",
+   "name": "Bartender",
+   "place": "waterfront",
+   "ranks": [
+    {
+     "name": "Barback",
+     "pay": 15
+    },
+    {
+     "name": "Bartender",
+     "pay": 24
+    },
+    {
+     "name": "Mixologist",
+     "pay": 35
+    }
+   ],
+   "shift": 6,
+   "cost": {
+    "energy": 30,
+    "hunger": 15,
+    "thirst": 15,
+    "mood": 5,
+    "hygiene": 15
+   },
+   "likes": [
+    "Outgoing",
+    "Charming",
+    "Nightlife"
+   ],
+   "hours": [
+    18,
+    4
+   ],
+   "promote": [
+    4,
+    8
+   ]
+  },
+  {
+   "id": "lifeguard",
+   "name": "Lifeguard",
+   "place": "beach",
+   "ranks": [
+    {
+     "name": "Lifeguard",
+     "pay": 17
+    },
+    {
+     "name": "Head lifeguard",
+     "pay": 26
+    }
+   ],
+   "shift": 6,
+   "cost": {
+    "energy": 35,
+    "hunger": 15,
+    "thirst": 15,
+    "mood": 5,
+    "hygiene": 15
+   },
+   "likes": [
+    "Athletic",
+    "Nature",
+    "Calm"
+   ],
+   "hours": [
+    8,
+    19
+   ],
+   "promote": [
+    5
+   ],
+   "needs": [
+    "Athletic",
+    "Strong"
+   ],
+   "courses": [
+    "firstaid"
+   ]
+  },
+  {
+   "id": "gardener",
+   "name": "Gardener",
+   "place": "park",
+   "ranks": [
+    {
+     "name": "Gardener",
+     "pay": 14
+    },
+    {
+     "name": "Head gardener",
+     "pay": 22
+    },
+    {
+     "name": "Park ranger",
+     "pay": 30
+    }
+   ],
+   "shift": 6,
+   "cost": {
+    "energy": 30,
+    "hunger": 15,
+    "thirst": 15,
+    "mood": 5,
+    "hygiene": 15
+   },
+   "likes": [
+    "Nature",
+    "Calm",
+    "Handy"
+   ],
+   "hours": [
+    6,
+    18
+   ],
+   "promote": [
+    4,
+    8
+   ]
+  },
+  {
+   "id": "rideop",
+   "name": "Ride operator",
+   "place": "ferris",
+   "ranks": [
+    {
+     "name": "Ride operator",
+     "pay": 15
+    },
+    {
+     "name": "Shift supervisor",
+     "pay": 22
+    },
+    {
+     "name": "Park manager",
+     "pay": 34
+    }
+   ],
+   "shift": 6,
+   "cost": {
+    "energy": 25,
+    "hunger": 15,
+    "thirst": 15,
+    "mood": 5,
+    "hygiene": 15
+   },
+   "likes": [
+    "Outgoing",
+    "Cheerful",
+    "Kind"
+   ],
+   "hours": [
+    10,
+    23
+   ],
+   "promote": [
+    4,
+    9
+   ]
+  },
+  {
+   "id": "dockworker",
+   "name": "Dock worker",
+   "place": "docks",
+   "ranks": [
+    {
+     "name": "Dockhand",
+     "pay": 17
+    },
+    {
+     "name": "Crane operator",
+     "pay": 28
+    },
+    {
+     "name": "Harbor master",
+     "pay": 42
+    }
+   ],
+   "shift": 8,
+   "cost": {
+    "energy": 40,
+    "hunger": 15,
+    "thirst": 15,
+    "mood": 5,
+    "hygiene": 15
+   },
+   "likes": [
+    "Strong",
+    "Handy",
+    "Calm"
+   ],
+   "hours": [
+    5,
+    17
+   ],
+   "promote": [
+    5,
+    10
+   ],
+   "needs": [
+    "Strong",
+    "Handy"
+   ]
+  },
+  {
+   "id": "clerk",
+   "name": "City clerk",
+   "place": "civic",
+   "ranks": [
+    {
+     "name": "Clerk",
+     "pay": 18
+    },
+    {
+     "name": "Officer",
+     "pay": 30
+    },
+    {
+     "name": "Department head",
+     "pay": 48
+    },
+    {
+     "name": "Councilor",
+     "pay": 70
+    }
+   ],
+   "shift": 8,
+   "cost": {
+    "energy": 25,
+    "hunger": 15,
+    "thirst": 15,
+    "mood": 5,
+    "hygiene": 15
+   },
+   "likes": [
+    "Smart",
+    "Serious",
+    "Ambitious"
+   ],
+   "hours": [
+    8,
+    17
+   ],
+   "promote": [
+    4,
+    8,
+    14
+   ],
+   "needs": [
+    "Smart",
+    "Good with numbers",
+    "Kind"
+   ],
+   "courses": [
+    "publicadmin"
+   ]
+  },
+  {
+   "id": "doctor",
+   "name": "Doctor",
+   "place": "hospital",
+   "ranks": [
+    {
+     "name": "Resident",
+     "pay": 30
+    },
+    {
+     "name": "Doctor",
+     "pay": 55
+    },
+    {
+     "name": "Surgeon",
+     "pay": 85
+    }
+   ],
+   "shift": 10,
+   "cost": {
+    "energy": 40,
+    "hunger": 15,
+    "thirst": 15,
+    "mood": 5,
+    "hygiene": 15
+   },
+   "likes": [
+    "Smart",
+    "Calm",
+    "Kind"
+   ],
+   "hours": [
+    0,
+    24
+   ],
+   "promote": [
+    6,
+    14
+   ],
+   "needs": [
+    "Smart"
+   ],
+   "courses": [
+    "medicine"
+   ],
+   "branches": [
+    {
+     "at": 3,
+     "options": [
+      {
+       "id": "doc_surg",
+       "name": "Surgery",
+       "desc": "The operating room: long hours, steady hands.",
+       "likes": [
+        "Calm",
+        "Strong"
+       ],
+       "ranks": [
+        {
+         "name": "Surgical fellow",
+         "pay": 100
+        },
+        {
+         "name": "Attending surgeon",
+         "pay": 116
+        },
+        {
+         "name": "Senior surgeon",
+         "pay": 135
+        }
+       ],
+       "promote": [
+        12,
+        12,
+        12
+       ]
+      },
+      {
+       "id": "doc_fam",
+       "name": "Family medicine",
+       "desc": "Know your patients for years.",
+       "likes": [
+        "Kind",
+        "Charming"
+       ],
+       "ranks": [
+        {
+         "name": "Family doctor",
+         "pay": 95
+        },
+        {
+         "name": "Senior physician",
+         "pay": 110
+        },
+        {
+         "name": "Clinic director",
+         "pay": 128
+        }
+       ],
+       "promote": [
+        12,
+        12,
+        12
+       ]
+      }
+     ]
+    },
+    {
+     "at": 6,
+     "options": [
+      {
+       "id": "doc_neuro",
+       "name": "Neurosurgery",
+       "desc": "The hardest operations there are.",
+       "likes": [
+        "Smart",
+        "Calm"
+       ],
+       "ranks": [
+        {
+         "name": "Neurosurgeon",
+         "pay": 160
+        },
+        {
+         "name": "Senior neurosurgeon",
+         "pay": 186
+        },
+        {
+         "name": "Head of neurosurgery",
+         "pay": 215
+        }
+       ],
+       "promote": [
+        16,
+        16,
+        16
+       ],
+       "after": [
+        "doc_surg"
+       ]
+      },
+      {
+       "id": "doc_trauma",
+       "name": "Trauma",
+       "desc": "The emergency room is yours.",
+       "likes": [
+        "Calm",
+        "Athletic"
+       ],
+       "ranks": [
+        {
+         "name": "Trauma surgeon",
+         "pay": 150
+        },
+        {
+         "name": "Head of trauma",
+         "pay": 174
+        },
+        {
+         "name": "Chief of emergency",
+         "pay": 202
+        }
+       ],
+       "promote": [
+        16,
+        16,
+        16
+       ],
+       "after": [
+        "doc_surg"
+       ]
+      },
+      {
+       "id": "doc_ped",
+       "name": "Pediatrics",
+       "desc": "Children and their families.",
+       "likes": [
+        "Kind",
+        "Cheerful"
+       ],
+       "ranks": [
+        {
+         "name": "Pediatrician",
+         "pay": 140
+        },
+        {
+         "name": "Senior pediatrician",
+         "pay": 162
+        },
+        {
+         "name": "Head of pediatrics",
+         "pay": 188
+        }
+       ],
+       "promote": [
+        16,
+        16,
+        16
+       ],
+       "after": [
+        "doc_fam"
+       ]
+      },
+      {
+       "id": "doc_research",
+       "name": "Research",
+       "desc": "Find the cures of tomorrow.",
+       "likes": [
+        "Curious",
+        "Smart"
+       ],
+       "ranks": [
+        {
+         "name": "Clinical researcher",
+         "pay": 140
+        },
+        {
+         "name": "Research lead",
+         "pay": 162
+        },
+        {
+         "name": "Research director",
+         "pay": 188
+        }
+       ],
+       "promote": [
+        16,
+        16,
+        16
+       ],
+       "after": [
+        "doc_fam"
+       ]
+      }
+     ]
+    },
+    {
+     "at": 9,
+     "options": [
+      {
+       "id": "doc_chief",
+       "name": "Chief of medicine",
+       "desc": "You run the hospital.",
+       "likes": [],
+       "ranks": [
+        {
+         "name": "Chief of medicine",
+         "pay": 240
+        }
+       ],
+       "promote": [
+        20
+       ],
+       "after": [
+        "doc_neuro",
+        "doc_trauma",
+        "doc_ped"
+       ]
+      },
+      {
+       "id": "doc_star",
+       "name": "Renowned specialist",
+       "desc": "Patients come from everywhere to see you.",
+       "likes": [],
+       "ranks": [
+        {
+         "name": "Renowned specialist",
+         "pay": 230
+        }
+       ],
+       "promote": [
+        20
+       ],
+       "after": [
+        "doc_neuro",
+        "doc_ped"
+       ]
+      },
+      {
+       "id": "doc_mission",
+       "name": "Humanitarian doctor",
+       "desc": "Medicine where it is needed most.",
+       "likes": [],
+       "ranks": [
+        {
+         "name": "Humanitarian doctor",
+         "pay": 190
+        }
+       ],
+       "promote": [
+        20
+       ],
+       "after": [
+        "doc_trauma",
+        "doc_research"
+       ]
+      },
+      {
+       "id": "doc_prof",
+       "name": "Professor of medicine",
+       "desc": "You teach the next doctors.",
+       "likes": [],
+       "ranks": [
+        {
+         "name": "Professor of medicine",
+         "pay": 220
+        }
+       ],
+       "promote": [
+        20
+       ],
+       "after": [
+        "doc_research"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "teacher",
+   "name": "Teacher",
+   "place": "school",
+   "ranks": [
+    {
+     "name": "Teaching assistant",
+     "pay": 16
+    },
+    {
+     "name": "Teacher",
+     "pay": 28
+    },
+    {
+     "name": "Principal",
+     "pay": 45
+    }
+   ],
+   "shift": 7,
+   "cost": {
+    "energy": 25,
+    "hunger": 15,
+    "thirst": 15,
+    "mood": 5,
+    "hygiene": 15
+   },
+   "likes": [
+    "Kind",
+    "Books",
+    "Calm"
+   ],
+   "hours": [
+    7,
+    17
+   ],
+   "promote": [
+    5,
+    12
+   ],
+   "needs": [
+    "Smart",
+    "Kind"
+   ],
+   "courses": [
+    "education"
+   ]
+  },
+  {
+   "id": "stationagent",
+   "name": "Station agent",
+   "place": "station",
+   "ranks": [
+    {
+     "name": "Ticket agent",
+     "pay": 15
+    },
+    {
+     "name": "Conductor",
+     "pay": 25
+    },
+    {
+     "name": "Station manager",
+     "pay": 38
+    }
+   ],
+   "shift": 7,
+   "cost": {
+    "energy": 25,
+    "hunger": 15,
+    "thirst": 15,
+    "mood": 5,
+    "hygiene": 15
+   },
+   "likes": [
+    "Calm",
+    "Travel",
+    "Serious"
+   ],
+   "hours": [
+    5,
+    24
+   ],
+   "promote": [
+    4,
+    9
+   ]
+  },
+  {
+   "id": "mechanic",
+   "name": "Mechanic",
+   "place": "industrial",
+   "ranks": [
+    {
+     "name": "Apprentice",
+     "pay": 15
+    },
+    {
+     "name": "Mechanic",
+     "pay": 26
+    },
+    {
+     "name": "Workshop owner",
+     "pay": 40
+    }
+   ],
+   "shift": 7,
+   "cost": {
+    "energy": 35,
+    "hunger": 15,
+    "thirst": 15,
+    "mood": 5,
+    "hygiene": 15
+   },
+   "likes": [
+    "Handy",
+    "Strong",
+    "Tech-savvy"
+   ],
+   "hours": [
+    7,
+    19
+   ],
+   "promote": [
+    4,
+    9
+   ],
+   "needs": [
+    "Handy"
+   ],
+   "courses": [
+    "mechanics"
+   ]
+  },
+  {
+   "id": "developer",
+   "name": "Software developer",
+   "place": "finance",
+   "ranks": [
+    {
+     "name": "Junior developer",
+     "pay": 26
+    },
+    {
+     "name": "Developer",
+     "pay": 45
+    },
+    {
+     "name": "Lead developer",
+     "pay": 70
+    }
+   ],
+   "shift": 8,
+   "cost": {
+    "energy": 25,
+    "hunger": 15,
+    "thirst": 15,
+    "mood": 5,
+    "hygiene": 15
+   },
+   "likes": [
+    "Tech-savvy",
+    "Smart",
+    "Games"
+   ],
+   "hours": [
+    9,
+    19
+   ],
+   "promote": [
+    4,
+    10
+   ],
+   "needs": [
+    "Tech-savvy",
+    "Smart"
+   ],
+   "courses": [
+    "programming"
+   ],
+   "branches": [
+    {
+     "at": 3,
+     "options": [
+      {
+       "id": "dev_eng",
+       "name": "Engineering",
+       "desc": "Build the hard parts: systems, code reviews, mentoring.",
+       "likes": [
+        "Smart",
+        "Tech-savvy"
+       ],
+       "ranks": [
+        {
+         "name": "Senior engineer",
+         "pay": 85
+        },
+        {
+         "name": "Staff engineer",
+         "pay": 99
+        },
+        {
+         "name": "Principal engineer",
+         "pay": 114
+        }
+       ],
+       "promote": [
+        12,
+        12,
+        12
+       ]
+      },
+      {
+       "id": "dev_prod",
+       "name": "Product",
+       "desc": "Decide what gets built: users, roadmaps, meetings.",
+       "likes": [
+        "Charming",
+        "Ambitious"
+       ],
+       "ranks": [
+        {
+         "name": "Product owner",
+         "pay": 82
+        },
+        {
+         "name": "Product manager",
+         "pay": 95
+        },
+        {
+         "name": "Senior product manager",
+         "pay": 110
+        }
+       ],
+       "promote": [
+        12,
+        12,
+        12
+       ]
+      }
+     ]
+    },
+    {
+     "at": 6,
+     "options": [
+      {
+       "id": "dev_arch",
+       "name": "Architecture",
+       "desc": "Design how everything fits together.",
+       "likes": [
+        "Smart",
+        "Serious"
+       ],
+       "ranks": [
+        {
+         "name": "Software architect",
+         "pay": 135
+        },
+        {
+         "name": "Lead architect",
+         "pay": 157
+        },
+        {
+         "name": "Chief architect",
+         "pay": 182
+        }
+       ],
+       "promote": [
+        14,
+        14,
+        14
+       ],
+       "after": [
+        "dev_eng"
+       ]
+      },
+      {
+       "id": "dev_sec",
+       "name": "Security",
+       "desc": "Keep the company safe from attacks.",
+       "likes": [
+        "Tech-savvy",
+        "Calm"
+       ],
+       "ranks": [
+        {
+         "name": "Security engineer",
+         "pay": 132
+        },
+        {
+         "name": "Security lead",
+         "pay": 153
+        },
+        {
+         "name": "Head of security",
+         "pay": 178
+        }
+       ],
+       "promote": [
+        14,
+        14,
+        14
+       ],
+       "after": [
+        "dev_eng"
+       ]
+      },
+      {
+       "id": "dev_mgmt",
+       "name": "Leadership",
+       "desc": "Lead teams of engineers.",
+       "likes": [
+        "Charming",
+        "Outgoing"
+       ],
+       "ranks": [
+        {
+         "name": "Engineering manager",
+         "pay": 135
+        },
+        {
+         "name": "Director of engineering",
+         "pay": 157
+        },
+        {
+         "name": "VP of engineering",
+         "pay": 182
+        }
+       ],
+       "promote": [
+        14,
+        14,
+        14
+       ],
+       "after": [
+        "dev_prod"
+       ]
+      },
+      {
+       "id": "dev_growth",
+       "name": "Growth",
+       "desc": "Make the product grow and earn.",
+       "likes": [
+        "Ambitious",
+        "Good with numbers"
+       ],
+       "ranks": [
+        {
+         "name": "Growth lead",
+         "pay": 130
+        },
+        {
+         "name": "Head of growth",
+         "pay": 151
+        },
+        {
+         "name": "VP of product",
+         "pay": 175
+        }
+       ],
+       "promote": [
+        14,
+        14,
+        14
+       ],
+       "after": [
+        "dev_prod"
+       ]
+      }
+     ]
+    },
+    {
+     "at": 9,
+     "options": [
+      {
+       "id": "dev_cto",
+       "name": "Chief technology officer",
+       "desc": "The top of the tech side.",
+       "likes": [],
+       "ranks": [
+        {
+         "name": "Chief technology officer",
+         "pay": 215
+        }
+       ],
+       "promote": [
+        18
+       ],
+       "after": [
+        "dev_arch",
+        "dev_mgmt"
+       ]
+      },
+      {
+       "id": "dev_fellow",
+       "name": "Fellow",
+       "desc": "A legend who still writes code.",
+       "likes": [],
+       "ranks": [
+        {
+         "name": "Distinguished fellow",
+         "pay": 205
+        }
+       ],
+       "promote": [
+        18
+       ],
+       "after": [
+        "dev_arch",
+        "dev_sec"
+       ]
+      },
+      {
+       "id": "dev_ciso",
+       "name": "Chief security officer",
+       "desc": "The company trusts you with everything.",
+       "likes": [],
+       "ranks": [
+        {
+         "name": "Chief security officer",
+         "pay": 210
+        }
+       ],
+       "promote": [
+        18
+       ],
+       "after": [
+        "dev_sec"
+       ]
+      },
+      {
+       "id": "dev_cpo",
+       "name": "Chief product officer",
+       "desc": "You decide where the company goes.",
+       "likes": [],
+       "ranks": [
+        {
+         "name": "Chief product officer",
+         "pay": 215
+        }
+       ],
+       "promote": [
+        18
+       ],
+       "after": [
+        "dev_growth",
+        "dev_mgmt"
+       ]
+      },
+      {
+       "id": "dev_founder",
+       "name": "Founder",
+       "desc": "Leave to start your own company (and hire your friends).",
+       "likes": [],
+       "ranks": [
+        {
+         "name": "Startup founder",
+         "pay": 200
+        }
+       ],
+       "promote": [
+        18
+       ],
+       "after": [
+        "dev_growth"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "researcher",
+   "name": "Researcher",
+   "place": "campus",
+   "ranks": [
+    {
+     "name": "Lab assistant",
+     "pay": 18
+    },
+    {
+     "name": "Researcher",
+     "pay": 34
+    },
+    {
+     "name": "Professor",
+     "pay": 55
+    }
+   ],
+   "shift": 8,
+   "cost": {
+    "energy": 25,
+    "hunger": 15,
+    "thirst": 15,
+    "mood": 5,
+    "hygiene": 15
+   },
+   "likes": [
+    "Smart",
+    "Curious",
+    "Books"
+   ],
+   "hours": [
+    8,
+    20
+   ],
+   "promote": [
+    5,
+    12
+   ],
+   "needs": [
+    "Smart",
+    "Curious"
+   ],
+   "courses": [
+    "science"
+   ]
+  },
+  {
+   "id": "liftop",
+   "name": "Cable car operator",
+   "place": "pc_cablecar",
+   "ranks": [
+    {
+     "name": "Operator",
+     "pay": 16
+    },
+    {
+     "name": "Senior operator",
+     "pay": 21
+    },
+    {
+     "name": "Station chief",
+     "pay": 27
+    }
+   ],
+   "shift": 6,
+   "cost": {
+    "energy": 25,
+    "hunger": 15,
+    "thirst": 15,
+    "mood": 5,
+    "hygiene": 15
+   },
+   "likes": [
+    "Calm",
+    "Handy",
+    "Athletic"
+   ],
+   "hours": [
+    7,
+    19
+   ],
+   "promote": [
+    4,
+    8
+   ]
+  },
+  {
+   "id": "lodgehost",
+   "name": "Lodge host",
+   "place": "pc_lodge",
+   "ranks": [
+    {
+     "name": "Host",
+     "pay": 15
+    },
+    {
+     "name": "Innkeeper",
+     "pay": 20
+    },
+    {
+     "name": "Lodge manager",
+     "pay": 26
+    }
+   ],
+   "shift": 6,
+   "cost": {
+    "energy": 25,
+    "hunger": 15,
+    "thirst": 15,
+    "mood": 5,
+    "hygiene": 15
+   },
+   "likes": [
+    "Outgoing",
+    "Good cook",
+    "Kind"
+   ],
+   "hours": [
+    7,
+    23
+   ],
+   "promote": [
+    4,
+    8
+   ]
+  },
+  {
+   "id": "shepherd",
+   "name": "Farmhand",
+   "place": "pc_farm",
+   "ranks": [
+    {
+     "name": "Helper",
+     "pay": 13
+    },
+    {
+     "name": "Shepherd",
+     "pay": 18
+    },
+    {
+     "name": "Farm manager",
+     "pay": 23
+    }
+   ],
+   "shift": 6,
+   "cost": {
+    "energy": 25,
+    "hunger": 15,
+    "thirst": 15,
+    "mood": 5,
+    "hygiene": 15
+   },
+   "likes": [
+    "Strong",
+    "Nature",
+    "Calm"
+   ],
+   "hours": [
+    6,
+    16
+   ],
+   "promote": [
+    4,
+    8
+   ]
+  },
+  {
+   "id": "rancher",
+   "name": "Ranch hand",
+   "place": "gv_ranch",
+   "ranks": [
+    {
+     "name": "Stable hand",
+     "pay": 14
+    },
+    {
+     "name": "Rider",
+     "pay": 19
+    },
+    {
+     "name": "Ranch foreman",
+     "pay": 25
+    }
+   ],
+   "shift": 6,
+   "cost": {
+    "energy": 25,
+    "hunger": 15,
+    "thirst": 15,
+    "mood": 5,
+    "hygiene": 15
+   },
+   "likes": [
+    "Strong",
+    "Nature",
+    "Athletic"
+   ],
+   "hours": [
+    6,
+    16
+   ],
+   "promote": [
+    4,
+    8
+   ]
+  },
+  {
+   "id": "storeclerk",
+   "name": "Store clerk",
+   "place": "gv_store",
+   "ranks": [
+    {
+     "name": "Clerk",
+     "pay": 14
+    },
+    {
+     "name": "Shift lead",
+     "pay": 18
+    },
+    {
+     "name": "Store owner",
+     "pay": 24
+    }
+   ],
+   "shift": 6,
+   "cost": {
+    "energy": 25,
+    "hunger": 15,
+    "thirst": 15,
+    "mood": 5,
+    "hygiene": 15
+   },
+   "likes": [
+    "Good with numbers",
+    "Kind",
+    "Outgoing"
+   ],
+   "hours": [
+    8,
+    20
+   ],
+   "promote": [
+    4,
+    8
+   ]
+  },
+  {
+   "id": "saloon",
+   "name": "Saloon server",
+   "place": "gv_saloon",
+   "ranks": [
+    {
+     "name": "Server",
+     "pay": 14
+    },
+    {
+     "name": "Bartender",
+     "pay": 19
+    },
+    {
+     "name": "Saloon keeper",
+     "pay": 25
+    }
+   ],
+   "shift": 6,
+   "cost": {
+    "energy": 25,
+    "hunger": 15,
+    "thirst": 15,
+    "mood": 5,
+    "hygiene": 15
+   },
+   "likes": [
+    "Outgoing",
+    "Charming",
+    "Musical"
+   ],
+   "hours": [
+    11,
+    23
+   ],
+   "promote": [
+    4,
+    8
+   ]
+  },
+  {
+   "id": "grocer",
+   "name": "Grocery cashier",
+   "place": "mh_market",
+   "ranks": [
+    {
+     "name": "Cashier",
+     "pay": 14
+    },
+    {
+     "name": "Department lead",
+     "pay": 19
+    },
+    {
+     "name": "Store manager",
+     "pay": 26
+    }
+   ],
+   "shift": 6,
+   "cost": {
+    "energy": 25,
+    "hunger": 15,
+    "thirst": 15,
+    "mood": 5,
+    "hygiene": 15
+   },
+   "likes": [
+    "Good with numbers",
+    "Kind"
+   ],
+   "hours": [
+    7,
+    22
+   ],
+   "promote": [
+    4,
+    8
+   ]
+  },
+  {
+   "id": "clinicnurse",
+   "name": "Clinic nurse",
+   "place": "mh_clinic",
+   "ranks": [
+    {
+     "name": "Nurse aide",
+     "pay": 18
+    },
+    {
+     "name": "Nurse",
+     "pay": 25
+    },
+    {
+     "name": "Head nurse",
+     "pay": 32
+    }
+   ],
+   "shift": 6,
+   "cost": {
+    "energy": 25,
+    "hunger": 15,
+    "thirst": 15,
+    "mood": 5,
+    "hygiene": 15
+   },
+   "likes": [
+    "Calm",
+    "Kind",
+    "Smart"
+   ],
+   "hours": [
+    7,
+    21
+   ],
+   "promote": [
+    4,
+    8
+   ]
+  },
+  {
+   "id": "marinahand",
+   "name": "Marina attendant",
+   "place": "pl_marina",
+   "ranks": [
+    {
+     "name": "Dock hand",
+     "pay": 15
+    },
+    {
+     "name": "Boat captain",
+     "pay": 22
+    },
+    {
+     "name": "Harbor master",
+     "pay": 28
+    }
+   ],
+   "shift": 6,
+   "cost": {
+    "energy": 25,
+    "hunger": 15,
+    "thirst": 15,
+    "mood": 5,
+    "hygiene": 15
+   },
+   "likes": [
+    "Athletic",
+    "Nature",
+    "Handy"
+   ],
+   "hours": [
+    7,
+    19
+   ],
+   "promote": [
+    4,
+    8
+   ]
+  },
+  {
+   "id": "concierge",
+   "name": "Resort concierge",
+   "place": "pl_resort",
+   "ranks": [
+    {
+     "name": "Bellhop",
+     "pay": 15
+    },
+    {
+     "name": "Concierge",
+     "pay": 21
+    },
+    {
+     "name": "Resort manager",
+     "pay": 30
+    }
+   ],
+   "shift": 6,
+   "cost": {
+    "energy": 25,
+    "hunger": 15,
+    "thirst": 15,
+    "mood": 5,
+    "hygiene": 15
+   },
+   "likes": [
+    "Charming",
+    "Outgoing",
+    "Fashion"
+   ],
+   "hours": [
+    7,
+    23
+   ],
+   "promote": [
+    4,
+    8
+   ]
+  },
+  {
+   "id": "surfcoach",
+   "name": "Surf instructor",
+   "place": "pl_boardwalk",
+   "ranks": [
+    {
+     "name": "Assistant",
+     "pay": 15
+    },
+    {
+     "name": "Instructor",
+     "pay": 21
+    },
+    {
+     "name": "Surf school owner",
+     "pay": 28
+    }
+   ],
+   "shift": 6,
+   "cost": {
+    "energy": 25,
+    "hunger": 15,
+    "thirst": 15,
+    "mood": 5,
+    "hygiene": 15
+   },
+   "likes": [
+    "Athletic",
+    "Sports",
+    "Outgoing"
+   ],
+   "hours": [
+    8,
+    18
+   ],
+   "promote": [
+    4,
+    8
+   ]
+  },
+  {
+   "id": "paralegal",
+   "name": "Court clerk",
+   "place": "mt_court",
+   "ranks": [
+    {
+     "name": "Clerk",
+     "pay": 19
+    },
+    {
+     "name": "Paralegal",
+     "pay": 26
+    },
+    {
+     "name": "Court administrator",
+     "pay": 34
+    }
+   ],
+   "shift": 6,
+   "cost": {
+    "energy": 25,
+    "hunger": 15,
+    "thirst": 15,
+    "mood": 5,
+    "hygiene": 15
+   },
+   "likes": [
+    "Smart",
+    "Serious",
+    "Good with numbers"
+   ],
+   "hours": [
+    8,
+    18
+   ],
+   "promote": [
+    4,
+    8
+   ]
+  },
+  {
+   "id": "associate",
+   "name": "Junior lawyer",
+   "place": "mt_tower",
+   "ranks": [
+    {
+     "name": "Intern",
+     "pay": 20
+    },
+    {
+     "name": "Associate",
+     "pay": 30
+    },
+    {
+     "name": "Partner",
+     "pay": 45
+    }
+   ],
+   "shift": 6,
+   "cost": {
+    "energy": 25,
+    "hunger": 15,
+    "thirst": 15,
+    "mood": 5,
+    "hygiene": 15
+   },
+   "likes": [
+    "Smart",
+    "Ambitious",
+    "Charming"
+   ],
+   "hours": [
+    9,
+    19
+   ],
+   "promote": [
+    6,
+    12
+   ]
+  },
+  {
+   "id": "musician",
+   "name": "Bar musician",
+   "place": "waterfront",
+   "ranks": [
+    {
+     "name": "Opening act",
+     "pay": 22
+    },
+    {
+     "name": "House musician",
+     "pay": 34
+    },
+    {
+     "name": "Headliner",
+     "pay": 55
+    }
+   ],
+   "shift": 4,
+   "cost": {
+    "energy": 25,
+    "hunger": 15,
+    "thirst": 15,
+    "mood": 5,
+    "hygiene": 10
+   },
+   "likes": [
+    "Musical",
+    "Charming"
+   ],
+   "hours": [
+    19,
+    24
+   ],
+   "promote": [
+    6,
+    10
+   ],
+   "hobby": {
+    "id": "music",
+    "level": 4
+   }
+  },
+  {
+   "id": "illustrator",
+   "name": "Illustrator",
+   "place": "downtown",
+   "ranks": [
+    {
+     "name": "Junior illustrator",
+     "pay": 20
+    },
+    {
+     "name": "Illustrator",
+     "pay": 32
+    },
+    {
+     "name": "Art director",
+     "pay": 52
+    }
+   ],
+   "shift": 6,
+   "cost": {
+    "energy": 25,
+    "hunger": 15,
+    "thirst": 15,
+    "mood": 5,
+    "hygiene": 5
+   },
+   "likes": [
+    "Creative",
+    "Skilled with hands"
+   ],
+   "hours": [
+    9,
+    18
+   ],
+   "promote": [
+    6,
+    10
+   ],
+   "hobby": {
+    "id": "painting",
+    "level": 5
+   }
+  },
+  {
+   "id": "chef",
+   "name": "Chef",
+   "place": "waterfront",
+   "ranks": [
+    {
+     "name": "Line chef",
+     "pay": 24
+    },
+    {
+     "name": "Sous chef",
+     "pay": 36
+    },
+    {
+     "name": "Head chef",
+     "pay": 58
+    }
+   ],
+   "shift": 8,
+   "cost": {
+    "energy": 40,
+    "hunger": 15,
+    "thirst": 15,
+    "mood": 5,
+    "hygiene": 20
+   },
+   "likes": [
+    "Good cook",
+    "Creative"
+   ],
+   "hours": [
+    11,
+    23
+   ],
+   "promote": [
+    6,
+    10
+   ],
+   "hobby": {
+    "id": "cooking",
+    "level": 6
+   }
+  }
+ ],
+ "cast": {
+  "routineTemplates": {
+   "office": {
+    "weekday": [
+     [
+      0,
+      "home"
+     ],
+     [
+      8,
+      "work"
+     ],
+     [
+      18,
+      "leisure"
+     ],
+     [
+      21,
+      "home"
+     ]
+    ],
+    "weekend": [
+     [
+      0,
+      "home"
+     ],
+     [
+      11,
+      "leisure"
+     ],
+     [
+      16,
+      "leisure"
+     ],
+     [
+      21,
+      "home"
+     ]
+    ]
+   },
+   "early": {
+    "weekday": [
+     [
+      0,
+      "home"
+     ],
+     [
+      6,
+      "work"
+     ],
+     [
+      14,
+      "leisure"
+     ],
+     [
+      20,
+      "home"
+     ]
+    ],
+    "weekend": [
+     [
+      0,
+      "home"
+     ],
+     [
+      9,
+      "leisure"
+     ],
+     [
+      14,
+      "leisure"
+     ],
+     [
+      20,
+      "home"
+     ]
+    ]
+   },
+   "night": {
+    "weekday": [
+     [
+      0,
+      "work"
+     ],
+     [
+      2,
+      "home"
+     ],
+     [
+      14,
+      "leisure"
+     ],
+     [
+      18,
+      "work"
+     ]
+    ],
+    "weekend": [
+     [
+      0,
+      "work"
+     ],
+     [
+      3,
+      "home"
+     ],
+     [
+      15,
+      "leisure"
+     ],
+     [
+      19,
+      "work"
+     ]
+    ]
+   },
+   "student": {
+    "weekday": [
+     [
+      0,
+      "home"
+     ],
+     [
+      8,
+      "campus"
+     ],
+     [
+      15,
+      "leisure"
+     ],
+     [
+      20,
+      "home"
+     ]
+    ],
+    "weekend": [
+     [
+      0,
+      "home"
+     ],
+     [
+      11,
+      "leisure"
+     ],
+     [
+      17,
+      "leisure"
+     ],
+     [
+      22,
+      "home"
+     ]
+    ]
+   }
+  },
+  "examples": [
+   {
+    "name": "Bianca",
+    "age": 24,
+    "occupation": "barista",
+    "home": "downtown",
+    "routine": "early",
+    "leisure": [
+     "beach",
+     "downtown"
+    ],
+    "description": "{{char}} is Bianca, 24, the barista at the Downtown Café. Wavy dark hair tied in a messy bun, freckles, an apron with coffee stains, a quick smile. Talkative, warm and a little nosy; she remembers every regular's order. She surfs on her days off and dreams of opening her own café.",
+    "first_mes": "*Bianca wipes the counter and looks up with a grin.* Hey, new face! What can I get you? First coffee in Nova Vega is on the house, by the way."
+   },
+   {
+    "name": "Helena",
+    "age": 31,
+    "occupation": "analyst",
+    "home": "waterfront",
+    "routine": "office",
+    "leisure": [
+     "waterfront"
+    ],
+    "description": "{{char}} is Helena, 31, a senior financial analyst. Sleek black hair in a low ponytail, sharp tailored suits, reading glasses she pretends not to need. Ambitious, dry-witted and hard to impress, she works too much and secretly loves bad romantic comedies.",
+    "first_mes": "*Helena glances up from her tablet, one eyebrow raised.* You're standing in my light. *A beat.* ...Kidding. Mostly. Can I help you?"
+   },
+   {
+    "name": "Yumi",
+    "age": 22,
+    "occupation": null,
+    "home": "north",
+    "routine": "student",
+    "leisure": [
+     "park",
+     "ferris"
+    ],
+    "description": "{{char}} is Yumi, 22, an architecture student. Short purple-dyed hair, oversized sweaters, a sketchbook always under her arm. Dreamy, shy at first and then endlessly enthusiastic about buildings, anime and the city's hidden corners.",
+    "first_mes": "*Yumi nearly drops her sketchbook.* Oh! Sorry, I was drawing the— never mind. Are you new around here? You have that lost look."
+   },
+   {
+    "name": "Carla",
+    "age": 28,
+    "occupation": "trainer",
+    "home": "south",
+    "routine": "early",
+    "leisure": [
+     "beach",
+     "pl_boardwalk"
+    ],
+    "description": "{{char}} is Carla, 28, a gym instructor at the stadium. Tall, athletic, a high ponytail and a whistle she uses too often. Direct, competitive and loud, with a soft spot for people who try hard.",
+    "first_mes": "*Carla jogs up, barely out of breath.* You look like you could use a workout. First class is free — if you can keep up."
+   },
+   {
+    "name": "Marina",
+    "age": 35,
+    "occupation": null,
+    "home": "south",
+    "routine": "early",
+    "leisure": [
+     "docks"
+    ],
+    "description": "{{char}} is Marina, 35, who runs her family's fish stall at the Pier Market. Sun-browned skin, strong hands, a laugh you can hear across the market. Practical, generous and blunt; she has opinions about everyone in town.",
+    "first_mes": "*Marina slaps a fish onto the ice.* You buying or just looking? Either way, you'll want the snapper today. Trust me."
+   },
+   {
+    "name": "Lia",
+    "age": 26,
+    "occupation": "engineer",
+    "home": "east",
+    "routine": "office",
+    "leisure": [
+     "mall"
+    ],
+    "description": "{{char}} is Lia, 26, an engineer at a factory in the Industrial Zone. Hair always under a cap, grease on her sleeve, a calculator brain. Introverted, precise and quietly funny once she trusts you.",
+    "first_mes": "*Lia pulls out an earbud.* Sorry, were you talking to me? I was in the middle of a podcast about bridges. ...That sounds worse out loud."
+   },
+   {
+    "name": "Sofia",
+    "age": 29,
+    "occupation": "librarian",
+    "home": "north",
+    "routine": "office",
+    "leisure": [
+     "downtown",
+     "park"
+    ],
+    "description": "{{char}} is Sofia, 29, a librarian at the university. Long auburn hair, soft cardigans, a calm voice. Gentle, bookish and observant; she notices what people don't say.",
+    "first_mes": "*Sofia lowers her book and smiles.* You've walked past this shelf three times. Looking for something, or someone?"
+   },
+   {
+    "name": "Jade",
+    "age": 23,
+    "occupation": "waiter",
+    "home": "south",
+    "routine": "night",
+    "leisure": [
+     "beach",
+     "pl_cafes"
+    ],
+    "description": "{{char}} is Jade, 23, a waitress at the Yacht Club. Platinum bob, a small tattoo on her wrist, sharp eyeliner. Flirty, restless and spontaneous; she works nights and lives for the beach by day.",
+    "first_mes": "*Jade balances a tray on one hand and winks.* Table for one? Lucky you, I've got the best one. Follow me."
+   },
+   {
+    "name": "Elena",
+    "age": 33,
+    "occupation": "liftop",
+    "home": "pc_homes",
+    "routine": "early",
+    "leisure": [
+     "pc_lodge",
+     "pc_falls"
+    ],
+    "description": "{{char}} is Elena, 33, who runs the cable car up to the summit in Pinecrest. Windburned cheeks, a wool beanie, quick hands on the levers. Calm, wry and fearless with heights; she knows every trail and every rumor in the village.",
+    "first_mes": "*Elena checks the cable car door twice before waving you in.* First time up? Hold the rail, enjoy the view, and don't look at the gap."
+   },
+   {
+    "name": "Rosa",
+    "age": 41,
+    "occupation": "rancher",
+    "home": "gv_homes",
+    "routine": "early",
+    "leisure": [
+     "gv_saloon",
+     "gv_creek"
+    ],
+    "description": "{{char}} is Rosa, 41, foreman at the Miller Horse Ranch in Green Valley. Braided gray-streaked hair, boots that have seen everything, a voice that calms horses and silences rowdy saloons. Patient, proud and stubborn.",
+    "first_mes": "*Rosa leans on the paddock fence, a rope over her shoulder.* You look like someone who has never been on a horse. We can fix that."
+   }
+  ]
+ },
+ "lore": [
+  {
+   "keys": [
+    "Nova Vega",
+    "city"
+   ],
+   "constant": true,
+   "content": "Nova Vega is a modern coastal city of today: historic Old Town, a financial district of glass towers, a university on the hill, beaches and a lively waterfront."
+  },
+  {
+   "keys": [
+    "Old Town",
+    "downtown"
+   ],
+   "content": "Old Town is the historic center of Nova Vega: narrow streets, cafés, small shops and squares, always busy."
+  },
+  {
+   "keys": [
+    "Financial District",
+    "office"
+   ],
+   "content": "The Financial District is a cluster of glass skyscrapers with banks, offices and expensive business restaurants."
+  },
+  {
+   "keys": [
+    "Waterfront",
+    "Yacht Club"
+   ],
+   "content": "The Waterfront is a promenade along the bay with yachts, the Yacht Club and seafood restaurants."
+  },
+  {
+   "keys": [
+    "Pier Market",
+    "docks"
+   ],
+   "content": "The Docks and Pier Market are where fishermen sell the catch of the day among warehouses and boat piers."
+  },
+  {
+   "keys": [
+    "University",
+    "campus"
+   ],
+   "content": "The University Campus sits on the hill: gardens, old brick buildings and a large library."
+  },
+  {
+   "keys": [
+    "power",
+    "powers",
+    "hero",
+    "heroes",
+    "villain",
+    "super",
+    "Department"
+   ],
+   "content": "Superpowers are public and ordinary in Nova Vega: about one in a thousand people has one. Heroes are celebrities (sponsors, streams, merch); villains are criminals with powers. Powered people register with the Department of Superhuman Affairs, which posts bounties on villains at City Hall. People say \"powers\", never \"magic\".",
+   "constant": true
+  },
+  {
+   "keys": [
+    "Costa Serena",
+    "country",
+    "Pinecrest",
+    "Green Valley",
+    "North Highlands",
+    "Central Plains"
+   ],
+   "content": "Costa Serena is the country where Nova Vega is: a modern republic. Nova Vega is its biggest city, on the coast. Green Valley is a farm town in the Central Plains, about an hour inland; Pinecrest is a mountain village in the North Highlands, an hour and a half up a winding road. They share the same laws, money and phone networks.",
+   "constant": false
+  }
+ ],
+ "features": {
+  "phone": true,
+  "device": "Phone",
+  "deviceLook": "phone",
+  "socialKind": "feed",
+  "messageKind": "texts",
+  "apps": [
+   {
+    "id": "grimoire",
+    "name": "Powers",
+    "icon": "sparkles",
+    "color": "#7b5cff",
+    "on": true
+   }
+  ]
+ },
+ "mode": "lifesim",
+ "ai": {
+  "voice": "casual; emoji and hashtags are fine"
+ },
+ "presetActions": true,
+ "presetCrises": true,
+ "presetRpg": true,
+ "presetCombat": true,
+ "habits": [
+  {
+   "id": "early",
+   "name": "Early riser",
+   "trait": "Early riser",
+   "desc": "Up and doing things before 8, five days in a week.",
+   "hours": [
+    5,
+    8
+   ],
+   "count": 5,
+   "days": 7,
+   "daily": {
+    "energy": 3
+   }
+  },
+  {
+   "id": "owl",
+   "name": "Night owl",
+   "trait": "Night owl",
+   "desc": "Out and about after midnight, four times in a week.",
+   "hours": [
+    0,
+    4
+   ],
+   "count": 4,
+   "days": 7
+  },
+  {
+   "id": "coffee",
+   "name": "Coffee addict",
+   "trait": "Coffee addict",
+   "desc": "Coffee eight times in a week.",
+   "actions": [
+    "coffee",
+    "x-coffee"
+   ],
+   "count": 8,
+   "days": 7,
+   "daily": {
+    "mood": -2
+   }
+  },
+  {
+   "id": "fit",
+   "name": "Fitness buff",
+   "trait": "Athletic",
+   "desc": "Working out or running five times in ten days.",
+   "actions": [
+    "x-workout",
+    "x-run",
+    "x-treadmill"
+   ],
+   "count": 5,
+   "days": 10,
+   "daily": {
+    "mood": 2
+   }
+  },
+  {
+   "id": "party",
+   "name": "Party animal",
+   "trait": "Nightlife",
+   "desc": "Drinks out six times in a week.",
+   "actions": [
+    "drink"
+   ],
+   "count": 6,
+   "days": 7,
+   "daily": {
+    "energy": -3
+   }
+  },
+  {
+   "id": "chef",
+   "name": "Home chef",
+   "trait": "Good cook",
+   "desc": "Cooking at home five times in a week.",
+   "actions": [
+    "cook"
+   ],
+   "count": 5,
+   "days": 7
+  },
+  {
+   "id": "clean",
+   "name": "Neat freak",
+   "trait": "Tidy",
+   "desc": "Showering every day for a week.",
+   "actions": [
+    "shower",
+    "gymshower"
+   ],
+   "count": 7,
+   "days": 7
+  }
+ ],
+ "festivals": [
+  {
+   "id": "spring",
+   "name": "Spring Street Fair",
+   "season": "spring",
+   "day": 7,
+   "days": 1,
+   "place": "downtown",
+   "prices": 1.1,
+   "mood": 15,
+   "desc": "food trucks, music and stalls fill downtown"
+  },
+  {
+   "id": "summer",
+   "name": "Summer Beach Festival",
+   "season": "summer",
+   "day": 10,
+   "days": 2,
+   "place": "beach",
+   "prices": 1.15,
+   "mood": 20,
+   "desc": "concerts on the sand and fireworks at night"
+  },
+  {
+   "id": "halloween",
+   "name": "Halloween Night",
+   "season": "autumn",
+   "day": 12,
+   "days": 1,
+   "place": "downtown",
+   "prices": 1.05,
+   "mood": 15,
+   "desc": "costumes, parties and trick-or-treating"
+  },
+  {
+   "id": "newyear",
+   "name": "New Year's Eve",
+   "season": "winter",
+   "day": 14,
+   "days": 1,
+   "place": "waterfront",
+   "prices": 1.2,
+   "mood": 25,
+   "desc": "countdown and fireworks over the water"
+  },
+  {
+   "id": "harvest",
+   "name": "Green Valley Harvest Fair",
+   "season": "autumn",
+   "day": 5,
+   "days": 2,
+   "place": "gv_store",
+   "prices": 0.95,
+   "mood": 15,
+   "desc": "pie contests, hay rides and a dance in the barn"
+  },
+  {
+   "id": "snowfest",
+   "name": "Pinecrest Snow Festival",
+   "season": "winter",
+   "day": 6,
+   "days": 2,
+   "place": "pc_square",
+   "prices": 1.15,
+   "mood": 18,
+   "desc": "ice sculptures, hot chocolate and a torch-lit ski run"
+  },
+  {
+   "id": "arenashow",
+   "name": "Palm Coast Arena Concert",
+   "season": "summer",
+   "day": 3,
+   "days": 1,
+   "place": "stadium",
+   "prices": 1.2,
+   "mood": 20,
+   "desc": "a big summer concert at the arena, the whole beach sings along"
+  },
+  {
+   "id": "blockparty",
+   "name": "Maple Heights Block Party",
+   "season": "spring",
+   "day": 12,
+   "days": 1,
+   "place": "park",
+   "prices": 1.0,
+   "mood": 14,
+   "desc": "grills, bouncy castles and a band by the lake"
+  },
+  {
+   "id": "artwalk",
+   "name": "Midtown Art Walk",
+   "season": "autumn",
+   "day": 11,
+   "days": 1,
+   "place": "mt_plaza",
+   "prices": 1.05,
+   "mood": 12,
+   "desc": "galleries open late and street artists fill the plaza"
+  }
+ ],
+ "pets": [
+  {
+   "id": "dog",
+   "name": "Dog",
+   "icon": "🐕",
+   "price": 300,
+   "follows": true,
+   "mood": 4,
+   "desc": "A loyal friend who walks with you everywhere.",
+   "where": [
+    "mall"
+   ]
+  },
+  {
+   "id": "cat",
+   "name": "Cat",
+   "icon": "🐈",
+   "price": 150,
+   "mood": 3,
+   "desc": "Waits for you at home (on your keyboard).",
+   "where": [
+    "mall"
+   ]
+  },
+  {
+   "id": "parrot",
+   "name": "Parrot",
+   "icon": "🦜",
+   "price": 400,
+   "mood": 3,
+   "desc": "Talks back. A lot.",
+   "where": [
+    "mall"
+   ]
+  },
+  {
+   "id": "horse",
+   "name": "Horse",
+   "icon": "🐎",
+   "price": 2500,
+   "follows": true,
+   "mount": true,
+   "speed": 0.6,
+   "carry": 10,
+   "mood": 3,
+   "desc": "Kept at the farms and the Green Valley ranch: ride out (trips take less time).",
+   "where": [
+    "farms",
+    "ranch"
+   ]
+  },
+  {
+   "id": "drone",
+   "name": "Sidekick drone",
+   "icon": "🛸",
+   "price": 400,
+   "follows": true,
+   "familiar": true,
+   "mood": 1,
+   "skill": "perception",
+   "bonus": 2,
+   "desc": "Flies at your shoulder and scans everything: +2 on Perception.",
+   "where": [
+    "mall"
+   ]
+  },
+  {
+   "id": "wonderdog",
+   "name": "Wonder dog",
+   "icon": "🦮",
+   "price": 600,
+   "follows": true,
+   "familiar": true,
+   "mood": 4,
+   "skill": "insight",
+   "bonus": 2,
+   "desc": "A dog with a power of its own (it knows who is lying): +2 on Insight.",
+   "where": [
+    "farms",
+    "park"
+   ]
+  }
+ ],
+ "presetLife2": true,
+ "factions": [
+  {
+   "id": "cityhall",
+   "name": "City Hall",
+   "kind": "government",
+   "desc": "the mayor, the council and the city's officials",
+   "hq": "civic",
+   "ranks": [
+    "Volunteer",
+    "Staffer",
+    "Advisor",
+    "Deputy mayor"
+   ],
+   "jobs": [
+    "clerk",
+    "stationagent"
+   ],
+   "beats": "saints",
+   "rivals": [
+    "saints"
+   ],
+   "quota": 2
+  },
+  {
+   "id": "halcyon",
+   "name": "Halcyon Corp",
+   "kind": "corporation",
+   "desc": "the tech giant in the financial district",
+   "hq": "finance",
+   "ranks": [
+    "Intern",
+    "Associate",
+    "Director",
+    "CEO"
+   ],
+   "jobs": [
+    "analyst",
+    "developer"
+   ],
+   "beats": "cityhall",
+   "dues": 0,
+   "quota": 2,
+   "joinRep": 10
+  },
+  {
+   "id": "union",
+   "name": "Dockworkers' Union",
+   "kind": "union",
+   "desc": "the workers of the port, proud and loud",
+   "hq": "docks",
+   "ranks": [
+    "Member",
+    "Shop steward",
+    "Organizer",
+    "Union boss"
+   ],
+   "jobs": [
+    "dockworker",
+    "mechanic",
+    "engineer"
+   ],
+   "allies": [
+    "cityhall"
+   ],
+   "rivals": [
+    "halcyon"
+   ],
+   "dues": 5,
+   "quota": 1
+  },
+  {
+   "id": "saints",
+   "name": "The Saints",
+   "kind": "gang",
+   "desc": "a street gang that runs the industrial zone at night",
+   "hq": "industrial",
+   "ranks": [
+    "Lookout",
+    "Runner",
+    "Lieutenant",
+    "Boss"
+   ],
+   "beats": "halcyon",
+   "rivals": [
+    "cityhall"
+   ],
+   "secret": true,
+   "quota": 2
+  },
+  {
+   "id": "society",
+   "name": "Campus Society",
+   "kind": "club",
+   "desc": "students and scholars with old traditions",
+   "hq": "campus",
+   "ranks": [
+    "Pledge",
+    "Member",
+    "Officer",
+    "President"
+   ],
+   "jobs": [
+    "librarian",
+    "researcher",
+    "teacher"
+   ],
+   "quota": 1
+  },
+  {
+   "id": "harborguard",
+   "name": "The Harbor Guard",
+   "kind": "hero team",
+   "desc": "the city's official hero team, with a rooftop base above the Sky Hotel and a merch store",
+   "hq": "waterfront",
+   "ranks": [
+    "Trainee",
+    "Hero",
+    "Veteran",
+    "Team leader"
+   ],
+   "allies": [
+    "department",
+    "cityhall"
+   ],
+   "rivals": [
+    "syndicate"
+   ],
+   "beats": "syndicate",
+   "quota": 2
+  },
+  {
+   "id": "syndicate",
+   "name": "The Night Syndicate",
+   "kind": "villains",
+   "desc": "powered criminals who run heists out of the industrial zone",
+   "hq": "industrial",
+   "ranks": [
+    "Henchman",
+    "Lieutenant",
+    "Supervillain",
+    "Mastermind"
+   ],
+   "allies": [
+    "saints"
+   ],
+   "rivals": [
+    "harborguard",
+    "department"
+   ],
+   "beats": "department",
+   "secret": true,
+   "dues": 30,
+   "quota": 2
+  },
+  {
+   "id": "department",
+   "name": "Department of Superhuman Affairs",
+   "kind": "agency",
+   "desc": "the government office that registers powers and posts bounties on villains",
+   "hq": "civic",
+   "ranks": [
+    "Registered",
+    "Field agent",
+    "Handler",
+    "Director"
+   ],
+   "allies": [
+    "harborguard",
+    "cityhall"
+   ],
+   "beats": "harborguard",
+   "quota": 1
+  }
+ ],
+ "realm": {
+  "government": "republic",
+  "leadership": "An elected mayor and city council",
+  "power": "balanced",
+  "pantheon": [],
+  "name": "Costa Serena"
+ },
+ "presetRealm": true,
+ "institutions": [
+  {
+   "id": "uni",
+   "name": "Nova Vega University",
+   "place": "campus",
+   "ranks": [
+    "Freshman",
+    "Class president",
+    "Professor",
+    "Dean"
+   ],
+   "tuition": 120,
+   "trait": "Smart",
+   "examEvery": 7,
+   "clubs": [
+    "Chess club",
+    "Theater club",
+    "Debate society"
+   ],
+   "desc": "lecture halls, labs and a famous library"
+  },
+  {
+   "id": "high",
+   "name": "City High School",
+   "place": "school",
+   "ranks": [
+    "Student",
+    "Class president",
+    "Teacher",
+    "Principal"
+   ],
+   "tuition": 0,
+   "trait": "Curious",
+   "examEvery": 7,
+   "clubs": [
+    "School band",
+    "Science club",
+    "Football team"
+   ]
+  },
+  {
+   "id": "herouni",
+   "name": "Harbor Hero University",
+   "place": "herouni",
+   "ranks": [
+    "Cadet",
+    "Sidekick",
+    "Licensed hero",
+    "Dean"
+   ],
+   "tuition": 150,
+   "trait": "Heroic",
+   "skill": "arcana",
+   "examEvery": 7,
+   "clubs": [
+    "Rescue squad",
+    "Hero law society",
+    "Sparring club"
+   ],
+   "desc": "the university for powered people: control, rescue, hero law"
+  },
+  {
+   "id": "heroschool",
+   "name": "Sidekick Hero School",
+   "place": "stadium",
+   "ranks": [
+    "Recruit",
+    "Trainee",
+    "Coach",
+    "Head coach"
+   ],
+   "tuition": 40,
+   "trait": "Athletic",
+   "skill": "athletics",
+   "examEvery": 5,
+   "clubs": [
+    "Parkour crew",
+    "First responders"
+   ],
+   "desc": "evening classes at the gym for anyone who wants to help: training, first aid, crowd control"
+  }
+ ],
+ "presetSchools": true,
+ "goods": [
+  {
+   "id": "beans",
+   "name": "Coffee beans",
+   "icon": "☕",
+   "price": 8,
+   "kind": "food",
+   "cheap": [
+    "farms"
+   ],
+   "dear": [
+    "finance"
+   ]
+  },
+  {
+   "id": "produce",
+   "name": "Fresh produce",
+   "icon": "🥕",
+   "price": 4,
+   "kind": "food",
+   "cheap": [
+    "farms"
+   ],
+   "dear": [
+    "downtown"
+   ]
+  },
+  {
+   "id": "seafood",
+   "name": "Seafood",
+   "icon": "🦐",
+   "price": 12,
+   "kind": "food",
+   "cheap": [
+    "docks"
+   ],
+   "dear": [
+    "mall"
+   ]
+  },
+  {
+   "id": "electronics",
+   "name": "Electronics",
+   "icon": "📱",
+   "price": 60,
+   "kind": "goods",
+   "cheap": [
+    "docks"
+   ],
+   "dear": [
+    "campus"
+   ]
+  },
+  {
+   "id": "fashion",
+   "name": "Designer clothes",
+   "icon": "👗",
+   "price": 45,
+   "kind": "cloth",
+   "cheap": [
+    "mall"
+   ],
+   "dear": [
+    "industrial"
+   ]
+  },
+  {
+   "id": "sneakers",
+   "name": "Counterfeit sneakers",
+   "icon": "👟",
+   "price": 30,
+   "kind": "contraband",
+   "cheap": [
+    "docks"
+   ],
+   "dear": [
+    "mall"
+   ],
+   "illegal": true
+  },
+  {
+   "id": "comics",
+   "name": "Vintage comics",
+   "icon": "📚",
+   "price": 150,
+   "kind": "rare",
+   "dear": [
+    "campus"
+   ]
+  },
+  {
+   "id": "camping_gear",
+   "name": "Camping gear",
+   "icon": "⛺",
+   "price": 60,
+   "kind": "gear"
+  },
+  {
+   "id": "scrap",
+   "name": "Scrap metal",
+   "icon": "⚙️",
+   "price": 6,
+   "kind": "ore",
+   "cheap": [
+    "industrial"
+   ],
+   "dear": [
+    "finance"
+   ]
+  },
+  {
+   "id": "supplies",
+   "name": "Medical supplies",
+   "icon": "🧴",
+   "price": 10,
+   "kind": "goods",
+   "cheap": [
+    "hospital"
+   ],
+   "dear": [
+    "industrial"
+   ]
+  },
+  {
+   "id": "medkit",
+   "name": "First aid kit",
+   "icon": "🩹",
+   "price": 30,
+   "kind": "potion",
+   "cures": true
+  },
+  {
+   "id": "scope",
+   "name": "Red-dot sight",
+   "icon": "🎯",
+   "price": 90,
+   "kind": "arms",
+   "socket": {
+    "slot": "weapon",
+    "kind": "attack",
+    "amount": 1
+   }
+  },
+  {
+   "id": "weights",
+   "name": "Weighted gloves",
+   "icon": "🥊",
+   "price": 70,
+   "kind": "arms",
+   "socket": {
+    "slot": "weapon",
+    "kind": "damage",
+    "amount": 1
+   }
+  },
+  {
+   "id": "kevlar",
+   "name": "Kevlar plate",
+   "icon": "🦺",
+   "price": 120,
+   "kind": "arms",
+   "socket": {
+    "slot": "armor",
+    "kind": "armor",
+    "amount": 1
+   }
+  },
+  {
+   "id": "champion_belt",
+   "name": "Champion's belt",
+   "icon": "🏆",
+   "price": 400,
+   "kind": "rare"
+  },
+  {
+   "id": "energy_cell",
+   "name": "Power cell",
+   "icon": "🔋",
+   "price": 20,
+   "kind": "goods",
+   "cheap": [
+    "industrial"
+   ],
+   "dear": [
+    "downtown"
+   ]
+  },
+  {
+   "id": "serum",
+   "name": "Healing serum",
+   "icon": "💉",
+   "price": 40,
+   "kind": "potion"
+  },
+  {
+   "id": "nanogel",
+   "name": "Nanite gel",
+   "icon": "🧬",
+   "price": 35,
+   "kind": "goods",
+   "cures": true
+  },
+  {
+   "id": "power_core",
+   "name": "Power core",
+   "icon": "💠",
+   "price": 140,
+   "kind": "rare",
+   "socket": {
+    "slot": "weapon",
+    "kind": "damage",
+    "amount": 1
+   }
+  },
+  {
+   "id": "alloy",
+   "name": "Alloy plating",
+   "icon": "🛡️",
+   "price": 110,
+   "kind": "arms",
+   "socket": {
+    "slot": "armor",
+    "kind": "armor",
+    "amount": 1
+   }
+  },
+  {
+   "id": "hero_suit",
+   "name": "A hero suit",
+   "icon": "🦸",
+   "price": 500,
+   "kind": "rare"
+  },
+  {
+   "id": "villain_tech",
+   "name": "Stolen villain tech",
+   "icon": "📟",
+   "price": 250,
+   "kind": "contraband",
+   "illegal": true,
+   "dear": [
+    "finance"
+   ]
+  },
+  {
+   "id": "aria_gauntlet",
+   "name": "A gauntlet with an AI inside",
+   "icon": "🦾",
+   "price": 300,
+   "kind": "sentient"
+  }
+ ],
+ "crops": [
+  {
+   "id": "tomatoes",
+   "name": "Tomatoes",
+   "icon": "🍅",
+   "days": 5,
+   "seed": 5,
+   "good": "produce",
+   "yield": 6
+  },
+  {
+   "id": "beans",
+   "name": "Coffee plant",
+   "icon": "☕",
+   "days": 10,
+   "seed": 20,
+   "good": "beans",
+   "yield": 5
+  }
+ ],
+ "businesses": [
+  {
+   "id": "foodtruck",
+   "name": "Food truck",
+   "icon": "🚚",
+   "cost": 3000,
+   "profit": 120,
+   "staff": 2,
+   "tags": [
+    "food",
+    "leisure"
+   ]
+  },
+  {
+   "id": "cart",
+   "name": "Coffee cart",
+   "icon": "☕",
+   "cost": 1200,
+   "profit": 50,
+   "staff": 1,
+   "tags": [
+    "food",
+    "work"
+   ]
+  },
+  {
+   "id": "boutique",
+   "name": "Boutique",
+   "icon": "👗",
+   "cost": 6000,
+   "profit": 220,
+   "staff": 3,
+   "tags": [
+    "shop"
+   ]
+  },
+  {
+   "id": "repair",
+   "name": "Repair shop",
+   "icon": "🔧",
+   "cost": 2500,
+   "profit": 90,
+   "staff": 2,
+   "tags": [
+    "work"
+   ]
+  }
+ ],
+ "skies": {
+  "events": [
+   {
+    "id": "eclipse",
+    "name": "Solar eclipse",
+    "desc": "the city stops to look up at a dark sun",
+    "every": 40,
+    "days": 1,
+    "effect": "omen",
+    "amount": 3
+   }
+  ],
+  "hazards": [
+   {
+    "id": "heatwave",
+    "name": "Heatwave",
+    "desc": "a record-breaking heat",
+    "climate": "coastal",
+    "season": "summer",
+    "chance": 0.3,
+    "drain": {
+     "thirst": 2,
+     "energy": 1.3
+    }
+   },
+   {
+    "id": "hurricane",
+    "name": "Hurricane warning",
+    "desc": "shops board up their windows; everyone stays in",
+    "climate": "coastal",
+    "season": "autumn",
+    "chance": 0.06,
+    "drain": {
+     "mood": 1.5
+    },
+    "closes": true
+   }
+  ]
+ },
+ "presetEconomy": true,
+ "rpg": {
+  "attributes": [
+   {
+    "id": "str",
+    "name": "Strength",
+    "short": "STR",
+    "desc": "Lifting, climbing, hitting hard."
+   },
+   {
+    "id": "dex",
+    "name": "Dexterity",
+    "short": "DEX",
+    "desc": "Speed, balance, light fingers."
+   },
+   {
+    "id": "con",
+    "name": "Constitution",
+    "short": "CON",
+    "desc": "Health and stamina: more hit points."
+   },
+   {
+    "id": "int",
+    "name": "Intelligence",
+    "short": "INT",
+    "desc": "Memory, reasoning, arcane study."
+   },
+   {
+    "id": "wis",
+    "name": "Wisdom",
+    "short": "WIS",
+    "desc": "Awareness, intuition, faith."
+   },
+   {
+    "id": "cha",
+    "name": "Charisma",
+    "short": "CHA",
+    "desc": "Presence, charm, a silver tongue."
+   }
+  ],
+  "hpAttr": "con",
+  "skills": [
+   {
+    "id": "athletics",
+    "name": "Athletics",
+    "attr": "str"
+   },
+   {
+    "id": "acrobatics",
+    "name": "Acrobatics",
+    "attr": "dex"
+   },
+   {
+    "id": "stealth",
+    "name": "Stealth",
+    "attr": "dex"
+   },
+   {
+    "id": "sleight",
+    "name": "Sleight of hand",
+    "attr": "dex"
+   },
+   {
+    "id": "investigation",
+    "name": "Investigation",
+    "attr": "int"
+   },
+   {
+    "id": "history",
+    "name": "Knowledge",
+    "attr": "int"
+   },
+   {
+    "id": "tech",
+    "name": "Technology",
+    "attr": "int"
+   },
+   {
+    "id": "insight",
+    "name": "Insight",
+    "attr": "wis"
+   },
+   {
+    "id": "medicine",
+    "name": "First aid",
+    "attr": "wis"
+   },
+   {
+    "id": "perception",
+    "name": "Perception",
+    "attr": "wis"
+   },
+   {
+    "id": "survival",
+    "name": "Streetwise",
+    "attr": "wis"
+   },
+   {
+    "id": "deception",
+    "name": "Deception",
+    "attr": "cha"
+   },
+   {
+    "id": "intimidation",
+    "name": "Intimidation",
+    "attr": "cha"
+   },
+   {
+    "id": "performance",
+    "name": "Performance",
+    "attr": "cha"
+   },
+   {
+    "id": "persuasion",
+    "name": "Persuasion",
+    "attr": "cha"
+   },
+   {
+    "id": "arcana",
+    "name": "Powers lore",
+    "attr": "int"
+   }
+  ],
+  "classes": [
+   {
+    "id": "martial",
+    "name": "Martial artist",
+    "desc": "Years in the dojo: body, breath and discipline.",
+    "hit": 10,
+    "key": "wis",
+    "skills": [
+     "athletics",
+     "acrobatics",
+     "insight",
+     "perception"
+    ],
+    "schools": [
+     "karate",
+     "kungfu",
+     "capoeira",
+     "boxing"
+    ],
+    "armor": 2,
+    "weapon": {
+     "name": "fists and feet",
+     "dice": 1,
+     "sides": 8,
+     "attr": "dex"
+    },
+    "ability": {
+     "name": "Flurry",
+     "kind": "rage",
+     "amount": 3,
+     "desc": "A storm of blows: more damage, less guard."
+    },
+    "subAt": 3,
+    "subclasses": [
+     {
+      "id": "karateka",
+      "name": "Karateka",
+      "desc": "Hard, direct strikes.",
+      "school": "karate"
+     },
+     {
+      "id": "kungfu_master",
+      "name": "Kung fu master",
+      "desc": "Flow and inner calm.",
+      "school": "kungfu"
+     },
+     {
+      "id": "capoeirista",
+      "name": "Capoeirista",
+      "desc": "Dance, trickery and kicks.",
+      "school": "capoeira"
+     },
+     {
+      "id": "boxer",
+      "name": "Boxer",
+      "desc": "Footwork and fists.",
+      "school": "boxing"
+     }
+    ]
+   },
+   {
+    "id": "soldier",
+    "name": "Ex-soldier",
+    "desc": "Trained to fight, still carrying the habits.",
+    "hit": 10,
+    "key": "str",
+    "skills": [
+     "athletics",
+     "intimidation",
+     "perception",
+     "survival"
+    ],
+    "armor": 5,
+    "weapon": {
+     "name": "pistol",
+     "dice": 1,
+     "sides": 8,
+     "attr": "dex",
+     "ranged": true
+    },
+    "ability": {
+     "name": "Suppressing fire",
+     "kind": "mark",
+     "amount": 3,
+     "desc": "Pin a target down: everyone hits it harder."
+    },
+    "subAt": 3,
+    "subclasses": [
+     {
+      "id": "commando",
+      "name": "Commando",
+      "desc": "Close-quarters expert.",
+      "skill": "stealth"
+     },
+     {
+      "id": "sharpshooter",
+      "name": "Sharpshooter",
+      "desc": "One shot, one problem solved.",
+      "skill": "perception"
+     }
+    ]
+   },
+   {
+    "id": "hacker",
+    "name": "Hacker",
+    "desc": "Systems, cameras and locks bend to your keyboard.",
+    "hit": 6,
+    "key": "int",
+    "skills": [
+     "tech",
+     "investigation",
+     "stealth",
+     "deception"
+    ],
+    "armor": 0,
+    "weapon": {
+     "name": "taser",
+     "dice": 1,
+     "sides": 6,
+     "attr": "dex",
+     "ranged": true,
+     "element": "lightning"
+    },
+    "ability": {
+     "name": "Kill the lights",
+     "kind": "hide",
+     "desc": "Cameras and lights go dark: your next attack lands unseen."
+    },
+    "subAt": 3,
+    "subclasses": [
+     {
+      "id": "netrunner",
+      "name": "Netrunner",
+      "desc": "Lives online.",
+      "skill": "tech"
+     },
+     {
+      "id": "social_engineer",
+      "name": "Social engineer",
+      "desc": "The weakest link is people.",
+      "skill": "persuasion"
+     }
+    ]
+   },
+   {
+    "id": "medic",
+    "name": "Medic",
+    "desc": "Paramedic training: you keep people alive.",
+    "hit": 8,
+    "key": "wis",
+    "skills": [
+     "medicine",
+     "insight",
+     "perception",
+     "persuasion"
+    ],
+    "armor": 2,
+    "weapon": {
+     "name": "baton",
+     "dice": 1,
+     "sides": 6,
+     "attr": "str"
+    },
+    "ability": {
+     "name": "Patch up",
+     "kind": "heal",
+     "amount": 30,
+     "desc": "Heal the most hurt ally."
+    },
+    "subAt": 3,
+    "subclasses": [
+     {
+      "id": "trauma",
+      "name": "Trauma surgeon",
+      "desc": "Miracles in the worst moments.",
+      "skill": "medicine"
+     },
+     {
+      "id": "counselor",
+      "name": "Counselor",
+      "desc": "Minds heal too.",
+      "skill": "insight"
+     }
+    ]
+   },
+   {
+    "id": "detective",
+    "name": "Detective",
+    "desc": "You notice what others miss.",
+    "hit": 8,
+    "key": "int",
+    "skills": [
+     "investigation",
+     "insight",
+     "perception",
+     "intimidation",
+     "survival"
+    ],
+    "armor": 2,
+    "weapon": {
+     "name": "revolver",
+     "dice": 1,
+     "sides": 8,
+     "attr": "dex",
+     "ranged": true
+    },
+    "ability": {
+     "name": "Read the opponent",
+     "kind": "mark",
+     "amount": 4,
+     "desc": "Find the weak spot: the whole party deals more damage to it."
+    },
+    "subAt": 3,
+    "subclasses": [
+     {
+      "id": "private_eye",
+      "name": "Private eye",
+      "desc": "Shadows and stakeouts.",
+      "skill": "stealth"
+     },
+     {
+      "id": "inspector",
+      "name": "Inspector",
+      "desc": "The badge opens doors.",
+      "skill": "intimidation"
+     }
+    ]
+   },
+   {
+    "id": "influencer",
+    "name": "Influencer",
+    "desc": "A million followers and a way with words.",
+    "hit": 6,
+    "key": "cha",
+    "skills": [
+     "persuasion",
+     "performance",
+     "deception",
+     "insight"
+    ],
+    "armor": 0,
+    "weapon": {
+     "name": "pepper spray",
+     "dice": 1,
+     "sides": 4,
+     "attr": "dex",
+     "ranged": true
+    },
+    "ability": {
+     "name": "Hype",
+     "kind": "inspire",
+     "amount": 3,
+     "desc": "Everyone feels like the main character: their next blow lands truer."
+    },
+    "subAt": 3,
+    "subclasses": [
+     {
+      "id": "streamer",
+      "name": "Streamer",
+      "desc": "Always live.",
+      "skill": "performance"
+     },
+     {
+      "id": "activist",
+      "name": "Activist",
+      "desc": "A cause and a crowd.",
+      "skill": "persuasion"
+     }
+    ]
+   },
+   {
+    "id": "speedster",
+    "name": "Speedster",
+    "desc": "Faster than the eye: the city is a blur around you.",
+    "hit": 8,
+    "key": "dex",
+    "skills": [
+     "acrobatics",
+     "athletics",
+     "perception",
+     "sleight"
+    ],
+    "schools": [
+     "speed"
+    ],
+    "armor": 1,
+    "weapon": {
+     "name": "a hundred punches a second",
+     "dice": 1,
+     "sides": 8,
+     "attr": "dex"
+    },
+    "ability": {
+     "name": "Blur",
+     "kind": "hide",
+     "desc": "Gone before they blink: your next blow lands unseen."
+    },
+    "subAt": 3,
+    "subclasses": [
+     {
+      "id": "sprinter",
+      "name": "Sprinter",
+      "desc": "Pure speed.",
+      "skill": "athletics"
+     },
+     {
+      "id": "phaser",
+      "name": "Phaser",
+      "desc": "Vibrates through walls.",
+      "skill": "stealth"
+     }
+    ]
+   },
+   {
+    "id": "powerhouse",
+    "name": "Powerhouse",
+    "desc": "You lift buses. Bullets bounce.",
+    "hit": 12,
+    "key": "str",
+    "skills": [
+     "athletics",
+     "intimidation",
+     "perception",
+     "persuasion"
+    ],
+    "schools": [
+     "strength"
+    ],
+    "armor": 6,
+    "weapon": {
+     "name": "super-strength",
+     "dice": 2,
+     "sides": 6,
+     "attr": "str"
+    },
+    "ability": {
+     "name": "Stand in the way",
+     "kind": "guard",
+     "desc": "You take the hits meant for your friends."
+    },
+    "subAt": 3,
+    "subclasses": [
+     {
+      "id": "titan",
+      "name": "Titan",
+      "desc": "Bigger, stronger.",
+      "skill": "athletics"
+     },
+     {
+      "id": "guardian",
+      "name": "Guardian",
+      "desc": "The city's shield.",
+      "skill": "insight"
+     }
+    ]
+   },
+   {
+    "id": "elemental",
+    "name": "Elemental",
+    "desc": "Fire, water and lightning answer you.",
+    "hit": 6,
+    "key": "con",
+    "skills": [
+     "arcana",
+     "survival",
+     "intimidation",
+     "performance"
+    ],
+    "schools": [
+     "elemental"
+    ],
+    "armor": 0,
+    "weapon": {
+     "name": "energy blast",
+     "dice": 1,
+     "sides": 8,
+     "attr": "con",
+     "ranged": true,
+     "element": "fire"
+    },
+    "ability": {
+     "name": "Overload",
+     "kind": "rage",
+     "amount": 3,
+     "desc": "Let it all out: more damage, less control."
+    },
+    "subAt": 3,
+    "subclasses": [
+     {
+      "id": "pyro",
+      "name": "Pyrokinetic",
+      "desc": "Fire.",
+      "skill": "intimidation"
+     },
+     {
+      "id": "storm",
+      "name": "Stormcaller",
+      "desc": "Rain and lightning.",
+      "skill": "survival"
+     }
+    ]
+   },
+   {
+    "id": "psychic",
+    "name": "Psychic",
+    "desc": "You hear thoughts and move things with your mind.",
+    "hit": 6,
+    "key": "int",
+    "skills": [
+     "insight",
+     "arcana",
+     "persuasion",
+     "investigation",
+     "deception"
+    ],
+    "schools": [
+     "mind"
+    ],
+    "armor": 0,
+    "weapon": {
+     "name": "telekinetic shove",
+     "dice": 1,
+     "sides": 6,
+     "attr": "int",
+     "ranged": true
+    },
+    "ability": {
+     "name": "Read them",
+     "kind": "mark",
+     "amount": 4,
+     "desc": "You see their next move: the team hits them harder."
+    },
+    "subAt": 3,
+    "subclasses": [
+     {
+      "id": "telepath",
+      "name": "Telepath",
+      "desc": "Minds are open books.",
+      "skill": "insight"
+     },
+     {
+      "id": "telekinetic",
+      "name": "Telekinetic",
+      "desc": "Mind over matter.",
+      "skill": "athletics"
+     }
+    ]
+   }
+  ],
+  "xp": [
+   100,
+   300,
+   600,
+   1000,
+   1500,
+   2100,
+   2800,
+   3600,
+   4500,
+   5500,
+   6600
+  ],
+  "focusName": "Power",
+  "schools": [
+   {
+    "id": "karate",
+    "name": "Karate",
+    "desc": "Hard strikes and an iron body."
+   },
+   {
+    "id": "kungfu",
+    "name": "Kung fu",
+    "desc": "Flow, balance and inner calm."
+   },
+   {
+    "id": "capoeira",
+    "name": "Capoeira",
+    "desc": "Dance, deception and sweeping kicks."
+   },
+   {
+    "id": "boxing",
+    "name": "Boxing",
+    "desc": "Footwork, guard and fists."
+   },
+   {
+    "id": "speed",
+    "name": "Super-speed",
+    "desc": "Move faster than thought."
+   },
+   {
+    "id": "strength",
+    "name": "Super-strength",
+    "desc": "Lift, smash, endure."
+   },
+   {
+    "id": "elemental",
+    "name": "Elemental control",
+    "desc": "Fire, water, lightning and the weather."
+   },
+   {
+    "id": "mind",
+    "name": "Psychic powers",
+    "desc": "Telepathy and telekinesis."
+   }
+  ],
+  "spells": [
+   {
+    "id": "focused_strike",
+    "name": "Focused strike",
+    "school": "karate",
+    "level": 1,
+    "cost": 1,
+    "desc": "All your Ki in one strike.",
+    "effect": {
+     "kind": "scene"
+    },
+    "combat": "damage"
+   },
+   {
+    "id": "iron_body",
+    "name": "Iron body",
+    "school": "karate",
+    "level": 1,
+    "cost": 2,
+    "desc": "Muscles like armor: +3 armor in a fight.",
+    "effect": {
+     "kind": "scene"
+    },
+    "combat": "shield"
+   },
+   {
+    "id": "breaking_blow",
+    "name": "Breaking blow",
+    "school": "karate",
+    "level": 2,
+    "cost": 3,
+    "desc": "The strike that splits boards (and jaws).",
+    "effect": {
+     "kind": "scene"
+    },
+    "combat": "damage"
+   },
+   {
+    "id": "crane",
+    "name": "Crane stance",
+    "school": "kungfu",
+    "level": 1,
+    "cost": 1,
+    "desc": "Perfect balance: +3 armor in a fight.",
+    "effect": {
+     "kind": "scene"
+    },
+    "combat": "shield"
+   },
+   {
+    "id": "inner_calm",
+    "name": "Inner calm",
+    "school": "kungfu",
+    "level": 1,
+    "cost": 1,
+    "desc": "Breathe: recover some strength.",
+    "effect": {
+     "kind": "heal",
+     "amount": 15
+    }
+   },
+   {
+    "id": "dragon_palm",
+    "name": "Palm of the dragon",
+    "school": "kungfu",
+    "level": 2,
+    "cost": 3,
+    "desc": "An open palm that hits like a truck.",
+    "effect": {
+     "kind": "scene"
+    },
+    "combat": "damage"
+   },
+   {
+    "id": "meditation",
+    "name": "Meditation",
+    "school": "kungfu",
+    "level": 1,
+    "cost": 1,
+    "desc": "A clear mind: +2 to your next check.",
+    "effect": {
+     "kind": "bonus",
+     "amount": 2
+    }
+   },
+   {
+    "id": "meia_lua",
+    "name": "Meia lua",
+    "school": "capoeira",
+    "level": 1,
+    "cost": 1,
+    "desc": "A spinning half-moon kick.",
+    "effect": {
+     "kind": "scene"
+    },
+    "combat": "damage"
+   },
+   {
+    "id": "ginga",
+    "name": "Ginga",
+    "school": "capoeira",
+    "level": 1,
+    "cost": 2,
+    "desc": "Never where they expect: your next Acrobatics or Stealth check rolls twice.",
+    "effect": {
+     "kind": "advantage",
+     "skills": [
+      "acrobatics",
+      "stealth",
+      "deception"
+     ]
+    }
+   },
+   {
+    "id": "martelo",
+    "name": "Martelo",
+    "school": "capoeira",
+    "level": 2,
+    "cost": 2,
+    "desc": "The hammer kick.",
+    "effect": {
+     "kind": "scene"
+    },
+    "combat": "damage"
+   },
+   {
+    "id": "jab_cross",
+    "name": "Jab-cross",
+    "school": "boxing",
+    "level": 1,
+    "cost": 1,
+    "desc": "The classic one-two.",
+    "effect": {
+     "kind": "scene"
+    },
+    "combat": "damage"
+   },
+   {
+    "id": "rope_a_dope",
+    "name": "Rope-a-dope",
+    "school": "boxing",
+    "level": 1,
+    "cost": 1,
+    "desc": "Cover up and let them tire: +3 armor.",
+    "effect": {
+     "kind": "scene"
+    },
+    "combat": "shield"
+   },
+   {
+    "id": "haymaker",
+    "name": "Haymaker",
+    "school": "boxing",
+    "level": 2,
+    "cost": 3,
+    "desc": "Everything behind one punch.",
+    "effect": {
+     "kind": "scene"
+    },
+    "combat": "damage"
+   },
+   {
+    "id": "rapid_strikes",
+    "name": "Rapid strikes",
+    "school": "speed",
+    "level": 1,
+    "cost": 1,
+    "desc": "A flurry too fast to see.",
+    "effect": {
+     "kind": "scene"
+    },
+    "combat": "damage"
+   },
+   {
+    "id": "afterimage",
+    "name": "Afterimage",
+    "school": "speed",
+    "level": 1,
+    "cost": 2,
+    "desc": "They hit where you were: +3 armor in a fight.",
+    "effect": {
+     "kind": "scene"
+    },
+    "combat": "shield"
+   },
+   {
+    "id": "quick_hands",
+    "name": "Quick hands",
+    "school": "speed",
+    "level": 2,
+    "cost": 2,
+    "desc": "Your next Sleight of hand, Acrobatics or Stealth check rolls twice.",
+    "effect": {
+     "kind": "advantage",
+     "skills": [
+      "sleight",
+      "acrobatics",
+      "stealth"
+     ]
+    }
+   },
+   {
+    "id": "thunderclap",
+    "name": "Thunderclap",
+    "school": "strength",
+    "level": 1,
+    "cost": 1,
+    "desc": "Hands together: a shockwave.",
+    "effect": {
+     "kind": "scene"
+    },
+    "combat": "damage"
+   },
+   {
+    "id": "iron_skin",
+    "name": "Unbreakable",
+    "school": "strength",
+    "level": 1,
+    "cost": 2,
+    "desc": "Bullets bounce off: +3 armor in a fight.",
+    "effect": {
+     "kind": "scene"
+    },
+    "combat": "shield"
+   },
+   {
+    "id": "meteor_punch",
+    "name": "Meteor punch",
+    "school": "strength",
+    "level": 2,
+    "cost": 3,
+    "desc": "You leap, you fall, you punch.",
+    "effect": {
+     "kind": "scene"
+    },
+    "combat": "damage"
+   },
+   {
+    "id": "fire_blast",
+    "name": "Fire blast",
+    "school": "elemental",
+    "level": 1,
+    "cost": 1,
+    "desc": "A jet of flame.",
+    "effect": {
+     "kind": "scene"
+    },
+    "combat": "damage",
+    "element": "fire"
+   },
+   {
+    "id": "water_jet",
+    "name": "Water jet",
+    "school": "elemental",
+    "level": 1,
+    "cost": 1,
+    "desc": "A blast of water: the foe is soaked (lightning hits it harder).",
+    "effect": {
+     "kind": "scene"
+    },
+    "combat": "damage",
+    "element": "water"
+   },
+   {
+    "id": "lightning_arc",
+    "name": "Lightning arc",
+    "school": "elemental",
+    "level": 2,
+    "cost": 3,
+    "desc": "A crack of lightning. Stronger in the rain.",
+    "effect": {
+     "kind": "scene"
+    },
+    "combat": "damage",
+    "element": "lightning"
+   },
+   {
+    "id": "call_rain",
+    "name": "Call rain",
+    "school": "elemental",
+    "level": 2,
+    "cost": 2,
+    "desc": "Clouds gather over the city for the day (water and lightning grow stronger, fire weaker).",
+    "effect": {
+     "kind": "weather",
+     "to": "rain"
+    },
+    "element": "water"
+   },
+   {
+    "id": "clear_skies",
+    "name": "Clear skies",
+    "school": "elemental",
+    "level": 2,
+    "cost": 2,
+    "desc": "The clouds part for the day.",
+    "effect": {
+     "kind": "weather",
+     "to": "clear"
+    }
+   },
+   {
+    "id": "mind_spike",
+    "name": "Mind spike",
+    "school": "mind",
+    "level": 1,
+    "cost": 1,
+    "desc": "A psychic jab.",
+    "effect": {
+     "kind": "scene"
+    },
+    "combat": "damage"
+   },
+   {
+    "id": "force_field",
+    "name": "Force field",
+    "school": "mind",
+    "level": 1,
+    "cost": 2,
+    "desc": "A shimmering bubble: +3 armor in a fight.",
+    "effect": {
+     "kind": "scene"
+    },
+    "combat": "shield"
+   },
+   {
+    "id": "read_mind",
+    "name": "Read a mind",
+    "school": "mind",
+    "level": 1,
+    "cost": 1,
+    "desc": "Your next Insight, Persuasion or Deception check rolls twice.",
+    "effect": {
+     "kind": "advantage",
+     "skills": [
+      "insight",
+      "persuasion",
+      "deception"
+     ]
+    }
+   },
+   {
+    "id": "calm_crowd",
+    "name": "Calm the crowd",
+    "school": "mind",
+    "level": 2,
+    "cost": 2,
+    "desc": "A wave of calm over the neighborhood (tension down).",
+    "effect": {
+     "kind": "calm",
+     "amount": 15
+    }
+   },
+   {
+    "id": "purge",
+    "name": "Psychic purge",
+    "school": "mind",
+    "level": 2,
+    "cost": 2,
+    "desc": "Clears poisons, burns and confusion from body and mind.",
+    "effect": {
+     "kind": "cleanse"
+    }
+   }
+  ],
+  "titles": [
+   {
+    "id": "seasoned",
+    "name": "the Seasoned",
+    "desc": "Reach level 5.",
+    "when": {
+     "level": 5
+    }
+   },
+   {
+    "id": "veteran",
+    "name": "the Veteran",
+    "desc": "Reach level 10.",
+    "when": {
+     "level": 10
+    }
+   },
+   {
+    "id": "smooth",
+    "name": "the Smooth Talker",
+    "desc": "Win 10 social checks.",
+    "when": {
+     "count": "socialWins",
+     "n": 10
+    }
+   },
+   {
+    "id": "fixer",
+    "name": "the Fixer",
+    "desc": "Finish 5 missions.",
+    "when": {
+     "count": "quests",
+     "n": 5
+    }
+   },
+   {
+    "id": "legend",
+    "name": "Neighborhood Legend",
+    "desc": "Earn 100 renown.",
+    "when": {
+     "renown": 100
+    }
+   },
+   {
+    "id": "brawler",
+    "name": "the Undefeated",
+    "desc": "Win 10 fights.",
+    "when": {
+     "count": "fights",
+     "n": 10
+    }
+   },
+   {
+    "id": "hero",
+    "name": "the City's Hero",
+    "desc": "Earn 150 renown.",
+    "when": {
+     "renown": 150
+    }
+   },
+   {
+    "id": "super",
+    "name": "the Unstoppable",
+    "desc": "Use your powers 20 times.",
+    "when": {
+     "count": "casts",
+     "n": 20
+    }
+   }
+  ],
+  "campEvery": 8,
+  "bestiary": [
+   {
+    "id": "mugger",
+    "icon": "🔪",
+    "name": "Mugger",
+    "level": 1,
+    "hp": 10,
+    "ac": 11,
+    "atk": 3,
+    "dice": 1,
+    "sides": 6,
+    "bonus": 1,
+    "row": "front",
+    "tags": [
+     "town",
+     "road"
+    ],
+    "desc": "A knife and nothing to lose."
+   },
+   {
+    "id": "ganger",
+    "icon": "🧢",
+    "name": "Gang member",
+    "level": 1,
+    "hp": 12,
+    "ac": 12,
+    "atk": 3,
+    "dice": 1,
+    "sides": 6,
+    "bonus": 2,
+    "row": "front",
+    "tags": [
+     "town",
+     "tower"
+    ],
+    "desc": "Colors, attitude and a chain."
+   },
+   {
+    "id": "dog",
+    "icon": "🐕",
+    "name": "Guard dog",
+    "level": 1,
+    "hp": 9,
+    "ac": 12,
+    "atk": 4,
+    "dice": 1,
+    "sides": 6,
+    "bonus": 2,
+    "row": "front",
+    "tags": [
+     "town",
+     "wild"
+    ],
+    "desc": "Trained to bite first."
+   },
+   {
+    "id": "bat",
+    "icon": "🏏",
+    "name": "Thug with a bat",
+    "level": 2,
+    "hp": 16,
+    "ac": 12,
+    "atk": 4,
+    "dice": 1,
+    "sides": 8,
+    "bonus": 2,
+    "row": "front",
+    "tags": [
+     "town",
+     "tower"
+    ],
+    "desc": "Swings for the fences."
+   },
+   {
+    "id": "gunman",
+    "icon": "🔫",
+    "name": "Gunman",
+    "level": 2,
+    "hp": 12,
+    "ac": 13,
+    "atk": 5,
+    "dice": 1,
+    "sides": 8,
+    "bonus": 2,
+    "ranged": true,
+    "row": "back",
+    "tags": [
+     "town",
+     "road",
+     "tower"
+    ],
+    "desc": "Shoots from behind cover."
+   },
+   {
+    "id": "security",
+    "icon": "👮",
+    "name": "Security guard",
+    "level": 2,
+    "hp": 18,
+    "ac": 14,
+    "atk": 4,
+    "dice": 1,
+    "sides": 6,
+    "bonus": 2,
+    "row": "front",
+    "tags": [
+     "town"
+    ],
+    "desc": "Paid to stop you, not to like it."
+   },
+   {
+    "id": "bouncer",
+    "icon": "💪",
+    "name": "Bouncer",
+    "level": 3,
+    "hp": 26,
+    "ac": 12,
+    "atk": 5,
+    "dice": 2,
+    "sides": 6,
+    "bonus": 3,
+    "row": "front",
+    "tags": [
+     "town",
+     "tower"
+    ],
+    "desc": "A wall in a black shirt."
+   },
+   {
+    "id": "boss",
+    "icon": "😎",
+    "name": "Gang boss",
+    "level": 5,
+    "hp": 45,
+    "ac": 15,
+    "atk": 6,
+    "dice": 2,
+    "sides": 8,
+    "bonus": 3,
+    "row": "front",
+    "tags": [
+     "town",
+     "tower",
+     "boss"
+    ],
+    "desc": "Gold chains, cold eyes."
+   },
+   {
+    "id": "henchman",
+    "icon": "🦹",
+    "name": "Masked henchman",
+    "level": 1,
+    "hp": 12,
+    "ac": 12,
+    "atk": 3,
+    "dice": 1,
+    "sides": 6,
+    "bonus": 2,
+    "row": "front",
+    "tags": [
+     "town",
+     "tower",
+     "road"
+    ],
+    "desc": "Matching jumpsuits, questionable loyalty."
+   },
+   {
+    "id": "drone",
+    "icon": "🤖",
+    "name": "Attack drone",
+    "element": "lightning",
+    "inflict": {
+     "kind": "slow",
+     "chance": 0.25,
+     "turns": 2
+    },
+    "level": 2,
+    "hp": 14,
+    "ac": 14,
+    "atk": 4,
+    "dice": 1,
+    "sides": 8,
+    "bonus": 1,
+    "ranged": true,
+    "row": "back",
+    "tags": [
+     "town",
+     "tower"
+    ],
+    "desc": "Buzzing, red-eyed, armed."
+   },
+   {
+    "id": "firestarter",
+    "icon": "🔥",
+    "name": "Firestarter",
+    "element": "fire",
+    "inflict": {
+     "kind": "burn",
+     "chance": 0.35,
+     "turns": 3
+    },
+    "level": 3,
+    "hp": 20,
+    "ac": 13,
+    "atk": 5,
+    "dice": 1,
+    "sides": 10,
+    "bonus": 2,
+    "ranged": true,
+    "row": "back",
+    "tags": [
+     "town",
+     "tower"
+    ],
+    "desc": "A villain who just wants to watch it burn."
+   },
+   {
+    "id": "mesmer",
+    "icon": "🌀",
+    "name": "Mesmerist",
+    "inflict": {
+     "kind": "silence",
+     "chance": 0.35,
+     "turns": 2
+    },
+    "level": 3,
+    "hp": 18,
+    "ac": 13,
+    "atk": 5,
+    "dice": 1,
+    "sides": 8,
+    "bonus": 2,
+    "ranged": true,
+    "row": "back",
+    "tags": [
+     "town",
+     "tower"
+    ],
+    "desc": "Her voice gets into your head."
+   },
+   {
+    "id": "brute",
+    "icon": "🦍",
+    "name": "Rampaging brute",
+    "inflict": {
+     "kind": "slow",
+     "chance": 0.3,
+     "turns": 2
+    },
+    "level": 4,
+    "hp": 38,
+    "ac": 13,
+    "atk": 6,
+    "dice": 2,
+    "sides": 8,
+    "bonus": 3,
+    "row": "front",
+    "tags": [
+     "town",
+     "road",
+     "tower"
+    ],
+    "desc": "Grew too big for his shirt and his conscience."
+   },
+   {
+    "id": "mastermind",
+    "icon": "🎭",
+    "name": "Masked mastermind",
+    "inflict": {
+     "kind": "curse",
+     "chance": 0.3,
+     "turns": 3
+    },
+    "level": 6,
+    "hp": 50,
+    "ac": 16,
+    "atk": 7,
+    "dice": 2,
+    "sides": 8,
+    "bonus": 4,
+    "row": "back",
+    "ranged": true,
+    "tags": [
+     "town",
+     "tower",
+     "boss"
+    ],
+    "desc": "Always three plans ahead."
+   }
+  ],
+  "talents": [
+   {
+    "id": "tough",
+    "name": "Toughness",
+    "desc": "More hit points.",
+    "tier": 1,
+    "effect": {
+     "kind": "hp",
+     "amount": 6
+    }
+   },
+   {
+    "id": "keen",
+    "name": "Keen senses",
+    "desc": "+2 Perception.",
+    "tier": 1,
+    "effect": {
+     "kind": "skill",
+     "amount": 2,
+     "skill": "perception"
+    }
+   },
+   {
+    "id": "silver",
+    "name": "Silver tongue",
+    "desc": "+2 Persuasion.",
+    "tier": 1,
+    "effect": {
+     "kind": "skill",
+     "amount": 2,
+     "skill": "persuasion"
+    }
+   },
+   {
+    "id": "street",
+    "name": "Street smart",
+    "desc": "+3 on nights on the road.",
+    "tier": 1,
+    "effect": {
+     "kind": "camp",
+     "amount": 3
+    }
+   },
+   {
+    "id": "will",
+    "name": "Iron will",
+    "desc": "+2 Ki.",
+    "tier": 2,
+    "effect": {
+     "kind": "focus",
+     "amount": 2
+    },
+    "requires": [
+     "tough"
+    ]
+   },
+   {
+    "id": "ma_breath",
+    "name": "Breath control",
+    "desc": "+3 Ki.",
+    "tier": 1,
+    "effect": {
+     "kind": "focus",
+     "amount": 3
+    },
+    "cls": "martial"
+   },
+   {
+    "id": "ma_speed",
+    "name": "Lightning reflexes",
+    "desc": "+2 initiative.",
+    "tier": 2,
+    "effect": {
+     "kind": "initiative",
+     "amount": 2
+    },
+    "cls": "martial",
+    "requires": [
+     "ma_breath"
+    ]
+   },
+   {
+    "id": "ma_power",
+    "name": "Devastating strikes",
+    "desc": "+2 damage.",
+    "tier": 3,
+    "effect": {
+     "kind": "damage",
+     "amount": 2
+    },
+    "cls": "martial",
+    "requires": [
+     "ma_speed"
+    ]
+   },
+   {
+    "id": "so_aim",
+    "name": "Marksman",
+    "desc": "+1 to hit.",
+    "tier": 1,
+    "effect": {
+     "kind": "attack",
+     "amount": 1
+    },
+    "cls": "soldier"
+   },
+   {
+    "id": "so_vest",
+    "name": "Body armor",
+    "desc": "+1 armor.",
+    "tier": 2,
+    "effect": {
+     "kind": "armor",
+     "amount": 1
+    },
+    "cls": "soldier",
+    "requires": [
+     "so_aim"
+    ]
+   },
+   {
+    "id": "so_hollow",
+    "name": "Hollow points",
+    "desc": "+2 damage.",
+    "tier": 3,
+    "effect": {
+     "kind": "damage",
+     "amount": 2
+    },
+    "cls": "soldier",
+    "requires": [
+     "so_vest"
+    ]
+   },
+   {
+    "id": "ha_code",
+    "name": "Script kiddie no more",
+    "desc": "+2 Technology.",
+    "tier": 1,
+    "effect": {
+     "kind": "skill",
+     "amount": 2,
+     "skill": "tech"
+    },
+    "cls": "hacker"
+   },
+   {
+    "id": "ha_mod",
+    "name": "Modded taser",
+    "desc": "+2 damage.",
+    "tier": 2,
+    "effect": {
+     "kind": "damage",
+     "amount": 2
+    },
+    "cls": "hacker",
+    "requires": [
+     "ha_code"
+    ]
+   },
+   {
+    "id": "ha_ghost",
+    "name": "Ghost",
+    "desc": "+2 Stealth.",
+    "tier": 3,
+    "effect": {
+     "kind": "skill",
+     "amount": 2,
+     "skill": "stealth"
+    },
+    "cls": "hacker",
+    "requires": [
+     "ha_mod"
+    ]
+   },
+   {
+    "id": "me_kit",
+    "name": "Full kit",
+    "desc": "+2 First aid.",
+    "tier": 1,
+    "effect": {
+     "kind": "skill",
+     "amount": 2,
+     "skill": "medicine"
+    },
+    "cls": "medic"
+   },
+   {
+    "id": "me_calm",
+    "name": "Steady hands",
+    "desc": "+1 to hit.",
+    "tier": 2,
+    "effect": {
+     "kind": "attack",
+     "amount": 1
+    },
+    "cls": "medic",
+    "requires": [
+     "me_kit"
+    ]
+   },
+   {
+    "id": "me_tough",
+    "name": "Seen it all",
+    "desc": "More hit points.",
+    "tier": 3,
+    "effect": {
+     "kind": "hp",
+     "amount": 8
+    },
+    "cls": "medic",
+    "requires": [
+     "me_calm"
+    ]
+   },
+   {
+    "id": "de_eye",
+    "name": "Eye for detail",
+    "desc": "+2 Investigation.",
+    "tier": 1,
+    "effect": {
+     "kind": "skill",
+     "amount": 2,
+     "skill": "investigation"
+    },
+    "cls": "detective"
+   },
+   {
+    "id": "de_draw",
+    "name": "Quick draw",
+    "desc": "+2 initiative.",
+    "tier": 2,
+    "effect": {
+     "kind": "initiative",
+     "amount": 2
+    },
+    "cls": "detective",
+    "requires": [
+     "de_eye"
+    ]
+   },
+   {
+    "id": "de_shot",
+    "name": "Called shot",
+    "desc": "+2 damage.",
+    "tier": 3,
+    "effect": {
+     "kind": "damage",
+     "amount": 2
+    },
+    "cls": "detective",
+    "requires": [
+     "de_draw"
+    ]
+   },
+   {
+    "id": "in_charm",
+    "name": "Charisma",
+    "desc": "+2 Performance.",
+    "tier": 1,
+    "effect": {
+     "kind": "skill",
+     "amount": 2,
+     "skill": "performance"
+    },
+    "cls": "influencer"
+   },
+   {
+    "id": "in_crowd",
+    "name": "The crowd loves you",
+    "desc": "+2 initiative.",
+    "tier": 2,
+    "effect": {
+     "kind": "initiative",
+     "amount": 2
+    },
+    "cls": "influencer",
+    "requires": [
+     "in_charm"
+    ]
+   },
+   {
+    "id": "in_viral",
+    "name": "Viral",
+    "desc": "+2 Ki.",
+    "tier": 3,
+    "effect": {
+     "kind": "focus",
+     "amount": 2
+    },
+    "cls": "influencer",
+    "requires": [
+     "in_crowd"
+    ]
+   },
+   {
+    "id": "sp_feet",
+    "name": "Light feet",
+    "desc": "+2 initiative.",
+    "tier": 1,
+    "effect": {
+     "kind": "initiative",
+     "amount": 2
+    },
+    "cls": "speedster"
+   },
+   {
+    "id": "sp_reflex",
+    "name": "Reflexes",
+    "desc": "+1 armor.",
+    "tier": 2,
+    "effect": {
+     "kind": "armor",
+     "amount": 1
+    },
+    "cls": "speedster",
+    "requires": [
+     "sp_feet"
+    ]
+   },
+   {
+    "id": "sp_mach",
+    "name": "Mach punch",
+    "desc": "+2 damage.",
+    "tier": 3,
+    "effect": {
+     "kind": "damage",
+     "amount": 2
+    },
+    "cls": "speedster",
+    "requires": [
+     "sp_reflex"
+    ]
+   },
+   {
+    "id": "po_bulk",
+    "name": "Bulk",
+    "desc": "More hit points.",
+    "tier": 1,
+    "effect": {
+     "kind": "hp",
+     "amount": 8
+    },
+    "cls": "powerhouse"
+   },
+   {
+    "id": "po_grip",
+    "name": "Iron grip",
+    "desc": "+1 to hit.",
+    "tier": 2,
+    "effect": {
+     "kind": "attack",
+     "amount": 1
+    },
+    "cls": "powerhouse",
+    "requires": [
+     "po_bulk"
+    ]
+   },
+   {
+    "id": "po_quake",
+    "name": "Earthshaker",
+    "desc": "+2 damage.",
+    "tier": 3,
+    "effect": {
+     "kind": "damage",
+     "amount": 2
+    },
+    "cls": "powerhouse",
+    "requires": [
+     "po_grip"
+    ]
+   },
+   {
+    "id": "el_core",
+    "name": "Inner fire",
+    "desc": "+2 power.",
+    "tier": 1,
+    "effect": {
+     "kind": "focus",
+     "amount": 2
+    },
+    "cls": "elemental"
+   },
+   {
+    "id": "el_aim",
+    "name": "Focused blasts",
+    "desc": "+1 to hit.",
+    "tier": 2,
+    "effect": {
+     "kind": "attack",
+     "amount": 1
+    },
+    "cls": "elemental",
+    "requires": [
+     "el_core"
+    ]
+   },
+   {
+    "id": "el_storm",
+    "name": "Living storm",
+    "desc": "+2 damage.",
+    "tier": 3,
+    "effect": {
+     "kind": "damage",
+     "amount": 2
+    },
+    "cls": "elemental",
+    "requires": [
+     "el_aim"
+    ]
+   },
+   {
+    "id": "ps_mind",
+    "name": "Open mind",
+    "desc": "+2 power.",
+    "tier": 1,
+    "effect": {
+     "kind": "focus",
+     "amount": 2
+    },
+    "cls": "psychic"
+   },
+   {
+    "id": "ps_read",
+    "name": "Cold reading",
+    "desc": "+2 Insight.",
+    "tier": 2,
+    "effect": {
+     "kind": "skill",
+     "amount": 2,
+     "skill": "insight"
+    },
+    "cls": "psychic",
+    "requires": [
+     "ps_mind"
+    ]
+   },
+   {
+    "id": "ps_crush",
+    "name": "Mind crush",
+    "desc": "+2 damage.",
+    "tier": 3,
+    "effect": {
+     "kind": "damage",
+     "amount": 2
+    },
+    "cls": "psychic",
+    "requires": [
+     "ps_read"
+    ]
+   }
+  ],
+  "mercNames": [
+   "Marcus",
+   "Dee",
+   "Rico",
+   "Tanya",
+   "Viktor",
+   "Jules",
+   "Ray",
+   "Nina",
+   "Tomas",
+   "Kat"
+  ],
+  "mercWage": 40
+ },
+ "recipes": [
+  {
+   "id": "medkit",
+   "name": "First aid kit",
+   "needs": {
+    "supplies": 2
+   },
+   "makes": "medkit",
+   "skill": "medicine",
+   "dc": 10,
+   "at": [
+    "home",
+    "hospital"
+   ]
+  },
+  {
+   "id": "knuckles",
+   "name": "Weighted gloves",
+   "needs": {
+    "scrap": 3
+   },
+   "makes": "weights",
+   "skill": "athletics",
+   "dc": 12,
+   "at": [
+    "industrial",
+    "docks"
+   ]
+  },
+  {
+   "id": "plate",
+   "name": "Kevlar plate",
+   "needs": {
+    "scrap": 4,
+    "fashion": 1
+   },
+   "makes": "kevlar",
+   "skill": "tech",
+   "dc": 13,
+   "at": [
+    "industrial"
+   ],
+   "risky": true
+  },
+  {
+   "id": "belt",
+   "name": "A champion's belt of your own",
+   "needs": {
+    "scrap": 5,
+    "comics": 1
+   },
+   "makes": "champion_belt",
+   "skill": "performance",
+   "dc": 15,
+   "at": [
+    "stadium"
+   ],
+   "legendary": true
+  },
+  {
+   "id": "serum",
+   "name": "Healing serum",
+   "needs": {
+    "supplies": 2,
+    "energy_cell": 1
+   },
+   "makes": "serum",
+   "skill": "medicine",
+   "dc": 11,
+   "at": [
+    "hospital",
+    "campus"
+   ]
+  },
+  {
+   "id": "nanogel",
+   "name": "Nanite gel",
+   "needs": {
+    "supplies": 1,
+    "electronics": 1
+   },
+   "makes": "nanogel",
+   "count": 2,
+   "skill": "tech",
+   "dc": 12,
+   "at": [
+    "campus"
+   ]
+  },
+  {
+   "id": "alloy",
+   "name": "Alloy plating",
+   "needs": {
+    "scrap": 3,
+    "energy_cell": 1
+   },
+   "makes": "alloy",
+   "skill": "tech",
+   "dc": 13,
+   "at": [
+    "industrial"
+   ],
+   "risky": true
+  },
+  {
+   "id": "suit",
+   "name": "Your own hero suit",
+   "needs": {
+    "fashion": 1,
+    "scrap": 2,
+    "energy_cell": 2
+   },
+   "makes": "hero_suit",
+   "skill": "tech",
+   "dc": 15,
+   "at": [
+    "home",
+    "industrial"
+   ],
+   "legendary": true
+  }
+ ],
+ "towers": [
+  {
+   "id": "spire",
+   "name": "The Syndicate Spire",
+   "place": "industrial",
+   "floors": 60,
+   "tags": [
+    "tower"
+   ],
+   "desc": "a black glass tower the villains built; each floor is a trap, and someone waits at the top"
+  }
+ ],
+ "presetAdventure": true,
+ "blades": [
+  {
+   "id": "aria",
+   "name": "ARIA",
+   "personality": "the AI in a power gauntlet: polite, sarcastic, loves a mission done by the book",
+   "likes": "quests",
+   "bonus": 2,
+   "desc": "a smart gauntlet"
+  },
+  {
+   "id": "ember",
+   "name": "Ember",
+   "personality": "a living flame sword from a lab accident: hot-headed and always hungry for a fight",
+   "likes": "fights",
+   "bonus": 2,
+   "desc": "a sentient blade of fire"
+  },
+  {
+   "id": "halo",
+   "name": "Halo",
+   "personality": "a guardian shield with a gentle voice that hates needless cruelty",
+   "likes": "mercy",
+   "bonus": 2,
+   "desc": "a thinking shield"
+  }
+ ],
+ "cityEvents": [
+  {
+   "id": "beachfest",
+   "name": "Beach Festival",
+   "icon": "🎶",
+   "place": "beach",
+   "weekday": 5,
+   "every": 2,
+   "week": 0,
+   "from": 14,
+   "hours": 9,
+   "price": 0,
+   "mood": 15,
+   "minutes": 180,
+   "action": "Enjoy the festival",
+   "outdoor": true,
+   "crowd": 55,
+   "desc": "live bands on a stage on the sand, food trucks, and a bonfire at night",
+   "stage": {
+    "hobby": "music",
+    "level": 5,
+    "label": "Play a set on the beach stage",
+    "pay": 160
+   }
+  },
+  {
+   "id": "concert",
+   "name": "Stadium Concert",
+   "icon": "🎤",
+   "place": "stadium",
+   "weekday": 4,
+   "every": 2,
+   "week": 1,
+   "from": 20,
+   "hours": 3,
+   "price": 60,
+   "mood": 18,
+   "minutes": 150,
+   "action": "Watch the concert",
+   "crowd": 45,
+   "desc": "a big touring band, lights, smoke and a packed crowd singing along"
+  },
+  {
+   "id": "football",
+   "name": "Football Match",
+   "icon": "⚽",
+   "place": "stadium",
+   "weekday": 6,
+   "every": 1,
+   "week": 0,
+   "from": 16,
+   "hours": 2,
+   "price": 35,
+   "mood": 12,
+   "minutes": 120,
+   "action": "Watch the match",
+   "crowd": 40,
+   "desc": "the city team plays at home: chants, flags, cheap beer and a lot of shouting at the referee"
+  },
+  {
+   "id": "mallfair",
+   "name": "Mall Fair",
+   "icon": "🛍️",
+   "place": "mall",
+   "weekday": 5,
+   "every": 1,
+   "week": 0,
+   "from": 10,
+   "hours": 9,
+   "price": 0,
+   "mood": 8,
+   "minutes": 90,
+   "action": "Walk around the fair",
+   "crowd": 35,
+   "desc": "stalls of crafts, street food and local artists in the main hall",
+   "stage": {
+    "hobby": "painting",
+    "level": 4,
+    "label": "Sell your paintings at a stall",
+    "pay": 180
+   }
+  },
+  {
+   "id": "openmic",
+   "name": "Open Mic Night",
+   "icon": "🎙️",
+   "place": "waterfront",
+   "weekday": 3,
+   "every": 1,
+   "week": 0,
+   "from": 20,
+   "hours": 4,
+   "price": 10,
+   "mood": 10,
+   "minutes": 90,
+   "action": "Watch the open mic",
+   "crowd": 30,
+   "desc": "anyone can get up and play a song or two; the crowd is kind, mostly",
+   "stage": {
+    "hobby": "music",
+    "level": 2,
+    "label": "Play at the open mic",
+    "pay": 40
+   }
+  },
+  {
+   "id": "cookoff",
+   "name": "Street Food Cook-off",
+   "icon": "🍜",
+   "place": "downtown",
+   "weekday": 6,
+   "every": 4,
+   "week": 2,
+   "from": 11,
+   "hours": 6,
+   "price": 0,
+   "mood": 10,
+   "minutes": 90,
+   "action": "Taste the food",
+   "outdoor": true,
+   "crowd": 40,
+   "desc": "home cooks compete for a prize; free tastings for everyone",
+   "stage": {
+    "hobby": "cooking",
+    "level": 4,
+    "label": "Enter the cook-off",
+    "pay": 200
+   }
+  },
+  {
+   "id": "parkrun",
+   "name": "Park Run",
+   "icon": "🏃",
+   "place": "park",
+   "weekday": 5,
+   "every": 1,
+   "week": 0,
+   "from": 8,
+   "hours": 2,
+   "price": 0,
+   "mood": 8,
+   "minutes": 60,
+   "action": "Join the run",
+   "outdoor": true,
+   "crowd": 25,
+   "desc": "a free 5 km run around the park, with music at the finish line",
+   "stage": {
+    "hobby": "fitness",
+    "level": 5,
+    "label": "Race for the podium",
+    "pay": 120
+   }
+  }
+ ],
+ "hobbies": [
+  {
+   "id": "music",
+   "name": "Guitar",
+   "icon": "🎸",
+   "desc": "Practice at home; play for tips, at open mics, on stage.",
+   "actions": [
+    "x-guitar",
+    "busk"
+   ]
+  },
+  {
+   "id": "painting",
+   "name": "Painting",
+   "icon": "🎨",
+   "desc": "Paint at home; a better painting sells for more.",
+   "actions": [
+    "x-paint"
+   ]
+  },
+  {
+   "id": "fitness",
+   "name": "Working out",
+   "icon": "🏋️",
+   "desc": "The gym, a treadmill, a run.",
+   "actions": [
+    "x-workout",
+    "x-treadmill",
+    "x-run"
+   ]
+  },
+  {
+   "id": "cooking",
+   "name": "Cooking",
+   "icon": "🍳",
+   "desc": "Cook at home; good cooks get hired in kitchens.",
+   "actions": [
+    "cook"
+   ]
+  }
+ ]
+}

@@ -1,7 +1,8 @@
 // Relationships, meet-ups and text messages. Bond grows when you talk to someone (in a scene or by phone);
 // a meet-up puts her at a place you chose for two hours; at a high bond you can ask her to be your partner.
 import { notify, nowAbs, cfg, type Save, type Resident } from '../core/store.js';
-import { styleOf, type WorldDef } from '../core/world.js';
+import { type WorldDef, messageKind, aiVoice, isScenario, getWorld } from '../core/world.js';
+import { difficultyOf } from './bills.js';
 import { charOf, personaName, sayLine, translateTo } from '../st/bridge.js';
 import { whereNow } from './people.js';
 import { aiLangName } from '../core/i18n.js';
@@ -47,8 +48,11 @@ export function bump(g: Save, avatar: string, delta: number) {
 // Adds bond, at most 15 a day with each person (talking all day does not max it out).
 export function addBond(g: Save, avatar: string, amount: number) {
     const s = social(g);
+    // Home: the difficulty is how fast relationships grow (gains only; losses stay as they are)
+    const mult = isScenario(getWorld(g.world)) ? difficultyOf(g).bond : 1;
+    if (amount > 0 && mult !== 1) amount = Math.max(1, Math.round(amount * mult));
     const key = `${avatar}|${g.day}`;
-    const room = Math.max(0, (cfg(g).bondCap ?? 15) - (s.today[key] ?? 0));
+    const room = Math.max(0, Math.round((cfg(g).bondCap ?? 15) * mult) - (s.today[key] ?? 0));
     const add = Math.min(room, amount);
     if (add <= 0) return 0;
     s.today[key] = (s.today[key] ?? 0) + add;
@@ -103,13 +107,14 @@ function textTranscript(g: Save, w: WorldDef, r: Resident, note = ''): string {
     const me = personaName();
     const thread = social(g).threads[r.avatar] ?? [];
     const about = String(c?.description ?? '').replace(/{{char}}/g, r.name).replace(/{{user}}/g, me).replace(/\s+/g, ' ').slice(0, 900);
+    const letters = messageKind(w) === 'letters';
     return [
-        (styleOf(w) === 'medieval'
-            ? `[Letters in the kingdom of ${w.name}, ${weekday(g.day)} ${hm(g.minutes)}. ${r.name} and ${me} write each other short letters, carried by a courier; they are`
-            : `[Phone chat in the city of ${w.name}, ${weekday(g.day)} ${hm(g.minutes)}. ${r.name} and ${me} text each other; they are`) + ` ${bondLabel(g, r.avatar).toLowerCase()} (${bondOf(g, r.avatar)}/100). ${me} is at ${placeOf(g, w, g.player.loc)?.name ?? ''}; ${r.name} is ${nowDoing(g, w, r)}.]`,
-        `[They are texting, not together. ${r.name} talks about their own day (what they are doing, how they feel, what they will do today) and answers what ${me} wrote. ${r.name} does not keep repeating where ${me} is or plans they already agreed on, unless ${me} brings them up.]`,
+        (letters
+            ? `[Letters in ${w.name}, ${weekday(g.day)} ${hm(g.minutes)}. ${r.name} and ${me} write each other short letters, carried by a courier; they are`
+            : `[Phone chat in ${w.name}, ${weekday(g.day)} ${hm(g.minutes)}. ${r.name} and ${me} text each other; they are`) + ` ${bondLabel(g, r.avatar).toLowerCase()} (${bondOf(g, r.avatar)}/100). ${r.name} is ${nowDoing(g, w, r)}.]`,
+        `[They are ${letters ? 'writing letters' : 'texting'}, not together. ${r.name} talks about their own day (what they are doing, how they feel, what they will do today) and answers what ${me} wrote. ${r.name} does not know where ${me} is or what ${me} is doing unless ${me} said it in these messages (never guess it, never mention ${me}'s place or home on their own), and does not keep repeating plans they already agreed on, unless ${me} brings them up.]`,
         `[${r.name}: ${about}${c?.personality ? ` Personality: ${String(c.personality).replace(/\s+/g, ' ').slice(0, 300)}` : ''}]`,
-        `[Each message is short (one to three sentences), casual, written in ${aiLangName(g.lang)}, and answers the message right before it.]`,
+        `[Each ${letters ? 'letter' : 'message'} is short (one to three sentences), ${aiVoice(w)}, written in ${aiLangName(g.lang)}, and answers the ${letters ? 'letter' : 'message'} right before it.]`,
         ...thread.slice(-14).map(t => `${t.me ? me : r.name}: ${t.text.replace(/\s+/g, ' ')}`),
         ...(note ? [`[${note}]`] : []),
     ].join('\n');
@@ -127,6 +132,7 @@ export async function sendText(g: Save, w: WorldDef, avatar: string, text: strin
     if (!r) return '';
     (s.threads[avatar] ??= []).push({ me: true, text, at: nowAbs(g) });
     addBond(g, avatar, 2);
+    (((g as any).post ??= { queue: [], contact: {} }).contact)[avatar] = g.day;   // keeping in touch (letters from afar)
     const reply = await sayLine(textTranscript(g, w, r), r.name, [r.name, personaName()], 320);
     if (reply) s.threads[avatar].push({ me: false, text: reply, at: nowAbs(g) });
     return reply;

@@ -1,0 +1,18 @@
+/* What's new (after an update) and the "a newer Mundi is out" note on the main menu */
+#mundi-root .mu-wn { width: min(600px, 100%); }
+#mundi-root .mu-wn header small { display: block; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+#mundi-root .mu-wn header h3 { margin: 2px 0 0; font-size: 22px; }
+#mundi-root .mu-wn-list { list-style: none; margin: 0; padding: 0 4px 0 0; overflow: auto; display: grid; gap: 10px; }
+#mundi-root .mu-wn-list li { display: grid; grid-template-columns: 34px 1fr; gap: 12px; align-items: start; line-height: 1.45; }
+#mundi-root .mu-wn-list li > .mu-ic { width: 34px; height: 34px; padding: 7px; border-radius: 11px; background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent); }
+#mundi-root .mu-wn footer { display: grid; gap: 10px; border-top: 1px solid var(--line); padding-top: 12px; }
+#mundi-root .mu-wn footer p { margin: 0; color: var(--muted); font-size: 14px; }
+#mundi-root .mu-wn footer .mu-row { justify-content: flex-end; gap: 8px; }
+#mundi-root .mu-upd { position: fixed; top: 16px; right: 16px; z-index: 60; width: min(340px, calc(100vw - 32px)); display: grid; grid-template-columns: 38px 1fr auto; gap: 12px; align-items: start; padding: 14px 12px 14px 14px; border-radius: 20px; animation: mu-fade .4s; color: var(--hud-fg, var(--fg)); }
+#mundi-root .mu-upd-ic { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 12px; background: color-mix(in srgb, var(--accent) 22%, transparent); color: var(--accent); }
+#mundi-root .mu-upd b { display: block; font-size: 15px; }
+#mundi-root .mu-upd small { display: block; margin: 2px 0 10px; opacity: .8; line-height: 1.4; }
+#mundi-root .mu-upd .mu-row { gap: 12px; align-items: center; }
+#mundi-root .mu-upd .mu-primary { padding: 7px 16px !important; }
+#mundi-root .mu-upd-link { font-size: 13px; color: inherit; opacity: .8; text-decoration: underline; }
+#mundi-root .mu-upd .mu-ibtn { margin: -4px -2px 0 0; }

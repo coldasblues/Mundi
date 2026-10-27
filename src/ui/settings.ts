@@ -1,5 +1,10 @@
 // Settings, the same screen from the menu and from the game: interface, sound and (in game) the clock.
-import { state, notify, settings, saveSettings, UI, esc, game, saveGame, clockMode, deviceMode } from '../core/store.js';
+import { UI_LANGS } from '../core/i18n.js';
+import { setLang } from '../core/tr.js';
+import { homeSettingsHtml } from './homeui.js';
+import { getWorld, isScenario } from '../core/world.js';
+import { state, notify, settings, saveSettings, UI, esc, game, saveGame, clockMode, deviceMode, SAVE, toast } from '../core/store.js';
+import { backups, restoreBackup } from '../core/saves.js';
 import { tutorialSettingsHtml } from './tutorial.js';
 import { play } from './sfx.js';
 import { ACT, INPUT } from './reg.js';
@@ -9,7 +14,7 @@ import { feedPrefs } from '../sim/feed.js';
 import { setSkin } from './skins.js';
 import { addonsTab } from './addons.js';
 import { lookPanelHtml, lookConfirmHtml } from './chatlook.js';
-import { DATE_FORMATS, fmtDate, fmtClock } from '../core/fmt.js';
+import { DATE_FORMATS, fmtDate, fmtDateTime, fmtClock } from '../core/fmt.js';
 import { pstateSettingsHtml } from './pstateui.js';
 import { hostileSettingsHtml } from './hostileui.js';
 
@@ -20,7 +25,7 @@ export const FONTS: [string, string, string][] = [['default', 'Mundi (Nunito)', 
 const ACCENTS: [string, string, string][] = [['blue', 'Blue', '#1e88e5'], ['green', 'Green', '#36a81c'], ['red', 'Red', '#e23b41'], ['purple', 'Purple', '#7c4ddb'], ['pink', 'Pink', '#e7489a'], ['yellow', 'Yellow', '#f0ad13']];
 // The second color (selected chips, the line under the headers, the main menu's first button…).
 const SECONDARY: [string, string, string][] = [['green', 'Green', '#43b51b'], ['blue', 'Blue', '#1e88e5'], ['teal', 'Teal', '#16b3a5'], ['purple', 'Purple', '#7c4ddb'], ['pink', 'Pink', '#e7489a'], ['red', 'Red', '#e23b41'], ['orange', 'Orange', '#f07f13'], ['yellow', 'Yellow', '#f0ad13']];
-const TABS: [string, string][] = [['interface', 'Interface'], ['sound', 'Sound'], ['game', 'Game'], ['addons', 'Add-ons']];
+const TABS: [string, string][] = [['game', 'Game'], ['sound', 'Sound'], ['interface', 'Interface'], ['addons', 'Add-ons']];
 // SillyTavern's own settings panels, shown here as they are (same texts and translations as in SillyTavern).
 const ST_TABS = ['st-api', 'st-ai', 'st-format', 'st-user', 'st-ext'];
 
@@ -30,7 +35,10 @@ const check = (label: string, key: string) =>
     `<label class="mu-check"><input type="checkbox" data-input="ui-bool" data-key="${key}" ${(UI() as any)[key] ? 'checked' : ''}><span>${label}</span></label>`;
 
 function tabInterface() {
-    return `<section><h3>Date and time</h3><div class="mu-row2">
+    const cur = (settings() as any).uiLang ?? 'en';
+    return `<section><h3>Language</h3><label class="mu-field"><span>Mundi's screens</span><select data-input="set-uilang">${UI_LANGS.map(l => `<option value="${l.id}" ${cur === l.id ? 'selected' : ''} data-notr>${l.name}</option>`).join('')}</select></label>
+            <small class="mu-muted">Only Mundi's own screens (menus, buttons, help). The story's language is up to your SillyTavern preset, and the worlds' places and people keep their own names.</small></section>
+        <section><h3>Date and time</h3><div class="mu-row2">
             <label class="mu-field"><span>Date format · ${esc(fmtDate(Date.now()))}</span><select data-input="ui-str" data-key="dateFormat">${DATE_FORMATS.map(([id, ex]) => `<option value="${id}" ${(UI().dateFormat || 'DD/MM/YYYY') === id ? 'selected' : ''}>${id} — ${ex}</option>`).join('')}</select></label>
             <label class="mu-field"><span>Clock · ${esc(fmtClock(new Date().getHours() * 60 + new Date().getMinutes()))}</span><select data-input="ui-str" data-key="timeFormat">${([['24', '24 hours (18:30)'], ['12', '12 hours (6:30 PM)']] as const).map(([id, l]) => `<option value="${id}" ${(UI().timeFormat || '24') === id ? 'selected' : ''}>${l}</option>`).join('')}</select></label></div></section>
         <section><h3>Look</h3>
@@ -71,14 +79,26 @@ function tabGame() {
             <label class="mu-field"><span>Who posts on Chirp</span><select data-input="set-feed">${([['button', 'Only when you tap "New posts"'], ['open', 'New posts each time you open the app'], ['auto', 'The characters, on their own as time passes'], ['react', 'Only you post; they reply']] as const).map(([v, l]) => `<option value="${v}" ${feedPrefs().mode === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
             <label class="mu-check"><input type="checkbox" data-input="set-feedimg" ${feedPrefs().images ? 'checked' : ''}><span>Pictures in posts<small>Made with SillyTavern's Image Generation extension, when it is set up.</small></span></label></section>
         ${g ? `<section><h3>This save</h3>
-            ${clockMode(g) === 'live' ? `<label class="mu-field"><span>Clock speed</span><select data-input="set-speed">${[0, 30, 60, 120].map(s => `<option value="${s}" ${g.speed === s ? 'selected' : ''}>${s ? `×${s / 60} (1 real second = ${s / 60} game minute${s === 60 ? '' : 's'})` : 'Paused'}</option>`).join('')}</select></label>` : '<p class="mu-muted">Time passes only with what you do. To have a running clock, change it in This world → Rules.</p>'}
+            ${clockMode(g) === 'live' ? `<label class="mu-field"><span>Clock speed</span><select data-input="set-speed">${[0, 30, 60, 120].map(s => `<option value="${s}" ${g.speed === s ? 'selected' : ''}>${s ? `×${s / 60} (1 real second = ${s / 60} game minute${s === 60 ? '' : 's'})` : 'Paused'}</option>`).join('')}</select></label>` : (isScenario(getWorld(g.world)) ? '' : '<p class="mu-muted">Time passes only with what you do. To have a running clock, change it in This world → Rules.</p>')}
+            ${homeSettingsHtml(g)}
             <div class="mu-row"><button data-act="save-branch">Make a branch</button></div>
-            <p class="mu-muted">A copy of this save as it is now (the story, the diary, everything), saved next to it. You keep playing here; open the branch from Load when you want to try the other path.</p></section>` : ''}`;
+            <p class="mu-muted">A copy of this save as it is now (the story, the diary, everything), saved next to it. You keep playing here; open the branch from Load when you want to try the other path.</p>
+            ${backupsHtml()}</section>` : ''}`;
+}
+
+// The copies Mundi kept before an update or a repair changed this save (core/saves.ts). Restoring asks twice.
+const RESTORE = { i: -1 };
+function backupsHtml() {
+    const list = backups();
+    const ro = SAVE.readOnly ? '<p class="mu-bad">This save was made with a newer version of Mundi and opens read-only: nothing is saved until you update Mundi.</p>' : '';
+    if (!list.length) return ro;
+    return `${ro}<h4>Backups</h4><p class="mu-muted">Kept automatically before an update or a repair changed this save (the last ${list.length}).</p>
+        ${list.map((b, i) => `<div class="mu-row"><span>${esc(fmtDateTime(b.at))} · ${esc(b.reason)}</span><button class="${RESTORE.i === i ? 'mu-danger' : ''}" data-act="save-restore" data-i="${i}" ${SAVE.readOnly ? 'aria-disabled="true"' : ''}>${RESTORE.i === i ? 'Tap again to restore' : 'Restore'}</button></div>`).reverse().join('')}`;
 }
 
 export function settingsHtml() {
     const tab = state.settingsTab;
-    if (!TABS.some(t => t[0] === tab) && !ST_TABS.includes(tab)) state.settingsTab = 'interface';
+    if (!TABS.some(t => t[0] === tab) && !ST_TABS.includes(tab)) state.settingsTab = 'game';
     const native = ST_TABS.includes(state.settingsTab);
     const body = native ? nativeHost(state.settingsTab) : state.settingsTab === 'sound' ? tabSound() : state.settingsTab === 'game' ? tutorialSettingsHtml() + tabGame() : state.settingsTab === 'addons' ? addonsTab() : tabInterface();
     return `<div class="mu-settings">
@@ -96,6 +116,16 @@ export function settingsHtml() {
 const applyLook = () => import('./app.js').then(m => m.applyUi());
 
 Object.assign(ACT, {
+    'save-restore': async (el) => {
+        const i = Number(el.dataset.i);
+        if (SAVE.readOnly) return;
+        if (RESTORE.i !== i) { RESTORE.i = i; notify(); return; }
+        RESTORE.i = -1;
+        if (!restoreBackup(i)) { toast('That backup could not be restored.', 'error'); return; }
+        const { syncScene } = await import('../sim/game.js');
+        await syncScene();
+        toast('Backup restored. The save you had before is kept as a backup too.', 'success'); notify();
+    },
     'settings-tab': (el) => { state.settingsTab = el.dataset.tab!; notify(); },
     'settings-back': () => { state.view = game() && (state.backTo === 'map' || state.backTo === 'scene') ? state.backTo : state.backTo === 'chat' ? 'chat' : 'menu'; notify(); },
     'set-secondary': (el) => { UI().secondary = el.dataset.v; saveSettings(); applyLook(); notify(); },
@@ -109,6 +139,7 @@ Object.assign(ACT, {
 });
 
 Object.assign(INPUT, {
+    'set-uilang': async (el) => { (settings() as any).uiLang = el.value; saveSettings(); await setLang(el.value); notify(); },
     'ui-num': (el) => { (UI() as any)[el.dataset.key!] = Number(el.value); const o = el.nextElementSibling; if (o) o.textContent = `${el.value}${o.textContent!.replace(/[-\d.]/g, '')}`; saveSettings(); applyLook(); },
     'ui-str': (el) => { (UI() as any)[el.dataset.key!] = el.value; saveSettings(); notify(); },
     'ui-font': (el) => { UI().font = el.value; saveSettings(); applyLook(); },

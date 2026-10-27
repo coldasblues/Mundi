@@ -7,10 +7,10 @@ export const STYLES = [
             'Needs: energy, hunger, thirst, mood and hygiene',
             'Friendships, meet-ups and dating, in person or by text'
         ] },
-    { id: 'medieval', name: 'Medieval', ready: false, soon: 'Next update, with the new RPG mode.', tagline: 'Lords, villages and trades. No magic.', changes: [
+    { id: 'medieval', name: 'Medieval', ready: !MEDIEVAL_LOCKED, soon: 'Coming in the next update.', tagline: 'Lords, villages and trades. No magic.', changes: [
             'A journal instead of a phone: letters by courier, acquaintances, trade, purse, lodging',
             'Trades with ranks: apprentice → journeyman → master',
-            'Gold, silver and copper coins',
+            'Gold coins',
             'A cottage, a house or a manor; a kingdom map with towns',
             'Courtship through a matchmaker or in person; a notice board in the square'
         ] },
@@ -39,6 +39,7 @@ export const STYLES = [
 export const styleName = (id) => STYLES.find(s => s.id === id)?.name ?? id;
 // A world's own text in the interface language (cards show several worlds at once; only one world's words are active).
 import { uiLang } from '../core/i18n.js';
+import { MEDIEVAL_LOCKED } from '../core/world.js';
 export const inWorld = (w, s) => w.i18n?.[uiLang()]?.[s] ?? s;
-// Locked for now: the Medieval style and the RPG mode arrive together in the next update.
-export const LOCKED_NOTE = 'Coming in the next update, together with a new game mode: RPG.';
+// Locked for now: the RPG mode arrives in the next update.
+export const LOCKED_NOTE = 'Coming soon.';

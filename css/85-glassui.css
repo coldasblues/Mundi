@@ -233,3 +233,19 @@
 #mundi-root .mu-look-new:hover { opacity: 1; border-color: var(--accent) !important; }
 #mundi-root .mu-look-new .mu-ic { width: 22px; height: 22px; }
 #mundi-root .mu-look-rename input { width: 100%; min-width: 0; padding: 4px 8px; }
+/* course cards: same layout in every card — text on top, the button (or status) always at the bottom, aligned across a row */
+#mundi-root .mu-course { display: flex !important; flex-direction: column; align-items: stretch; gap: 6px; box-sizing: border-box; min-height: 210px; }
+#mundi-root .mu-course > .mu-chips { margin-top: auto; padding-top: 2px; }
+#mundi-root .mu-course > .mu-primary, #mundi-root .mu-course > em { margin-top: 4px; }
+#mundi-root .mu-course > p { flex: none; }
+#mundi-root .mu-course-grid { align-items: stretch; grid-auto-rows: auto; align-content: start; }
+#mundi-root .mu-course > em { min-height: 38px; display: flex; align-items: center; justify-content: center; border-radius: 12px; background: rgba(255, 255, 255, .07); }
+/* phone settings: everything fits the phone's width (long button names wrap instead of pushing it wider) */
+#mundi-root .mu-ph-body section.mu-ph-wp { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+#mundi-root .mu-ph-wp > * { min-width: 0; }
+#mundi-root .mu-ph-wp > button { width: 100%; margin: 0 !important; white-space: normal; text-align: center; justify-content: center; line-height: 1.25; padding: 10px 12px; }
+#mundi-root .mu-ph-wp .mu-ph-wp-now { height: 130px; margin-bottom: 2px; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .12); }
+#mundi-root .mu-ph-wp > .mu-field { margin: 4px 0 -4px; }
+#mundi-root .mu-ph-wp-link { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; }
+#mundi-root .mu-ph-wp-link input { min-width: 0; width: 100%; }
+#mundi-root .mu-ph-wp-link button { padding: 0 12px; white-space: nowrap; }

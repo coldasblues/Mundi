@@ -1,0 +1,2466 @@
+{
+ "format": 1,
+ "id": "manor",
+ "name": "The Old Manor",
+ "kind": "Medieval",
+ "version": "1.0.0",
+ "description": "A stone manor at the edge of a village, a handful of people under one roof and one long winter. Everything happens within its walls.",
+ "tags": [
+  "lifesim",
+  "realistic"
+ ],
+ "madeFor": "lifesim",
+ "cover": "cover.jpg",
+ "setting": "The Old Manor is a stone manor house at the edge of a quiet village in a medieval kingdom, with no magic. A great hall with a hearth, a kitchen, a dining hall, a wash house, a training yard, a stable, a bathhouse and a walled garden with a fishpond; the chambers are upstairs. Candles and firelight after dark, letters carried by riders, bread, ale and stew. Everyone in it is an adult. Nobody here speaks of modern things.",
+ "currency": {
+  "name": "Gold",
+  "symbol": "g",
+  "after": true
+ },
+ "time": {
+  "startDay": 1,
+  "startMinutes": 480,
+  "speed": 60,
+  "periods": [
+   {
+    "id": "dawn",
+    "name": "Dawn",
+    "from": 0
+   },
+   {
+    "id": "morning",
+    "name": "Morning",
+    "from": 360
+   },
+   {
+    "id": "afternoon",
+    "name": "Afternoon",
+    "from": 720
+   },
+   {
+    "id": "vespers",
+    "name": "Vespers",
+    "from": 1080
+   },
+   {
+    "id": "night",
+    "name": "Night",
+    "from": 1320,
+    "prices": 1.2
+   }
+  ]
+ },
+ "maps": [
+  {
+   "id": "house",
+   "name": "The manor",
+   "image": "manor.jpg",
+   "ratio": 1.7917,
+   "town": true,
+   "area": "The village"
+  }
+ ],
+ "places": [
+  {
+   "id": "hall",
+   "name": "Great hall",
+   "map": "house",
+   "x": 19,
+   "y": 27,
+   "tags": [
+    "leisure"
+   ],
+   "desc": "the great hall: a long room of grey stone, a roaring hearth, tapestries, a bearskin rug and benches by the fire.",
+   "event": "Someone threw another log on the fire.",
+   "closed": []
+  },
+  {
+   "id": "kitchen",
+   "name": "Kitchen",
+   "map": "house",
+   "x": 40,
+   "y": 27,
+   "tags": [
+    "food"
+   ],
+   "desc": "the manor kitchen: a big hearth with a hanging cauldron, a scrubbed oak table, herbs drying from the beams and a bread oven.",
+   "event": "Bread is baking; the whole house smells of it.",
+   "closed": []
+  },
+  {
+   "id": "dining",
+   "name": "Dining hall",
+   "map": "house",
+   "x": 40,
+   "y": 48,
+   "tags": [
+    "food",
+    "leisure"
+   ],
+   "desc": "the dining hall: a long trestle table, candles in iron holders, pewter cups and a window onto the garden.",
+   "event": "Supper bell soon.",
+   "closed": []
+  },
+  {
+   "id": "entrance",
+   "name": "Entrance hall",
+   "map": "house",
+   "x": 12,
+   "y": 57,
+   "tags": [
+    "leisure"
+   ],
+   "desc": "the entrance hall: flagstones, a heavy oak door, cloaks on pegs and a stair going up to the chambers.",
+   "event": "The door creaks; someone just came in from the cold.",
+   "closed": []
+  },
+  {
+   "id": "washhouse",
+   "name": "Wash house",
+   "map": "house",
+   "x": 60,
+   "y": 27,
+   "tags": [
+    "service"
+   ],
+   "desc": "the wash house: tubs, a copper for boiling linen, lye soap and lines of drying sheets.",
+   "event": "Steam and the smell of lye.",
+   "closed": []
+  },
+  {
+   "id": "yard",
+   "name": "Training yard",
+   "map": "house",
+   "x": 60,
+   "y": 48,
+   "tags": [
+    "sport"
+   ],
+   "desc": "the training yard behind the manor: a straw dummy, a rack of wooden swords and a packed-earth ring.",
+   "event": "The thud of wooden swords.",
+   "closed": []
+  },
+  {
+   "id": "garden",
+   "name": "Walled garden",
+   "map": "house",
+   "x": 75,
+   "y": 30,
+   "tags": [
+    "leisure",
+    "outdoor"
+   ],
+   "desc": "the walled garden: herb beds, an old apple tree, a stone bench and a fishpond with lazy carp.",
+   "event": "Bees in the lavender.",
+   "closed": []
+  },
+  {
+   "id": "bathhouse",
+   "name": "Bathhouse",
+   "map": "house",
+   "x": 75,
+   "y": 55,
+   "tags": [
+    "service"
+   ],
+   "desc": "the bathhouse: a wooden tub heated with hot stones, a basin, linen towels and a small brazier.",
+   "event": "Someone is heating stones for a bath.",
+   "closed": []
+  },
+  {
+   "id": "stable",
+   "name": "Stable",
+   "map": "house",
+   "x": 30,
+   "y": 75,
+   "tags": [
+    "service"
+   ],
+   "desc": "the stable: four stalls, a hay loft, saddles on pegs and the warm smell of horses.",
+   "event": "A horse snorts and stamps.",
+   "closed": []
+  },
+  {
+   "id": "storeroom",
+   "name": "Storeroom",
+   "map": "house",
+   "x": 50,
+   "y": 75,
+   "tags": [
+    "service"
+   ],
+   "desc": "the storeroom: barrels of ale and flour, smoked hams on hooks and shelves of jars.",
+   "event": "Someone is counting the barrels again.",
+   "closed": []
+  },
+  {
+   "id": "gate",
+   "name": "Entrance",
+   "map": "house",
+   "x": 6,
+   "y": 80,
+   "tags": [
+    "outdoor"
+   ],
+   "desc": "the front of the manor: the gravel court, the gate in the wall and the road down to the village.",
+   "event": "A cart rattles past on the road.",
+   "closed": []
+  }
+ ],
+ "homes": {
+  "zones": [
+   {
+    "id": "chambers",
+    "name": "Great chambers",
+    "map": "house",
+    "kind": "chamber",
+    "rent": 0,
+    "desc": "the large chambers with a canopied bed",
+    "spots": [
+     [
+      82,
+      22
+     ],
+     [
+      92,
+      22
+     ]
+    ]
+   },
+   {
+    "id": "chambers2",
+    "name": "Small chambers",
+    "map": "house",
+    "kind": "chamber2",
+    "rent": 0,
+    "desc": "the small chambers with a narrow bed and a writing desk",
+    "spots": [
+     [
+      82,
+      43
+     ],
+     [
+      92,
+      43
+     ]
+    ]
+   },
+   {
+    "id": "chambers3",
+    "name": "Tower chambers",
+    "map": "house",
+    "kind": "chamber3",
+    "rent": 0,
+    "desc": "the chambers in the old tower, round walls and a window seat",
+    "spots": [
+     [
+      82,
+      64
+     ],
+     [
+      92,
+      64
+     ]
+    ]
+   },
+   {
+    "id": "chambers4",
+    "name": "Attic chambers",
+    "map": "house",
+    "kind": "chamber2",
+    "rent": 0,
+    "desc": "the chambers under the roof beams (one with two beds, made to share)",
+    "spots": [
+     [
+      82,
+      85
+     ],
+     [
+      92,
+      85
+     ],
+     [
+      82,
+      92
+     ],
+     [
+      92,
+      92
+     ]
+    ]
+   }
+  ],
+  "kinds": {
+   "chamber": {
+    "name": "Chamber",
+    "desc": "a large chamber with a canopied bed, a chest at its foot, furs and a small hearth"
+   },
+   "chamber2": {
+    "name": "Small chamber",
+    "desc": "a small chamber with a narrow bed, a writing desk, a candle and a shuttered window"
+   },
+   "chamber3": {
+    "name": "Tower chamber",
+    "desc": "a round tower chamber with a window seat, a bed with wool blankets and a washstand"
+   }
+  },
+  "expenses": [],
+  "breakables": [],
+  "repairCost": 90
+ },
+ "statuses": [
+  {
+   "id": "life",
+   "name": "Health",
+   "icon": "❤",
+   "color": "#ff4d7a",
+   "start": 100,
+   "max": 100,
+   "hud": true,
+   "zero": {
+    "text": "You collapse and wake up at the Healer's House. The healer asks {cost}.",
+    "place": "healer",
+    "cost": 60,
+    "restore": 60
+   },
+   "rpg": true
+  },
+  {
+   "id": "energy",
+   "name": "Energy",
+   "icon": "⚡",
+   "color": "#ffc233",
+   "start": 100,
+   "max": 100,
+   "hud": true,
+   "decay": null,
+   "zero": {
+    "text": "Exhausted, you fall asleep where you are and wake up at home.",
+    "place": "home",
+    "restore": 40,
+    "crisis": {
+     "after": 0,
+     "text": "",
+     "seen": "{u} collapsed from exhaustion at {0}."
+    }
+   }
+  },
+  {
+   "id": "hunger",
+   "name": "Hunger",
+   "icon": "🍽",
+   "color": "#ff8a3d",
+   "start": 85,
+   "max": 100,
+   "hud": true,
+   "decay": {
+    "amount": 10,
+    "everyMinutes": 120
+   },
+   "zero": {
+    "text": "You are starving.",
+    "drain": {
+     "status": "life",
+     "amount": 5,
+     "everyMinutes": 60
+    },
+    "crisis": {
+     "after": 180,
+     "text": "You feel faint from hunger and nearly collapse. A passer-by helps you sit down and gives you something to eat.",
+     "restore": 25,
+     "mood": -15,
+     "shame": 0,
+     "seen": "{u} nearly fainted from hunger at {0}."
+    }
+   }
+  },
+  {
+   "id": "thirst",
+   "name": "Thirst",
+   "icon": "💧",
+   "color": "#3db8ff",
+   "start": 85,
+   "max": 100,
+   "hud": true,
+   "decay": {
+    "amount": 10,
+    "everyMinutes": 90
+   },
+   "zero": {
+    "text": "You are badly dehydrated.",
+    "drain": {
+     "status": "life",
+     "amount": 5,
+     "everyMinutes": 60
+    },
+    "crisis": {
+     "after": 120,
+     "text": "Dizzy and dehydrated, you have to sit down. A passer-by hands you a cup of water.",
+     "restore": 25,
+     "mood": -10,
+     "shame": 0,
+     "seen": "{u} almost passed out from thirst at {0}."
+    }
+   }
+  },
+  {
+   "id": "mood",
+   "name": "Mood",
+   "icon": "☺",
+   "color": "#b88cff",
+   "start": 70,
+   "max": 100,
+   "hud": true,
+   "decay": {
+    "amount": 2,
+    "everyMinutes": 180
+   },
+   "zero": {
+    "crisis": {
+     "after": 240,
+     "text": "Everything feels too heavy. You break down and have to go home.",
+     "place": "home",
+     "restore": 25,
+     "shame": 0,
+     "seen": "{u} broke down at {0}."
+    }
+   }
+  },
+  {
+   "id": "hygiene",
+   "name": "Hygiene",
+   "icon": "🧼",
+   "color": "#5ec8e6",
+   "start": 100,
+   "max": 100,
+   "hud": true,
+   "decay": {
+    "amount": 4,
+    "everyMinutes": 60,
+    "awakeOnly": true
+   },
+   "zero": {
+    "text": "You badly need a wash: people keep their distance and your mood sinks.",
+    "drain": {
+     "status": "mood",
+     "amount": 2,
+     "everyMinutes": 60
+    },
+    "crisis": {
+     "after": 360,
+     "text": "People step away from you, and someone says something about the smell. Your face burns.",
+     "mood": -15,
+     "shame": 5,
+     "seen": "People at {0} kept away from {u}, who badly needed a wash."
+    }
+   }
+  }
+ ],
+ "actions": [
+  {
+   "id": "snack",
+   "name": "Snack",
+   "label": "Have some bread and cheese",
+   "icon": "🧀",
+   "cost": 0,
+   "minutes": 15,
+   "effects": {
+    "hunger": 30,
+    "energy": 3
+   },
+   "anywhere": true
+  },
+  {
+   "id": "drink",
+   "name": "Drink",
+   "label": "Have a cup of ale",
+   "icon": "🍺",
+   "cost": 0,
+   "minutes": 10,
+   "effects": {
+    "thirst": 30,
+    "mood": 3
+   },
+   "anywhere": true
+  },
+  {
+   "id": "meal",
+   "name": "Meal",
+   "label": "Eat a hot meal",
+   "icon": "🍲",
+   "cost": 0,
+   "minutes": 40,
+   "effects": {
+    "hunger": 60,
+    "mood": 5,
+    "energy": 8
+   },
+   "tags": [
+    "food"
+   ]
+  },
+  {
+   "id": "cook",
+   "name": "Cook",
+   "label": "Cook something",
+   "icon": "🍳",
+   "cost": 0,
+   "minutes": 45,
+   "effects": {
+    "hunger": 40,
+    "mood": 4
+   },
+   "tags": [
+    "food"
+   ]
+  },
+  {
+   "id": "tea",
+   "name": "Herb tea",
+   "label": "Brew some herb tea",
+   "icon": "🍵",
+   "cost": 0,
+   "minutes": 10,
+   "effects": {
+    "energy": 10,
+    "thirst": 15
+   },
+   "tags": [
+    "food"
+   ]
+  },
+  {
+   "id": "fire",
+   "name": "Fireside",
+   "label": "Warm up by the fire",
+   "icon": "🔥",
+   "cost": 0,
+   "minutes": 30,
+   "effects": {
+    "mood": 8,
+    "energy": 4
+   },
+   "tags": [
+    "leisure"
+   ],
+   "notTags": [
+    "outdoor"
+   ]
+  },
+  {
+   "id": "lute",
+   "name": "Lute",
+   "label": "Play the lute",
+   "icon": "🎶",
+   "cost": 0,
+   "minutes": 45,
+   "effects": {
+    "mood": 10,
+    "energy": -5
+   },
+   "tags": [
+    "leisure"
+   ],
+   "notTags": [
+    "outdoor"
+   ]
+  },
+  {
+   "id": "read",
+   "name": "Reading",
+   "label": "Read by candlelight",
+   "icon": "📖",
+   "cost": 0,
+   "minutes": 60,
+   "effects": {
+    "mood": 8
+   },
+   "tags": [
+    "leisure"
+   ],
+   "notTags": [
+    "outdoor"
+   ]
+  },
+  {
+   "id": "cards",
+   "name": "Cards",
+   "label": "Play cards and dice",
+   "icon": "🎲",
+   "cost": 0,
+   "minutes": 45,
+   "effects": {
+    "mood": 10
+   },
+   "tags": [
+    "leisure"
+   ],
+   "notTags": [
+    "outdoor"
+   ]
+  },
+  {
+   "id": "walk",
+   "name": "Walk",
+   "label": "Take a walk",
+   "icon": "🌿",
+   "cost": 0,
+   "minutes": 60,
+   "effects": {
+    "mood": 12,
+    "energy": -5
+   },
+   "tags": [
+    "outdoor"
+   ]
+  },
+  {
+   "id": "herbs",
+   "name": "Herbs",
+   "label": "Tend the herb beds",
+   "icon": "🌱",
+   "cost": 0,
+   "minutes": 45,
+   "effects": {
+    "mood": 8,
+    "energy": -6
+   },
+   "place": "garden"
+  },
+  {
+   "id": "spar",
+   "name": "Sparring",
+   "label": "Practice with the sword",
+   "icon": "⚔️",
+   "cost": 0,
+   "minutes": 45,
+   "effects": {
+    "energy": -20,
+    "hygiene": -25,
+    "mood": 6
+   },
+   "tags": [
+    "sport"
+   ]
+  },
+  {
+   "id": "ride",
+   "name": "Ride",
+   "label": "Go for a ride",
+   "icon": "🐎",
+   "cost": 0,
+   "minutes": 60,
+   "effects": {
+    "mood": 12,
+    "energy": -10
+   },
+   "place": "stable"
+  },
+  {
+   "id": "groom",
+   "name": "Horses",
+   "label": "Groom the horses",
+   "icon": "🐴",
+   "cost": 0,
+   "minutes": 40,
+   "effects": {
+    "mood": 6,
+    "energy": -8,
+    "hygiene": -10
+   },
+   "place": "stable"
+  },
+  {
+   "id": "wash",
+   "name": "Bath",
+   "label": "Take a hot bath",
+   "icon": "🛁",
+   "cost": 0,
+   "minutes": 40,
+   "effects": {
+    "hygiene": 100,
+    "mood": 8
+   },
+   "place": "bathhouse"
+  },
+  {
+   "id": "laundry",
+   "name": "Laundry",
+   "label": "Wash the linen",
+   "icon": "👕",
+   "cost": 0,
+   "minutes": 60,
+   "effects": {
+    "energy": -10
+   },
+   "place": "washhouse"
+  },
+  {
+   "id": "basin",
+   "name": "Basin",
+   "label": "Wash at the basin",
+   "icon": "💧",
+   "cost": 0,
+   "minutes": 10,
+   "effects": {
+    "hygiene": 40
+   },
+   "home": true
+  },
+  {
+   "id": "letters",
+   "name": "Letters",
+   "label": "Write a letter",
+   "icon": "✉️",
+   "cost": 0,
+   "minutes": 30,
+   "effects": {
+    "mood": 4
+   },
+   "home": true
+  }
+ ],
+ "sleep": {
+  "until": 420,
+  "restore": {
+   "energy": 100,
+   "life": 10,
+   "mood": 5
+  },
+  "homeOnly": true
+ },
+ "sheet": {
+  "age": {
+   "min": 18,
+   "max": 60,
+   "default": 24
+  },
+  "appearance": [
+   {
+    "id": "hair",
+    "label": "Hair",
+    "options": [
+     "Black",
+     "Brown",
+     "Blond",
+     "Red",
+     "Gray"
+    ]
+   },
+   {
+    "id": "eyes",
+    "label": "Eyes",
+    "options": [
+     "Brown",
+     "Black",
+     "Green",
+     "Blue",
+     "Gray"
+    ]
+   },
+   {
+    "id": "skin",
+    "label": "Skin",
+    "options": [
+     "Fair",
+     "Olive",
+     "Tan",
+     "Deep"
+    ]
+   },
+   {
+    "id": "build",
+    "label": "Build",
+    "options": [
+     "Slim",
+     "Average",
+     "Athletic",
+     "Strong",
+     "Heavy"
+    ]
+   },
+   {
+    "id": "hairStyle",
+    "label": "Hair style",
+    "options": [
+     "Short",
+     "Long",
+     "Braided",
+     "Tied back",
+     "Shaved"
+    ]
+   }
+  ],
+  "traits": [
+   {
+    "id": "proficiency",
+    "label": "Proficiency",
+    "max": 2,
+    "options": [
+     "Strong",
+     "Literate",
+     "Charming",
+     "Skilled with hands",
+     "Good cook",
+     "Good with animals",
+     "Quick",
+     "Devout",
+     "Musical",
+     "Good with numbers"
+    ]
+   },
+   {
+    "id": "personality",
+    "label": "Personality",
+    "max": 3,
+    "options": [
+     "Outgoing",
+     "Shy",
+     "Calm",
+     "Hot-headed",
+     "Cheerful",
+     "Serious",
+     "Romantic",
+     "Ambitious",
+     "Lazy",
+     "Curious",
+     "Sarcastic",
+     "Kind"
+    ]
+   },
+   {
+    "id": "interests",
+    "label": "Interests",
+    "max": 3,
+    "options": [
+     "Music",
+     "Swordplay",
+     "Riding",
+     "Hunting",
+     "Herbs",
+     "Reading",
+     "Dancing",
+     "Cards and dice",
+     "Fishing",
+     "Faith",
+     "Crafts",
+     "Travel"
+    ]
+   }
+  ]
+ },
+ "catalogs": {
+  "origins": [
+   {
+    "id": "guest",
+    "name": "Guest of the house",
+    "desc": "You came with a letter from the late lord, and were given a chamber.",
+    "money": 0,
+    "home": "chambers",
+    "skills": [
+     "perception",
+     "persuasion"
+    ],
+    "feature": "New in the house: everyone wants to know who you are.",
+    "attributes": {
+     "cha": 1,
+     "wis": 1
+    }
+   }
+  ],
+  "courses": [],
+  "shop": []
+ },
+ "occupations": [],
+ "cast": {
+  "routineTemplates": {
+   "home": {
+    "weekday": [
+     [
+      0,
+      "home"
+     ],
+     [
+      9,
+      "leisure"
+     ],
+     [
+      13,
+      "kitchen"
+     ],
+     [
+      15,
+      "leisure"
+     ],
+     [
+      20,
+      "dining"
+     ],
+     [
+      22,
+      "home"
+     ]
+    ],
+    "weekend": [
+     [
+      0,
+      "home"
+     ],
+     [
+      11,
+      "leisure"
+     ],
+     [
+      19,
+      "leisure"
+     ],
+     [
+      23,
+      "home"
+     ]
+    ]
+   },
+   "outworker": {
+    "weekday": [
+     [
+      0,
+      "home"
+     ],
+     [
+      8,
+      "entrance"
+     ],
+     [
+      9,
+      "work"
+     ],
+     [
+      18,
+      "leisure"
+     ],
+     [
+      20,
+      "dining"
+     ],
+     [
+      22,
+      "home"
+     ]
+    ],
+    "weekend": [
+     [
+      0,
+      "home"
+     ],
+     [
+      10,
+      "garden"
+     ],
+     [
+      15,
+      "leisure"
+     ],
+     [
+      22,
+      "home"
+     ]
+    ]
+   },
+   "nightowl": {
+    "weekday": [
+     [
+      0,
+      "leisure"
+     ],
+     [
+      3,
+      "home"
+     ],
+     [
+      13,
+      "kitchen"
+     ],
+     [
+      14,
+      "leisure"
+     ],
+     [
+      21,
+      "garden"
+     ]
+    ],
+    "weekend": [
+     [
+      0,
+      "garden"
+     ],
+     [
+      4,
+      "home"
+     ],
+     [
+      14,
+      "garden"
+     ],
+     [
+      18,
+      "leisure"
+     ]
+    ]
+   },
+   "early": {
+    "weekday": [
+     [
+      0,
+      "home"
+     ],
+     [
+      6,
+      "yard"
+     ],
+     [
+      8,
+      "kitchen"
+     ],
+     [
+      9,
+      "leisure"
+     ],
+     [
+      18,
+      "dining"
+     ],
+     [
+      21,
+      "home"
+     ]
+    ],
+    "weekend": [
+     [
+      0,
+      "home"
+     ],
+     [
+      7,
+      "yard"
+     ],
+     [
+      9,
+      "garden"
+     ],
+     [
+      14,
+      "leisure"
+     ],
+     [
+      21,
+      "home"
+     ]
+    ]
+   }
+  },
+  "examples": [
+   {
+    "name": "Isolde",
+    "age": 27,
+    "occupation": null,
+    "home": "chambers",
+    "routine": "early",
+    "leisure": [
+     "hall",
+     "garden",
+     "dining"
+    ],
+    "description": "{{char}} is Isolde, 27, the late lord's niece, who runs the manor and its accounts. Dark braid, grey wool gowns, a ring of keys at her belt. Proud, sharp-tongued and fair; she holds the house together and hates to ask for help. Aldric is her cousin.",
+    "first_mes": "*Isolde looks up from the ledger, quill still in hand.* So you're the guest my uncle's letter spoke of. Supper is at dusk. Do not be late, and do not touch my ledgers.",
+    "ties": [
+     {
+      "to": "Aldric",
+      "type": "cousin",
+      "tone": "tense"
+     },
+     {
+      "to": "Maren",
+      "type": "friend",
+      "tone": "good"
+     }
+    ]
+   },
+   {
+    "name": "Aldric",
+    "age": 29,
+    "occupation": null,
+    "home": "chambers",
+    "routine": "nightowl",
+    "leisure": [
+     "hall",
+     "stable",
+     "garden"
+    ],
+    "description": "{{char}} is Aldric, 29, a knight back from the wars with a limp and a lute. Fair hair, a scar along his jaw, an easy grin that does not reach his eyes. Charming, restless and kind to anyone weaker than him; he drinks too much and sings too well.",
+    "first_mes": "*Aldric raises his cup from the bench by the fire.* Another soul to share the winter with! Sit. The ale is terrible, but the company is worse.",
+    "ties": [
+     {
+      "to": "Isolde",
+      "type": "cousin",
+      "tone": "tense"
+     },
+     {
+      "to": "Brann",
+      "type": "bestfriend",
+      "tone": "close"
+     }
+    ]
+   },
+   {
+    "name": "Maren",
+    "age": 30,
+    "occupation": null,
+    "home": "chambers2",
+    "routine": "home",
+    "leisure": [
+     "kitchen",
+     "garden",
+     "washhouse"
+    ],
+    "description": "{{char}} is Maren, 30, the herbalist who keeps the kitchen and the stillroom. Red curls under a kerchief, flour on her sleeves, a laugh you hear across the house. Warm, nosy and wise; she knows every secret in the manor and keeps most of them.",
+    "first_mes": "*Maren pushes a warm bowl across the table.* Eat first, talk after. You look like the road chewed you up and spat you out.",
+    "ties": [
+     {
+      "to": "Isolde",
+      "type": "friend",
+      "tone": "good"
+     }
+    ]
+   },
+   {
+    "name": "Brann",
+    "age": 33,
+    "occupation": null,
+    "home": "chambers3",
+    "routine": "outworker",
+    "leisure": [
+     "yard",
+     "stable",
+     "dining"
+    ],
+    "description": "{{char}} is Brann, 33, the stablemaster and the manor's guard. Broad as a door, black beard, hands like shovels. Quiet, steady and protective; he speaks to horses more than to people and is better at it.",
+    "first_mes": "*Brann nods once from the stable door.* The grey mare bites. The rest of us don't. Mostly.",
+    "ties": [
+     {
+      "to": "Aldric",
+      "type": "bestfriend",
+      "tone": "close"
+     }
+    ]
+   },
+   {
+    "name": "Wren",
+    "age": 24,
+    "occupation": null,
+    "home": "chambers2",
+    "routine": "home",
+    "leisure": [
+     "hall",
+     "garden",
+     "kitchen"
+    ],
+    "description": "{{char}} is Wren, 24, a seamstress and the youngest in the house. Short brown hair, ink on her fingers from the songs she writes, always humming. Bright, curious and a little reckless; she wants to see the world and will settle for gossip until then.",
+    "first_mes": "*Wren peeks around the doorway, needle and thread still in her hand.* You're new! Where are you from? Is it far? Is it exciting? Sit, sit, tell me everything.",
+    "ties": [
+     {
+      "to": "Maren",
+      "type": "friend",
+      "tone": "close"
+     }
+    ]
+   }
+  ]
+ },
+ "lore": [
+  {
+   "keys": [
+    "manor",
+    "Old Manor"
+   ],
+   "constant": true,
+   "content": "The Old Manor is a stone manor house at the edge of a village, in a kingdom with no magic. Ground floor: the great hall with its hearth, the kitchen, the dining hall, the wash house, the bathhouse and the storeroom; outside the training yard, the stable and the walled garden with a fishpond. Upstairs and in the old tower, the chambers. The late lord left it to his niece Isolde."
+  },
+  {
+   "keys": [
+    "winter",
+    "snow"
+   ],
+   "content": "Winter is long here: the road to the village freezes, letters come late, and the household spends the evenings together around the great hearth."
+  }
+ ],
+ "features": {
+  "phone": true,
+  "device": "Journal",
+  "deviceLook": "book",
+  "socialKind": "board",
+  "messageKind": "letters",
+  "apps": [
+   {
+    "id": "messages",
+    "name": "Letters",
+    "icon": "send",
+    "color": "#8a5a2b",
+    "on": true
+   },
+   {
+    "id": "people",
+    "name": "Acquaintances",
+    "icon": "users",
+    "color": "#6b7d3a",
+    "on": true
+   },
+   {
+    "id": "plans",
+    "name": "Almanac",
+    "icon": "calendar",
+    "color": "#4a5d7a",
+    "on": true
+   },
+   {
+    "id": "journal",
+    "name": "Chronicle",
+    "icon": "book",
+    "color": "#5b4636",
+    "on": true
+   },
+   {
+    "id": "pets",
+    "name": "Animals",
+    "icon": "heart",
+    "color": "#a0743a",
+    "on": true
+   }
+  ],
+  "needs": false,
+  "bills": false,
+  "breakdowns": false,
+  "neighbors": false,
+  "reputation": false,
+  "living": false
+ },
+ "ai": {
+  "voice": "in the voice of the time (no modern things); warm, close, a household that knows each other's business"
+ },
+ "presetActions": true,
+ "presetCrises": true,
+ "presetRpg": true,
+ "presetCombat": true,
+ "habits": [],
+ "festivals": [],
+ "pets": [
+  {
+   "id": "dog",
+   "name": "Dog",
+   "icon": "🐕",
+   "price": 300,
+   "follows": true,
+   "mood": 4,
+   "desc": "A loyal friend who walks with you everywhere.",
+   "where": [
+    "mall"
+   ]
+  },
+  {
+   "id": "cat",
+   "name": "Cat",
+   "icon": "🐈",
+   "price": 150,
+   "mood": 3,
+   "desc": "Waits for you at home (on your keyboard).",
+   "where": [
+    "mall"
+   ]
+  },
+  {
+   "id": "parrot",
+   "name": "Parrot",
+   "icon": "🦜",
+   "price": 400,
+   "mood": 3,
+   "desc": "Talks back. A lot.",
+   "where": [
+    "mall"
+   ]
+  },
+  {
+   "id": "horse",
+   "name": "Horse",
+   "icon": "🐎",
+   "price": 2500,
+   "follows": true,
+   "mount": true,
+   "speed": 0.6,
+   "carry": 10,
+   "mood": 3,
+   "desc": "Kept at the farms and the Green Valley ranch: ride out (trips take less time).",
+   "where": [
+    "farms",
+    "ranch"
+   ]
+  }
+ ],
+ "presetLife2": true,
+ "factions": [],
+ "realm": {
+  "name": "The hill",
+  "government": "republic",
+  "leadership": "A house meeting on Sundays",
+  "power": "balanced"
+ },
+ "presetRealm": true,
+ "institutions": [],
+ "presetSchools": true,
+ "goods": [],
+ "crops": [],
+ "businesses": [],
+ "skies": {
+  "events": [
+   {
+    "id": "eclipse",
+    "name": "Solar eclipse",
+    "desc": "the city stops to look up at a dark sun",
+    "every": 40,
+    "days": 1,
+    "effect": "omen",
+    "amount": 3
+   }
+  ],
+  "hazards": [
+   {
+    "id": "heatwave",
+    "name": "Heatwave",
+    "desc": "a record-breaking heat",
+    "climate": "coastal",
+    "season": "summer",
+    "chance": 0.3,
+    "drain": {
+     "thirst": 2,
+     "energy": 1.3
+    }
+   },
+   {
+    "id": "hurricane",
+    "name": "Hurricane warning",
+    "desc": "shops board up their windows; everyone stays in",
+    "climate": "coastal",
+    "season": "autumn",
+    "chance": 0.06,
+    "drain": {
+     "mood": 1.5
+    },
+    "closes": true
+   }
+  ]
+ },
+ "presetEconomy": true,
+ "rpg": {
+  "attributes": [
+   {
+    "id": "str",
+    "name": "Strength",
+    "short": "STR",
+    "desc": "Lifting, climbing, hitting hard."
+   },
+   {
+    "id": "dex",
+    "name": "Dexterity",
+    "short": "DEX",
+    "desc": "Speed, balance, light fingers."
+   },
+   {
+    "id": "con",
+    "name": "Constitution",
+    "short": "CON",
+    "desc": "Health and stamina: more hit points."
+   },
+   {
+    "id": "int",
+    "name": "Intelligence",
+    "short": "INT",
+    "desc": "Memory, reasoning, arcane study."
+   },
+   {
+    "id": "wis",
+    "name": "Wisdom",
+    "short": "WIS",
+    "desc": "Awareness, intuition, faith."
+   },
+   {
+    "id": "cha",
+    "name": "Charisma",
+    "short": "CHA",
+    "desc": "Presence, charm, a silver tongue."
+   }
+  ],
+  "hpAttr": "con",
+  "skills": [
+   {
+    "id": "athletics",
+    "name": "Athletics",
+    "attr": "str"
+   },
+   {
+    "id": "acrobatics",
+    "name": "Acrobatics",
+    "attr": "dex"
+   },
+   {
+    "id": "stealth",
+    "name": "Stealth",
+    "attr": "dex"
+   },
+   {
+    "id": "sleight",
+    "name": "Sleight of hand",
+    "attr": "dex"
+   },
+   {
+    "id": "investigation",
+    "name": "Investigation",
+    "attr": "int"
+   },
+   {
+    "id": "history",
+    "name": "Knowledge",
+    "attr": "int"
+   },
+   {
+    "id": "tech",
+    "name": "Technology",
+    "attr": "int"
+   },
+   {
+    "id": "insight",
+    "name": "Insight",
+    "attr": "wis"
+   },
+   {
+    "id": "medicine",
+    "name": "First aid",
+    "attr": "wis"
+   },
+   {
+    "id": "perception",
+    "name": "Perception",
+    "attr": "wis"
+   },
+   {
+    "id": "survival",
+    "name": "Streetwise",
+    "attr": "wis"
+   },
+   {
+    "id": "deception",
+    "name": "Deception",
+    "attr": "cha"
+   },
+   {
+    "id": "intimidation",
+    "name": "Intimidation",
+    "attr": "cha"
+   },
+   {
+    "id": "performance",
+    "name": "Performance",
+    "attr": "cha"
+   },
+   {
+    "id": "persuasion",
+    "name": "Persuasion",
+    "attr": "cha"
+   }
+  ],
+  "classes": [
+   {
+    "id": "martial",
+    "name": "Martial artist",
+    "desc": "Years in the dojo: body, breath and discipline.",
+    "hit": 10,
+    "key": "wis",
+    "skills": [
+     "athletics",
+     "acrobatics",
+     "insight",
+     "perception"
+    ],
+    "schools": [
+     "karate",
+     "kungfu",
+     "capoeira",
+     "boxing"
+    ],
+    "armor": 2,
+    "weapon": {
+     "name": "fists and feet",
+     "dice": 1,
+     "sides": 8,
+     "attr": "dex"
+    },
+    "ability": {
+     "name": "Flurry",
+     "kind": "rage",
+     "amount": 3,
+     "desc": "A storm of blows: more damage, less guard."
+    },
+    "subAt": 3,
+    "subclasses": [
+     {
+      "id": "karateka",
+      "name": "Karateka",
+      "desc": "Hard, direct strikes.",
+      "school": "karate"
+     },
+     {
+      "id": "kungfu_master",
+      "name": "Kung fu master",
+      "desc": "Flow and inner calm.",
+      "school": "kungfu"
+     },
+     {
+      "id": "capoeirista",
+      "name": "Capoeirista",
+      "desc": "Dance, trickery and kicks.",
+      "school": "capoeira"
+     },
+     {
+      "id": "boxer",
+      "name": "Boxer",
+      "desc": "Footwork and fists.",
+      "school": "boxing"
+     }
+    ]
+   },
+   {
+    "id": "soldier",
+    "name": "Ex-soldier",
+    "desc": "Trained to fight, still carrying the habits.",
+    "hit": 10,
+    "key": "str",
+    "skills": [
+     "athletics",
+     "intimidation",
+     "perception",
+     "survival"
+    ],
+    "armor": 5,
+    "weapon": {
+     "name": "pistol",
+     "dice": 1,
+     "sides": 8,
+     "attr": "dex",
+     "ranged": true
+    },
+    "ability": {
+     "name": "Suppressing fire",
+     "kind": "mark",
+     "amount": 3,
+     "desc": "Pin a target down: everyone hits it harder."
+    },
+    "subAt": 3,
+    "subclasses": [
+     {
+      "id": "commando",
+      "name": "Commando",
+      "desc": "Close-quarters expert.",
+      "skill": "stealth"
+     },
+     {
+      "id": "sharpshooter",
+      "name": "Sharpshooter",
+      "desc": "One shot, one problem solved.",
+      "skill": "perception"
+     }
+    ]
+   },
+   {
+    "id": "hacker",
+    "name": "Hacker",
+    "desc": "Systems, cameras and locks bend to your keyboard.",
+    "hit": 6,
+    "key": "int",
+    "skills": [
+     "tech",
+     "investigation",
+     "stealth",
+     "deception"
+    ],
+    "armor": 0,
+    "weapon": {
+     "name": "taser",
+     "dice": 1,
+     "sides": 6,
+     "attr": "dex",
+     "ranged": true,
+     "element": "lightning"
+    },
+    "ability": {
+     "name": "Kill the lights",
+     "kind": "hide",
+     "desc": "Cameras and lights go dark: your next attack lands unseen."
+    },
+    "subAt": 3,
+    "subclasses": [
+     {
+      "id": "netrunner",
+      "name": "Netrunner",
+      "desc": "Lives online.",
+      "skill": "tech"
+     },
+     {
+      "id": "social_engineer",
+      "name": "Social engineer",
+      "desc": "The weakest link is people.",
+      "skill": "persuasion"
+     }
+    ]
+   },
+   {
+    "id": "medic",
+    "name": "Medic",
+    "desc": "Paramedic training: you keep people alive.",
+    "hit": 8,
+    "key": "wis",
+    "skills": [
+     "medicine",
+     "insight",
+     "perception",
+     "persuasion"
+    ],
+    "armor": 2,
+    "weapon": {
+     "name": "baton",
+     "dice": 1,
+     "sides": 6,
+     "attr": "str"
+    },
+    "ability": {
+     "name": "Patch up",
+     "kind": "heal",
+     "amount": 30,
+     "desc": "Heal the most hurt ally."
+    },
+    "subAt": 3,
+    "subclasses": [
+     {
+      "id": "trauma",
+      "name": "Trauma surgeon",
+      "desc": "Miracles in the worst moments.",
+      "skill": "medicine"
+     },
+     {
+      "id": "counselor",
+      "name": "Counselor",
+      "desc": "Minds heal too.",
+      "skill": "insight"
+     }
+    ]
+   },
+   {
+    "id": "detective",
+    "name": "Detective",
+    "desc": "You notice what others miss.",
+    "hit": 8,
+    "key": "int",
+    "skills": [
+     "investigation",
+     "insight",
+     "perception",
+     "intimidation",
+     "survival"
+    ],
+    "armor": 2,
+    "weapon": {
+     "name": "revolver",
+     "dice": 1,
+     "sides": 8,
+     "attr": "dex",
+     "ranged": true
+    },
+    "ability": {
+     "name": "Read the opponent",
+     "kind": "mark",
+     "amount": 4,
+     "desc": "Find the weak spot: the whole party deals more damage to it."
+    },
+    "subAt": 3,
+    "subclasses": [
+     {
+      "id": "private_eye",
+      "name": "Private eye",
+      "desc": "Shadows and stakeouts.",
+      "skill": "stealth"
+     },
+     {
+      "id": "inspector",
+      "name": "Inspector",
+      "desc": "The badge opens doors.",
+      "skill": "intimidation"
+     }
+    ]
+   },
+   {
+    "id": "influencer",
+    "name": "Influencer",
+    "desc": "A million followers and a way with words.",
+    "hit": 6,
+    "key": "cha",
+    "skills": [
+     "persuasion",
+     "performance",
+     "deception",
+     "insight"
+    ],
+    "armor": 0,
+    "weapon": {
+     "name": "pepper spray",
+     "dice": 1,
+     "sides": 4,
+     "attr": "dex",
+     "ranged": true
+    },
+    "ability": {
+     "name": "Hype",
+     "kind": "inspire",
+     "amount": 3,
+     "desc": "Everyone feels like the main character: their next blow lands truer."
+    },
+    "subAt": 3,
+    "subclasses": [
+     {
+      "id": "streamer",
+      "name": "Streamer",
+      "desc": "Always live.",
+      "skill": "performance"
+     },
+     {
+      "id": "activist",
+      "name": "Activist",
+      "desc": "A cause and a crowd.",
+      "skill": "persuasion"
+     }
+    ]
+   }
+  ],
+  "xp": [
+   100,
+   300,
+   600,
+   1000,
+   1500,
+   2100,
+   2800,
+   3600,
+   4500,
+   5500,
+   6600
+  ],
+  "focusName": "Ki",
+  "schools": [
+   {
+    "id": "karate",
+    "name": "Karate",
+    "desc": "Hard strikes and an iron body."
+   },
+   {
+    "id": "kungfu",
+    "name": "Kung fu",
+    "desc": "Flow, balance and inner calm."
+   },
+   {
+    "id": "capoeira",
+    "name": "Capoeira",
+    "desc": "Dance, deception and sweeping kicks."
+   },
+   {
+    "id": "boxing",
+    "name": "Boxing",
+    "desc": "Footwork, guard and fists."
+   }
+  ],
+  "spells": [
+   {
+    "id": "focused_strike",
+    "name": "Focused strike",
+    "school": "karate",
+    "level": 1,
+    "cost": 1,
+    "desc": "All your Ki in one strike.",
+    "effect": {
+     "kind": "scene"
+    },
+    "combat": "damage"
+   },
+   {
+    "id": "iron_body",
+    "name": "Iron body",
+    "school": "karate",
+    "level": 1,
+    "cost": 2,
+    "desc": "Muscles like armor: +3 armor in a fight.",
+    "effect": {
+     "kind": "scene"
+    },
+    "combat": "shield"
+   },
+   {
+    "id": "breaking_blow",
+    "name": "Breaking blow",
+    "school": "karate",
+    "level": 2,
+    "cost": 3,
+    "desc": "The strike that splits boards (and jaws).",
+    "effect": {
+     "kind": "scene"
+    },
+    "combat": "damage"
+   },
+   {
+    "id": "crane",
+    "name": "Crane stance",
+    "school": "kungfu",
+    "level": 1,
+    "cost": 1,
+    "desc": "Perfect balance: +3 armor in a fight.",
+    "effect": {
+     "kind": "scene"
+    },
+    "combat": "shield"
+   },
+   {
+    "id": "inner_calm",
+    "name": "Inner calm",
+    "school": "kungfu",
+    "level": 1,
+    "cost": 1,
+    "desc": "Breathe: recover some strength.",
+    "effect": {
+     "kind": "heal",
+     "amount": 15
+    }
+   },
+   {
+    "id": "dragon_palm",
+    "name": "Palm of the dragon",
+    "school": "kungfu",
+    "level": 2,
+    "cost": 3,
+    "desc": "An open palm that hits like a truck.",
+    "effect": {
+     "kind": "scene"
+    },
+    "combat": "damage"
+   },
+   {
+    "id": "meditation",
+    "name": "Meditation",
+    "school": "kungfu",
+    "level": 1,
+    "cost": 1,
+    "desc": "A clear mind: +2 to your next check.",
+    "effect": {
+     "kind": "bonus",
+     "amount": 2
+    }
+   },
+   {
+    "id": "meia_lua",
+    "name": "Meia lua",
+    "school": "capoeira",
+    "level": 1,
+    "cost": 1,
+    "desc": "A spinning half-moon kick.",
+    "effect": {
+     "kind": "scene"
+    },
+    "combat": "damage"
+   },
+   {
+    "id": "ginga",
+    "name": "Ginga",
+    "school": "capoeira",
+    "level": 1,
+    "cost": 2,
+    "desc": "Never where they expect: your next Acrobatics or Stealth check rolls twice.",
+    "effect": {
+     "kind": "advantage",
+     "skills": [
+      "acrobatics",
+      "stealth",
+      "deception"
+     ]
+    }
+   },
+   {
+    "id": "martelo",
+    "name": "Martelo",
+    "school": "capoeira",
+    "level": 2,
+    "cost": 2,
+    "desc": "The hammer kick.",
+    "effect": {
+     "kind": "scene"
+    },
+    "combat": "damage"
+   },
+   {
+    "id": "jab_cross",
+    "name": "Jab-cross",
+    "school": "boxing",
+    "level": 1,
+    "cost": 1,
+    "desc": "The classic one-two.",
+    "effect": {
+     "kind": "scene"
+    },
+    "combat": "damage"
+   },
+   {
+    "id": "rope_a_dope",
+    "name": "Rope-a-dope",
+    "school": "boxing",
+    "level": 1,
+    "cost": 1,
+    "desc": "Cover up and let them tire: +3 armor.",
+    "effect": {
+     "kind": "scene"
+    },
+    "combat": "shield"
+   },
+   {
+    "id": "haymaker",
+    "name": "Haymaker",
+    "school": "boxing",
+    "level": 2,
+    "cost": 3,
+    "desc": "Everything behind one punch.",
+    "effect": {
+     "kind": "scene"
+    },
+    "combat": "damage"
+   }
+  ],
+  "titles": [
+   {
+    "id": "seasoned",
+    "name": "the Seasoned",
+    "desc": "Reach level 5.",
+    "when": {
+     "level": 5
+    }
+   },
+   {
+    "id": "veteran",
+    "name": "the Veteran",
+    "desc": "Reach level 10.",
+    "when": {
+     "level": 10
+    }
+   },
+   {
+    "id": "smooth",
+    "name": "the Smooth Talker",
+    "desc": "Win 10 social checks.",
+    "when": {
+     "count": "socialWins",
+     "n": 10
+    }
+   },
+   {
+    "id": "fixer",
+    "name": "the Fixer",
+    "desc": "Finish 5 missions.",
+    "when": {
+     "count": "quests",
+     "n": 5
+    }
+   },
+   {
+    "id": "legend",
+    "name": "Neighborhood Legend",
+    "desc": "Earn 100 renown.",
+    "when": {
+     "renown": 100
+    }
+   },
+   {
+    "id": "brawler",
+    "name": "the Undefeated",
+    "desc": "Win 10 fights.",
+    "when": {
+     "count": "fights",
+     "n": 10
+    }
+   }
+  ],
+  "campEvery": 8,
+  "bestiary": [
+   {
+    "id": "mugger",
+    "icon": "🔪",
+    "name": "Mugger",
+    "level": 1,
+    "hp": 10,
+    "ac": 11,
+    "atk": 3,
+    "dice": 1,
+    "sides": 6,
+    "bonus": 1,
+    "row": "front",
+    "tags": [
+     "town",
+     "road"
+    ],
+    "desc": "A knife and nothing to lose."
+   },
+   {
+    "id": "ganger",
+    "icon": "🧢",
+    "name": "Gang member",
+    "level": 1,
+    "hp": 12,
+    "ac": 12,
+    "atk": 3,
+    "dice": 1,
+    "sides": 6,
+    "bonus": 2,
+    "row": "front",
+    "tags": [
+     "town",
+     "tower"
+    ],
+    "desc": "Colors, attitude and a chain."
+   },
+   {
+    "id": "dog",
+    "icon": "🐕",
+    "name": "Guard dog",
+    "level": 1,
+    "hp": 9,
+    "ac": 12,
+    "atk": 4,
+    "dice": 1,
+    "sides": 6,
+    "bonus": 2,
+    "row": "front",
+    "tags": [
+     "town",
+     "wild"
+    ],
+    "desc": "Trained to bite first."
+   },
+   {
+    "id": "bat",
+    "icon": "🏏",
+    "name": "Thug with a bat",
+    "level": 2,
+    "hp": 16,
+    "ac": 12,
+    "atk": 4,
+    "dice": 1,
+    "sides": 8,
+    "bonus": 2,
+    "row": "front",
+    "tags": [
+     "town",
+     "tower"
+    ],
+    "desc": "Swings for the fences."
+   },
+   {
+    "id": "gunman",
+    "icon": "🔫",
+    "name": "Gunman",
+    "level": 2,
+    "hp": 12,
+    "ac": 13,
+    "atk": 5,
+    "dice": 1,
+    "sides": 8,
+    "bonus": 2,
+    "ranged": true,
+    "row": "back",
+    "tags": [
+     "town",
+     "road",
+     "tower"
+    ],
+    "desc": "Shoots from behind cover."
+   },
+   {
+    "id": "security",
+    "icon": "👮",
+    "name": "Security guard",
+    "level": 2,
+    "hp": 18,
+    "ac": 14,
+    "atk": 4,
+    "dice": 1,
+    "sides": 6,
+    "bonus": 2,
+    "row": "front",
+    "tags": [
+     "town"
+    ],
+    "desc": "Paid to stop you, not to like it."
+   },
+   {
+    "id": "bouncer",
+    "icon": "💪",
+    "name": "Bouncer",
+    "level": 3,
+    "hp": 26,
+    "ac": 12,
+    "atk": 5,
+    "dice": 2,
+    "sides": 6,
+    "bonus": 3,
+    "row": "front",
+    "tags": [
+     "town",
+     "tower"
+    ],
+    "desc": "A wall in a black shirt."
+   },
+   {
+    "id": "boss",
+    "icon": "😎",
+    "name": "Gang boss",
+    "level": 5,
+    "hp": 45,
+    "ac": 15,
+    "atk": 6,
+    "dice": 2,
+    "sides": 8,
+    "bonus": 3,
+    "row": "front",
+    "tags": [
+     "town",
+     "tower",
+     "boss"
+    ],
+    "desc": "Gold chains, cold eyes."
+   }
+  ],
+  "talents": [
+   {
+    "id": "tough",
+    "name": "Toughness",
+    "desc": "More hit points.",
+    "tier": 1,
+    "effect": {
+     "kind": "hp",
+     "amount": 6
+    }
+   },
+   {
+    "id": "keen",
+    "name": "Keen senses",
+    "desc": "+2 Perception.",
+    "tier": 1,
+    "effect": {
+     "kind": "skill",
+     "amount": 2,
+     "skill": "perception"
+    }
+   },
+   {
+    "id": "silver",
+    "name": "Silver tongue",
+    "desc": "+2 Persuasion.",
+    "tier": 1,
+    "effect": {
+     "kind": "skill",
+     "amount": 2,
+     "skill": "persuasion"
+    }
+   },
+   {
+    "id": "street",
+    "name": "Street smart",
+    "desc": "+3 on nights on the road.",
+    "tier": 1,
+    "effect": {
+     "kind": "camp",
+     "amount": 3
+    }
+   },
+   {
+    "id": "will",
+    "name": "Iron will",
+    "desc": "+2 Ki.",
+    "tier": 2,
+    "effect": {
+     "kind": "focus",
+     "amount": 2
+    },
+    "requires": [
+     "tough"
+    ]
+   },
+   {
+    "id": "ma_breath",
+    "name": "Breath control",
+    "desc": "+3 Ki.",
+    "tier": 1,
+    "effect": {
+     "kind": "focus",
+     "amount": 3
+    },
+    "cls": "martial"
+   },
+   {
+    "id": "ma_speed",
+    "name": "Lightning reflexes",
+    "desc": "+2 initiative.",
+    "tier": 2,
+    "effect": {
+     "kind": "initiative",
+     "amount": 2
+    },
+    "cls": "martial",
+    "requires": [
+     "ma_breath"
+    ]
+   },
+   {
+    "id": "ma_power",
+    "name": "Devastating strikes",
+    "desc": "+2 damage.",
+    "tier": 3,
+    "effect": {
+     "kind": "damage",
+     "amount": 2
+    },
+    "cls": "martial",
+    "requires": [
+     "ma_speed"
+    ]
+   },
+   {
+    "id": "so_aim",
+    "name": "Marksman",
+    "desc": "+1 to hit.",
+    "tier": 1,
+    "effect": {
+     "kind": "attack",
+     "amount": 1
+    },
+    "cls": "soldier"
+   },
+   {
+    "id": "so_vest",
+    "name": "Body armor",
+    "desc": "+1 armor.",
+    "tier": 2,
+    "effect": {
+     "kind": "armor",
+     "amount": 1
+    },
+    "cls": "soldier",
+    "requires": [
+     "so_aim"
+    ]
+   },
+   {
+    "id": "so_hollow",
+    "name": "Hollow points",
+    "desc": "+2 damage.",
+    "tier": 3,
+    "effect": {
+     "kind": "damage",
+     "amount": 2
+    },
+    "cls": "soldier",
+    "requires": [
+     "so_vest"
+    ]
+   },
+   {
+    "id": "ha_code",
+    "name": "Script kiddie no more",
+    "desc": "+2 Technology.",
+    "tier": 1,
+    "effect": {
+     "kind": "skill",
+     "amount": 2,
+     "skill": "tech"
+    },
+    "cls": "hacker"
+   },
+   {
+    "id": "ha_mod",
+    "name": "Modded taser",
+    "desc": "+2 damage.",
+    "tier": 2,
+    "effect": {
+     "kind": "damage",
+     "amount": 2
+    },
+    "cls": "hacker",
+    "requires": [
+     "ha_code"
+    ]
+   },
+   {
+    "id": "ha_ghost",
+    "name": "Ghost",
+    "desc": "+2 Stealth.",
+    "tier": 3,
+    "effect": {
+     "kind": "skill",
+     "amount": 2,
+     "skill": "stealth"
+    },
+    "cls": "hacker",
+    "requires": [
+     "ha_mod"
+    ]
+   },
+   {
+    "id": "me_kit",
+    "name": "Full kit",
+    "desc": "+2 First aid.",
+    "tier": 1,
+    "effect": {
+     "kind": "skill",
+     "amount": 2,
+     "skill": "medicine"
+    },
+    "cls": "medic"
+   },
+   {
+    "id": "me_calm",
+    "name": "Steady hands",
+    "desc": "+1 to hit.",
+    "tier": 2,
+    "effect": {
+     "kind": "attack",
+     "amount": 1
+    },
+    "cls": "medic",
+    "requires": [
+     "me_kit"
+    ]
+   },
+   {
+    "id": "me_tough",
+    "name": "Seen it all",
+    "desc": "More hit points.",
+    "tier": 3,
+    "effect": {
+     "kind": "hp",
+     "amount": 8
+    },
+    "cls": "medic",
+    "requires": [
+     "me_calm"
+    ]
+   },
+   {
+    "id": "de_eye",
+    "name": "Eye for detail",
+    "desc": "+2 Investigation.",
+    "tier": 1,
+    "effect": {
+     "kind": "skill",
+     "amount": 2,
+     "skill": "investigation"
+    },
+    "cls": "detective"
+   },
+   {
+    "id": "de_draw",
+    "name": "Quick draw",
+    "desc": "+2 initiative.",
+    "tier": 2,
+    "effect": {
+     "kind": "initiative",
+     "amount": 2
+    },
+    "cls": "detective",
+    "requires": [
+     "de_eye"
+    ]
+   },
+   {
+    "id": "de_shot",
+    "name": "Called shot",
+    "desc": "+2 damage.",
+    "tier": 3,
+    "effect": {
+     "kind": "damage",
+     "amount": 2
+    },
+    "cls": "detective",
+    "requires": [
+     "de_draw"
+    ]
+   },
+   {
+    "id": "in_charm",
+    "name": "Charisma",
+    "desc": "+2 Performance.",
+    "tier": 1,
+    "effect": {
+     "kind": "skill",
+     "amount": 2,
+     "skill": "performance"
+    },
+    "cls": "influencer"
+   },
+   {
+    "id": "in_crowd",
+    "name": "The crowd loves you",
+    "desc": "+2 initiative.",
+    "tier": 2,
+    "effect": {
+     "kind": "initiative",
+     "amount": 2
+    },
+    "cls": "influencer",
+    "requires": [
+     "in_charm"
+    ]
+   },
+   {
+    "id": "in_viral",
+    "name": "Viral",
+    "desc": "+2 Ki.",
+    "tier": 3,
+    "effect": {
+     "kind": "focus",
+     "amount": 2
+    },
+    "cls": "influencer",
+    "requires": [
+     "in_crowd"
+    ]
+   }
+  ],
+  "mercNames": [
+   "Marcus",
+   "Dee",
+   "Rico",
+   "Tanya",
+   "Viktor",
+   "Jules",
+   "Ray",
+   "Nina",
+   "Tomas",
+   "Kat"
+  ],
+  "mercWage": 40
+ },
+ "recipes": [],
+ "towers": [],
+ "presetAdventure": true,
+ "scenario": {
+  "premise": "It is the first week of winter. The late lord's letter brought {{user}} to the Old Manor, where five people already share the long evenings by the great hearth. The snow will close the road soon; nobody is leaving until spring."
+ }
+}

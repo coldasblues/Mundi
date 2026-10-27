@@ -3,7 +3,7 @@
 // memory, with Stella's lines written in advance. The step's element is lit, the rest is dimmed; some steps ask you
 // to do the thing (send a line, drink something, travel), and the tour goes on when you do.
 import { state, notify, settings, saveSettings, TUT, game, toast, nowAbs, esc, uiZoom, onPhone } from '../core/store.js';
-import { getWorld } from '../core/world.js';
+import { getWorld, isScenario } from '../core/world.js';
 import { personaName, personaThumb } from '../st/bridge.js';
 import { resident } from '../sim/game.js';
 import { social } from '../sim/social.js';
@@ -11,18 +11,19 @@ import { advance } from '../sim/time.js';
 import { travelMinutes, playerHomeId } from '../sim/places.js';
 import { actionsHere, applyAction } from '../sim/needs.js';
 import { ACT } from './reg.js';
+import { tr } from '../core/tr.js';
 import { icon } from './icons.js';
 const STELLA = '__tut:stella';
 const pic = (f) => new URL(`../../assets/tutorial/${f}`, import.meta.url).href;
 // on a phone you tap, you don't click
 const touch = (t) => (onPhone() ? t.replace(/\bClick\b/g, 'Tap').replace(/\bclick\b/g, 'tap').replace(', Ctrl-tap to grab a bunch', '') : t);
 /* ---------- the practice world ---------- */
-const W = () => getWorld('modern');
+const W = (id = 'modern') => getWorld(id);
 function practiceSave(w) {
     const home = { zone: w.homes.zones[0].id, x: w.homes.zones[0].spots[0][0], y: w.homes.zones[0].spots[0][1], n: 1, kind: w.homes.zones[0].kind };
     const g = {
         v: 1, world: w.id, lang: 'en', day: 1, minutes: 10 * 60, speed: 0,
-        player: { loc: 'cafe', home, stats: Object.fromEntries(w.statuses.map(s => [s.id, s.id === 'thirst' ? 45 : s.start])), money: 2000, traits: {}, origin: 'newcomer', job: null, rentPaidDay: 1 },
+        player: { loc: isScenario(w) ? 'living' : 'cafe', home, stats: Object.fromEntries(w.statuses.map(s => [s.id, s.id === 'thirst' ? 45 : s.start])), money: 2000, traits: {}, origin: 'newcomer', job: null, rentPaidDay: 1 },
         cast: {}, tick: {}, log: [],
     };
     const r = resident(w, STELLA, new Set());
@@ -33,16 +34,20 @@ function practiceSave(w) {
 }
 const line = (mes, user = false) => (user
     ? { name: personaName(), is_user: true, is_system: false, mes, force_avatar: personaThumb(), extra: {} }
-    : { name: 'Stella', is_user: false, is_system: false, mes, original_avatar: STELLA, extra: {} });
+    : { name: 'Stella', is_user: false, is_system: false, mes: tr(mes), original_avatar: STELLA, extra: {} }); // her lines in the chosen language (the chat itself is never translated)
 const lines = () => (globalThis.__mundiTutChat ??= []);
-function enterWorld() {
-    if (TUT.save)
+// The practice city, or (`house`) the practice Home.
+function enterWorld(id = 'modern') {
+    if (TUT.save?.world === id)
         return;
-    TUT.save = practiceSave(W());
+    TUT.save = practiceSave(W(id));
     globalThis.__mundiTutPersona = { name: 'Seraphina', pic: pic('seraphina-face.png') };
-    globalThis.__mundiTutChat = [line('*leans on the café counter and gives you a lazy two-finger wave.* Yo. You must be the new one. I\'m Stella. Relax, this is just practice: nothing here counts.')];
+    globalThis.__mundiTutChat = [line(id === 'house'
+            ? '*drops onto the living room sofa and pats the cushion next to her.* Welcome home. Well, a practice one. Same deal: nothing here counts.'
+            : '*leans on the café counter and gives you a lazy two-finger wave.* Yo. You must be the new one. I\'m Stella. Relax, this is just practice: nothing here counts.')];
     state.view = 'scene';
 }
+const enterHome = () => enterWorld('house');
 function leaveWorld() {
     TUT.save = null;
     delete globalThis.__mundiTutChat;
@@ -55,9 +60,10 @@ const STEPS = [
     // the menu
     { part: 'menu', setup: () => { leaveWorld(); state.view = 'menu'; state.menuTab = 'main'; }, text: 'Yo! I\'m Stella. I\'ll show you the ropes around here. Won\'t take long, promise.', wide: true },
     { part: 'menu', target: '[data-act="menu-continue"]', text: 'Continue drops you right back into whatever you played last. Easy.' },
-    { part: 'menu', target: '[data-act="menu-new"]', text: 'New game starts a whole life in a world. Modern city, medieval kingdom… same game, different outfit.' },
+    { part: 'menu', only: 'new', v: '0.2', setup: () => { leaveWorld(); state.view = 'menu'; state.menuTab = 'main'; }, text: 'Hey, welcome back! Mundi 0.2 just dropped. Let me show you what\'s new, real quick.', wide: true },
+    { part: 'menu', target: '[data-act="menu-new"]', v: '0.2', text: 'New game: pick a World (a whole city to live in) or a Home (one house, the characters you choose, pure role-play). RPG mode and the medieval style are coming soon.' },
     { part: 'menu', target: '[data-act="menu-view"][data-v="load"]', text: 'Load has all your saves. Star the good ones, Ctrl-click to grab a bunch.' },
-    { part: 'menu', target: '[data-act="menu-library"]', text: 'Library: your SillyTavern characters, personas and lorebooks, all in one spot.' },
+    { part: 'menu', target: '[data-act="menu-library"]', v: '0.2', text: 'Library: your SillyTavern characters, personas and lorebooks, all in one spot. Drag cards into folders, rename them, sort them however you like.' },
     { part: 'menu', target: '[data-act="menu-gallery"]', text: 'Gallery. Every picture of everyone. Yeah, mine too.' },
     { part: 'menu', target: '[data-act="menu-settings"]', text: 'Settings: colors, fonts, sounds… and this tour, if you ever get lost. No shame in it.' },
     // a scene
@@ -80,22 +86,42 @@ const STEPS = [
     { part: 'world', target: '.mu-map', task: 'Click a place to go there.', text: 'Pick a place and go. Travel eats time, so plan ahead. I\'ll tag along.', done: () => flags.traveled },
     { part: 'world', target: '.mh-face', text: 'Click your photo anytime to play as someone else in your world. Wild, right?' },
     { part: 'world', target: '[data-act="hud-menu"]', text: 'And "This world" in this menu: people, homes, families, difficulty. Change anything you want.' },
+    // a Home
+    { part: 'home', v: '0.2', setup: () => enterHome(), text: 'This is a Home: one house, the characters you choose, and no work, money or bills. Just the people and the story.', wide: true },
+    { part: 'home', v: '0.2', target: '.mh-clock', text: 'Here the clock moves a few minutes with each message. Click it to let time pass until the next part of the day.' },
+    { part: 'home', v: '0.2', target: '[data-act="to-map"]', task: 'Open the rooms.', text: 'Rooms shows the whole house. Open it.', done: () => state.view === 'map' },
+    { part: 'home', v: '0.2', target: '.mu-plan-floors', text: 'One floor at a time, down here. The little faces show who\'s on each floor.' },
+    { part: 'home', v: '0.2', target: '.mu-plan-stage', task: 'Click a room to go there.', text: 'Click a room and you\'re there. Inside the house, walking takes no time.', done: () => flags.traveled },
+    { part: 'home', v: '0.2', target: '[data-act="hud-menu"]', text: 'The menu has the Home stuff: Go out (say where, who comes, pick a background), Who lives here (bedrooms, moving in, moving out) and Your persona.' },
+    { part: 'home', v: '0.2', target: '[data-act="hud-menu"]', text: 'And "This Home" in there: the dress code for each room, how much time each message takes, and people\'s jobs and shifts.' },
+    { part: 'home', v: '0.2', text: 'That\'s a Home. Move your favorite characters in and see what happens.', wide: true },
     { part: 'world', text: 'That\'s it, rookie. Go make your own story. I\'ll be around.', wide: true },
+    { part: 'menu', only: 'new', v: '0.2', setup: () => leaveWorld(), text: 'That\'s what\'s new. The full tour is still in Settings → Game if you want it. Have fun!', wide: true },
 ];
+// The newest version with steps of its own: what the "What's new" tour shows.
+export const TOUR_VERSION = '0.2';
 /* ---------- running it ---------- */
-const T = { on: false, i: 0, from: 0, to: STEPS.length - 1 };
+// The steps of this tour (their places in STEPS), and where in them you are.
+const T = { on: false, i: 0, k: 0, seq: [] };
 const patched = {};
 export const tutorialOn = () => T.on;
 // The step being shown (the menu draws a pretend "Continue" when there is nothing to continue yet).
 export const tutorialTarget = () => (T.on ? STEPS[T.i].target ?? '' : '');
 export function startTutorial(part = 'all') {
-    const idx = STEPS.map((s, i) => [s, i]).filter(([s]) => part === 'all' || s.part === part).map(([, i]) => i);
+    // the whole tour: menu, scene, world (a Home last); "new": only the steps of the newest version
+    const order = ['menu', 'scene', 'world', 'home'];
+    const pick = (s) => (part === 'new' ? s.v === TOUR_VERSION : !s.only && (part === 'all' || s.part === part));
+    const idx = order.flatMap(p => STEPS.map((s, i) => [s, i]).filter(([s]) => s.part === p || part === 'new').filter(([s]) => pick(s)).map(([, i]) => i));
+    T.seq = part === 'new' ? STEPS.map((s, i) => [s, i]).filter(([s]) => pick(s)).map(([, i]) => i) : [...new Set(idx)];
+    if (!T.seq.length)
+        return;
     T.on = true;
-    T.from = idx[0];
-    T.to = idx[idx.length - 1];
-    T.i = T.from;
+    T.k = 0;
+    T.i = T.seq[0];
     Object.assign(flags, { sent: 0, drank: false, traveled: false });
-    if (part !== 'menu' && part !== 'all')
+    if (part === 'home')
+        enterHome();
+    else if (part === 'scene' || part === 'world')
         enterWorld();
     patch();
     STEPS[T.i].setup?.();
@@ -110,16 +136,25 @@ function endTutorial() {
     notify();
 }
 function go(d) {
-    const n = T.i + d;
-    if (n > T.to) {
+    const k = T.k + d;
+    if (k >= T.seq.length) {
         endTutorial();
         toast('Tour done. Have fun!', 'success');
         return;
     }
-    if (n < T.from)
+    if (k < 0)
         return;
-    T.i = n;
-    STEPS[T.i].setup?.();
+    T.k = k;
+    T.i = T.seq[k];
+    const s = STEPS[T.i];
+    // a step of another part than the last one: set its stage (the menu, the practice city or the practice Home)
+    if (!s.setup) {
+        if (s.part === 'home')
+            enterHome();
+        else if (s.part !== 'menu')
+            enterWorld();
+    }
+    s.setup?.();
     notify();
 }
 // Steps that wait for you move on by themselves once you did it.
@@ -191,7 +226,7 @@ function travel(loc) {
     const mins = travelMinutes(g, w, g.player.loc, loc);
     advance(g, w, mins);
     g.player.loc = loc;
-    lines().push(line(loc === playerHomeId ? '*looks around your place* Not bad. Could use a plant or two.' : `*catches up, hands in her pockets* ${mins} minutes. Told you travel eats time.`));
+    lines().push(line(isScenario(w) ? '*wanders in after you* See? No travel time. In a house, everything is a few steps away.' : loc === playerHomeId ? '*looks around your place* Not bad. Could use a plant or two.' : `*catches up, hands in her pockets* ${mins} minutes. Told you travel eats time.`));
     flags.traveled = true;
     state.view = 'scene';
     void nowAbs;
@@ -213,7 +248,7 @@ export function tutorialHtml() {
     if (!T.on)
         return welcomeHtml();
     const s = STEPS[T.i];
-    const n = T.i - T.from + 1, of = T.to - T.from + 1;
+    const n = T.k + 1, of = T.seq.length;
     return `<div class="mu-tut ${s.target ? 'has-target' : ''} ${s.task ? 'is-task' : ''}" data-tut-target="${esc(s.target ?? '')}">
         <i class="mu-tut-shade is-t"></i><i class="mu-tut-shade is-l"></i><i class="mu-tut-shade is-r"></i><i class="mu-tut-shade is-b"></i>
         ${s.target ? `<i class="mu-tut-ring"></i>${s.task ? '' : '<i class="mu-tut-block"></i>'}` : '<i class="mu-tut-shade is-all"></i>'}
@@ -222,8 +257,8 @@ export function tutorialHtml() {
             <div class="mu-tut-talk"><b>Stella</b><p>${touch(s.text)}</p>${s.task ? `<p class="mu-tut-task">${icon('pin')} ${touch(onPhone() && s.phoneTask || s.task)}</p>` : ''}
                 <div class="mu-tut-btns"><small>${n} / ${of}</small>
                     <button class="mu-ghost" data-act="tut-skip">Skip tour</button>
-                    ${T.i > T.from ? `<button data-act="tut-back">${icon('back')}</button>` : ''}
-                    ${s.task ? '' : `<button class="mu-primary" data-act="tut-next">${T.i === T.to ? 'Finish' : 'Next'}</button>`}</div></div>
+                    ${T.k > 0 ? `<button data-act="tut-back">${icon('back')}</button>` : ''}
+                    ${s.task ? '' : `<button class="mu-primary" data-act="tut-next">${T.k === T.seq.length - 1 ? 'Finish' : 'Next'}</button>`}</div></div>
         </aside></div>`;
 }
 // After drawing: the lit hole goes around the step's element.
@@ -266,5 +301,6 @@ Object.assign(ACT, {
 export function tutorialSettingsHtml() {
     return `<section class="mu-tut-settings"><h3>Tutorial</h3><p class="mu-muted">Stella's tour, again. No AI needed and nothing is saved.</p>
         <div class="mu-row"><button class="mu-primary" data-act="tut-start" data-v="all">${icon('forward')}<span>The whole tour</span></button>
-            <button data-act="tut-start" data-v="menu">Menu</button><button data-act="tut-start" data-v="scene">Scene</button><button data-act="tut-start" data-v="world">World</button></div></section>`;
+            <button data-act="tut-start" data-v="menu">Menu</button><button data-act="tut-start" data-v="scene">Scene</button><button data-act="tut-start" data-v="world">World</button><button data-act="tut-start" data-v="home">Home</button>
+            <button class="mu-ghost" data-act="tut-start" data-v="new">${icon('star')}<span>What's new in ${TOUR_VERSION}</span></button></div></section>`;
 }

@@ -1,24 +1,114 @@
 // Jobs: getting hired, working shifts at the job's place, pay per hour, promotions after enough shifts.
 // Moving home and the bank's ledger live here too (the money side of the world).
-import { bump } from './social.js';
+import { hobbyFits, hobbyNeed } from './hobbies.js';
+import { addRep } from './standing.js';
+import { lex } from '../core/lexicon.js';
+import { bump, bondOf } from './social.js';
+import { approvalOf } from './living.js';
+import { npcRank } from './longlife.js';
 import { missingCourses, triedToday, interview, countUp } from './skills.js';
 import { payOf, priceOf, resetBills } from './bills.js';
 import { note } from './facts.js';
+import { career, systemOn, getWorld } from '../core/world.js';
 import { advance, hour } from './time.js';
 import { addStatus, money } from './needs.js';
 import { book } from './ledger.js';
 export { ledger, book } from './ledger.js';
 export const jobDef = (w, id) => w.occupations.find(o => o.id === id) ?? null;
 export const traitsOf = (g) => Object.values(g.player.traits ?? {}).flat();
-export const fits = (g, o) => !o.needs?.length || o.needs.some(t => traitsOf(g).includes(t));
-export const likes = (g, o) => (o.likes ?? []).filter(t => traitsOf(g).includes(t));
+export const fits = (g, o, w) => (!o.needs?.length || o.needs.some(t => traitsOf(g).includes(t))) && hobbyFits(g, w ?? getWorld(g.world), o);
+export const likes = (g, o) => careerOf(g, o).likes.filter(t => traitsOf(g).includes(t));
 export const isOpen = (g, o) => { const [a, b] = o.hours ?? [0, 24]; const h = hour(g); return a <= b ? h >= a && h < b : h >= a || h < b; };
-// Shifts still needed for the next rank (liked traits make it shorter).
-export function shiftsToPromote(g, o, rank) {
-    const need = o.promote?.[rank];
-    if (need === undefined || rank >= o.ranks.length - 1)
+/* ---------- a good word from someone high up (a referral) ---------- */
+// Someone you know who holds a high rank (3 or more) at their job can recommend you there, if they like you enough.
+export const REFER_RANK = 2, REFER_BOND = 40;
+export function canRefer(g, w, avatar) {
+    const r = g.cast[avatar];
+    const o = r && jobDef(w, r.occupation);
+    if (!r || !o || !r.met || !systemOn(w, 'jobs') || g.player.job?.id === o.id)
         return null;
-    return Math.max(2, need - likes(g, o).length);
+    if (npcRank(g, avatar) < REFER_RANK || bondOf(g, avatar) < REFER_BOND)
+        return null;
+    return o;
+}
+const asked = (g) => ((g.living ??= {}).refAsked ??= {});
+export const askedThisWeek = (g, avatar) => g.day - (asked(g)[avatar] ?? -99) < 7;
+export function referralFor(g, jobId) {
+    const ref = g.referral;
+    return ref && ref.job === jobId && g.day <= ref.until && g.cast[ref.avatar] ? ref.avatar : null;
+}
+export function askReferral(g, w, avatar) {
+    const o = canRefer(g, w, avatar);
+    const r = g.cast[avatar];
+    if (!o || !r)
+        return { ok: false, text: '' };
+    if (askedThisWeek(g, avatar))
+        return { ok: false, text: `You already asked ${r.name} this week.` };
+    asked(g)[avatar] = g.day;
+    const chance = 0.35 + bondOf(g, avatar) / 200 + approvalOf(g, avatar) / 200;
+    if (Math.random() >= chance) {
+        note(g, '{u} asked {0} for a good word at {1}; {0} could not promise anything.', [r.name, o.name], [avatar], g.player.loc, 'work');
+        return { ok: false, text: `${r.name} would rather not vouch for anyone at ${o.name} right now.` };
+    }
+    g.referral = { job: o.id, avatar, until: g.day + 14 };
+    note(g, '{0} agreed to put in a good word for {u} at {1}.', [r.name, o.name], [avatar], g.player.loc, 'work');
+    return { ok: true, text: `${r.name} will put in a good word for you at ${o.name}: apply within two weeks and you are in (if you have the courses it asks for).` };
+}
+/* ---------- careers and their branches ---------- */
+export { career } from '../core/world.js';
+const jobPath = (g) => g.player.job?.path ?? [];
+// Your career in this job (for someone else's: a path picked for them, the same every time).
+export const careerOf = (g, o) => career(o, g.player.job?.id === o.id ? jobPath(g) : []);
+export function npcCareer(o, avatar) {
+    const path = [];
+    for (let n = 0; n < 4; n++) {
+        const c = career(o, path);
+        if (!c.open)
+            return c;
+        let h = 2166136261;
+        const s = `${avatar}|${o.id}|${n}`;
+        for (let i = 0; i < s.length; i++) {
+            h ^= s.charCodeAt(i);
+            h = Math.imul(h, 16777619);
+        }
+        path.push(c.open.options[(h >>> 0) % c.open.options.length].id);
+    }
+    return career(o, path);
+}
+// The rank you hold (its name and pay), and the one after it.
+export const rankOf = (g, o) => { const c = careerOf(g, o); return c.ranks[Math.min(g.player.job?.rank ?? 0, c.ranks.length - 1)]; };
+export const nextRankOf = (g, o) => careerOf(g, o).ranks[(g.player.job?.rank ?? 0) + 1] ?? null;
+// A branch waiting for you: you are at its rank.
+export function pendingBranch(g, o) {
+    const j = g.player.job;
+    if (!j || j.id !== o.id)
+        return null;
+    const c = careerOf(g, o);
+    return c.open && j.rank >= c.ranks.length - 1 ? c.open : null;
+}
+// Choosing a path: it decides the ranks that come next.
+export function choosePath(g, w, optionId) {
+    const j = g.player.job;
+    const o = jobDef(w, j?.id);
+    if (!j || !o)
+        return '';
+    const b = pendingBranch(g, o);
+    const opt = b?.options.find(x => x.id === optionId);
+    if (!b || !opt)
+        return '';
+    (j.path ??= []).push(opt.id);
+    delete j.toldBranch;
+    note(g, '{u} chose a path at work: {0} ({1}).', [opt.name, o.name], [], o.place, 'work');
+    return `You chose ${opt.name}. Next: ${opt.ranks[0]?.name ?? ''}.`;
+}
+// Shifts still needed for the next rank (liked traits make it shorter). null: no next rank (or a path to choose).
+export function shiftsToPromote(g, o, rank) {
+    const c = careerOf(g, o);
+    const need = c.promote[rank];
+    if (need === undefined || rank >= c.ranks.length - 1)
+        return null;
+    const liked = c.likes.filter(t => traitsOf(g).includes(t)).length;
+    return Math.max(2, need - liked);
 }
 /* ---------- jobs ---------- */
 // Applying is a job interview: a d20 where the traits the job looks for are your bonus. Some jobs need a course first.
@@ -28,10 +118,16 @@ export function hire(g, w, id) {
         return { ok: false, text: '' };
     const miss = missingCourses(g, w, o);
     if (miss.length)
-        return { ok: false, text: `You need the course "${miss.join('", "')}" first (at home or at the University).` };
+        return { ok: false, text: lex(w, 'needCourse', miss.join('", "')) };
+    if (!hobbyFits(g, w, o))
+        return { ok: false, text: `They are looking for someone better at it: ${hobbyNeed(g, w, o)}.` };
     if (triedToday(g, id))
         return { ok: false, text: 'You already had an interview there today. Try again tomorrow.' };
-    const r = interview(g, o, traitsOf(g));
+    // a word from someone high up there gets you in without the interview
+    const ref = referralFor(g, id);
+    const r = ref ? { ok: true, crit: false, text: `${g.cast[ref]?.name ?? 'Someone'} put in a good word for you.` } : interview(g, o, traitsOf(g));
+    if (ref)
+        delete g.referral;
     if (!r.ok) {
         note(g, '{u} had a job interview for {0}, but did not get it.', [o.name], [], o.place, 'work');
         return { ok: false, text: r.text };
@@ -64,12 +160,13 @@ export function workShift(g, w, mode = 'normal', hours) {
         addStatus(g, w, 'mood', -5 * part);
     if (mode === 'social')
         addStatus(g, w, 'mood', 8 * part);
-    let pay = payOf(g, o.ranks[j.rank].pay * h);
+    const rk = rankOf(g, o);
+    let pay = payOf(g, rk.pay * h);
     countUp(g, 'shifts', h / o.shift);
     const bonus = mode === 'hard' && Math.random() < 0.3 ? Math.round(pay * 0.25) : 0;
     pay += bonus;
     g.player.money += pay;
-    book(g, `${o.ranks[j.rank].name}: ${h} h${bonus ? ' (+ bonus)' : ''}`, pay);
+    book(g, `${rk.name}: ${h} h${bonus ? ' (+ bonus)' : ''}`, pay);
     // progress to the next rank, like experience: a part of a shift counts for its part
     j.shifts = Math.round((j.shifts + part * (mode === 'hard' ? 1.5 : mode === 'social' ? 0.75 : mode === 'easy' ? 0.4 : 1)) * 100) / 100;
     out.push(`You worked ${h} hour${h === 1 ? '' : 's'} and earned ${money(w, pay)}${bonus ? ` (a bonus of ${money(w, bonus)} for the hard work)` : ''}.`);
@@ -86,8 +183,13 @@ export function workShift(g, w, mode = 'normal', hours) {
     if (need !== null && j.shifts >= need) {
         j.rank++;
         j.shifts = Math.round((j.shifts - need) * 100) / 100; // what was left over counts toward the next rank
-        out.push(`Promotion! You are now ${o.ranks[j.rank].name}.`);
-        note(g, '{u} got promoted to {0}.', [o.ranks[j.rank].name], [], o.place, 'work');
+        out.push(`Promotion! You are now ${rankOf(g, o).name}.`);
+        note(g, '{u} got promoted to {0}.', [rankOf(g, o).name], [], o.place, 'work');
+        addRep(g, w, 3, 'promotion', o.place);
+    }
+    if (pendingBranch(g, o) && !j.toldBranch) {
+        j.toldBranch = j.rank;
+        out.push(lex(w, 'choosePath', o.name));
     }
     return out;
 }
@@ -112,7 +214,7 @@ export function moveTo(g, w, zoneId) {
     book(g, `${zone.name}: deposit`, -deposit);
     g.player.home = { zone: zone.id, kind: zone.kind, x: spot[0], y: spot[1], n: zone.spots.findIndex(s => s[0] === spot[0] && s[1] === spot[1]) + 1 };
     g.player.rentPaidDay = g.day;
-    resetBills(g);
+    resetBills(g, w);
     note(g, '{u} moved to a new home: {0}.', [zone.name], [], g.player.loc, 'home');
     return '';
 }

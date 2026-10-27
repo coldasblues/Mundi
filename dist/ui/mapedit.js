@@ -1,17 +1,36 @@
 // The world creator's maps: upload a map picture, then click on it to add places, links to other maps (a city on
 // the region map) or homes. Pins can be dragged. A place gets a name, a description, tags and a background
 // (one of SillyTavern's backgrounds, or a picture you upload).
+import { TIME_SLOTS } from '../sim/daynight.js';
 import { notify, esc, toast, ROOT_ID } from '../core/store.js';
-import { worldFile, bgOf, num, cssUrl } from '../core/world.js';
-import { bgList, bgThumb } from '../st/bridge.js';
+import { worldFile, bgOf, num as safeNum, cssUrl, isScenario, PLACE_ROLES, placeIs, guessRoles, getWorld, builtInIds } from '../core/world.js';
+import { bgHead, bgGrid, bgHref } from './bgpick.js';
 import { uploadWorldPicture, imageRatio, newId } from '../sim/creator.js';
+import { closedOf } from '../sim/daynight.js';
 import { pickFile } from './cropper.js';
 import { icon } from './icons.js';
 import { ACT, INPUT } from './reg.js';
-import { CW, W, txt, area, sel } from './creator.js';
-export const ME = { map: '', mode: 'move', zone: '', pin: '', zoom: 1, bgPick: false, bgq: '', bgs: null };
+import { CW, W, txt, area, sel, num, chk } from './creator.js';
+export const ME = { map: '', mode: 'move', zone: '', pin: '', zoom: 1, bgPick: false, bgq: '', bgs: null, bgPeriod: '' };
 const TAGS = ['leisure', 'food', 'shop', 'work', 'study', 'service', 'health'];
 const TAG_NAMES = { leisure: 'Leisure', food: 'Food', shop: 'Shopping', work: 'Work', study: 'Study', service: 'Services', health: 'Health' };
+// A place's background: the usual one, or the one of a part of the day ('' removes it).
+function setBg(p, period, url) {
+    if (!period) {
+        if (url)
+            p.bg = url;
+        else
+            delete p.bg;
+        return;
+    }
+    if (url)
+        (p.bgs ??= {})[period] = url;
+    else if (p.bgs) {
+        delete p.bgs[period];
+        if (!Object.keys(p.bgs).length)
+            delete p.bgs;
+    }
+}
 const curMap = (w) => w.maps.find(m => m.id === ME.map) ?? w.maps[0];
 const placeIdx = (w, id) => w.places.findIndex(p => p.id === id);
 function pinHtml(w, p) {
@@ -37,24 +56,48 @@ function placeForm(w) {
     const bg = p.bg ? worldFile(w, p.bg) : '';
     return `<h4>Place</h4><div class="mu-me-pf"><div class="mu-me-pfcol">${txt('Name', `${path}.name`)}${area('What it is (the AI and the map card use it)', `${path}.desc`, 3)}${txt('What is going on there (optional)', `${path}.event`, 'Always busy at lunch.')}</div>
         <div class="mu-me-pfcol"><div class="mu-field"><span>Tags</span><div class="mu-chips">${TAGS.map(t => `<button class="mu-chip ${(p.tags ?? []).includes(t) ? 'is-on' : ''}" data-act="cw-chip" data-path="${path}.tags" data-v="${t}">${TAG_NAMES[t]}</button>`).join('')}</div>
-            <small class="mu-muted">Leisure: people spend free time here. Food and Shopping: what can be bought. Work: jobs can be here.</small></div></div>
+            <small class="mu-muted">Leisure: people spend free time here. Food and Shopping: what can be bought. Work: jobs can be here.</small></div>
+            <div class="mu-field"><span>What it is for the game</span><div class="mu-chips">${PLACE_ROLES.map(r => `<button class="mu-chip ${placeIs(p, r.id) ? 'is-on' : ''}" data-act="me-role" data-v="${r.id}">${esc(r.name)}</button>`).join('')}</div>
+                <small class="mu-muted">${p.roles ? 'Set by you.' : 'Guessed from its name; click to set them yourself.'}</small></div>
+            ${isScenario(w) ? chk('Off unless the player picks it', `${path}.scenarioOff`, 'A Home: when starting a game, the player chooses which rooms the house has.') : ''}
+            ${num('How busy (× its kind; 0.5 quiet, 1.5 lively)', `${path}.crowd`, 0, 0.1)}
+            <div class="mu-field"><span>Closed at</span><div class="mu-chips">${w.time.periods.map(per => `<button class="mu-chip ${closedOf(w, p).includes(per.id) ? 'is-on' : ''}" data-act="me-closed" data-period="${esc(per.id)}">${esc(per.name)}</button>`).join('')}</div>
+                <small class="mu-muted">${Array.isArray(p.closed) ? 'Its own hours.' : 'Like places of its kind (shops close at night, offices at dawn…). Click to set its own hours.'} Closed: nothing to do there, nobody comes for leisure.</small></div></div>
         <div class="mu-me-pfcol"><div class="mu-field"><span>Background of the scene</span>
             <div class="mu-cw-cover is-small" style="${bg ? esc(`background-image:${cssUrl(bg)}`) : ''}">${bg ? '' : '<span>The map around it</span>'}</div>
             <div class="mu-row"><button data-act="me-bg-pick">${icon('image')}<span>From Backgrounds</span></button><button class="mu-ghost" data-act="me-bg-upload">${icon('upload')}<span>Upload</span></button>${bg ? `<button class="mu-ghost" data-act="me-bg-clear">${icon('x')}</button>` : ''}</div></div>
+            <details class="mu-me-times" ${Object.keys(p.bgs ?? {}).length ? 'open' : ''}><summary>At other times of the day</summary>
+                ${TIME_SLOTS.map(per => {
+        const b = p.bgs?.[per.id] ? worldFile(w, p.bgs[per.id]) : '';
+        return `<div class="mu-me-time"><div class="mu-cw-cover is-mini" style="${b ? `background-image:url('${esc(b)}')` : ''}">${b ? '' : '<span>usual</span>'}</div><b>${esc(per.name)}</b>
+                    <button class="mu-ghost mu-ibtn" data-act="me-bg-pick" data-period="${esc(per.id)}" title="From Backgrounds">${icon('image')}</button><button class="mu-ghost mu-ibtn" data-act="me-bg-upload" data-period="${esc(per.id)}" title="Upload">${icon('upload')}</button>${b ? `<button class="mu-ghost mu-ibtn" data-act="me-bg-clear" data-period="${esc(per.id)}" title="Use the usual one">${icon('x')}</button>` : ''}</div>`;
+    }).join('')}
+                <small class="mu-muted">Day 5–12 h, afternoon 12–18 h, night 18–5 h. Empty: the usual one.</small></details>
         <button class="mu-danger" data-act="me-del-pin">${icon('trash')}<span>Remove this place</span></button></div></div>`;
 }
 function bgPicker() {
     if (!ME.bgPick)
         return '';
-    if (!ME.bgs) {
-        ME.bgs = [];
-        bgList().then(b => { ME.bgs = b.images; notify(); }).catch(() => { ME.bgs = []; });
-    }
-    const q = ME.bgq.toLowerCase();
-    const list = ME.bgs.filter(f => !q || f.toLowerCase().includes(q));
     return `<div class="mu-dlg-veil" data-act="me-bg-close"></div><div class="mu-panel mu-scpick" role="dialog"><header><h3>Background</h3><button class="mu-ibtn mu-ghost" data-act="me-bg-close" aria-label="Close">${icon('x')}</button></header>
-        <input class="mu-search" type="search" data-input="me-bgq" data-focus="mebgq" placeholder="Search" value="${esc(ME.bgq)}">
-        <div class="mu-scpick-grid is-bg" data-keep="mebg">${list.map(f => `<button data-act="me-bg" data-file="${esc(f)}"><img src="${esc(bgThumb(f))}" alt="" loading="lazy"><span data-notr>${esc(f.replace(/\.[a-z0-9]+$/i, ''))}</span></button>`).join('') || '<p class="mu-muted">Loading…</p>'}</div></div>`;
+        ${bgHead('me-bgq', 'mebgq', ME.bgq)}${bgGrid({ act: 'me-bg', q: ME.bgq, keep: 'mebg' })}</div>`;
+}
+// The maps of the ready worlds (their pictures, as links any world can use).
+function libraryMaps() {
+    const out = [];
+    const seen = new Set();
+    for (const id of builtInIds()) {
+        const bw = getWorld(id);
+        if (!bw)
+            continue;
+        for (const m of bw.maps) {
+            const url = worldFile(bw, m.image);
+            if (!url || seen.has(url))
+                continue;
+            seen.add(url);
+            out.push({ url, name: `${m.name} (${bw.name})`, ratio: m.ratio });
+        }
+    }
+    return out;
 }
 export function mapEditorHtml(w) {
     const m = curMap(w);
@@ -66,8 +109,27 @@ export function mapEditorHtml(w) {
     const maps = `<aside class="mu-me-maps">
         <h4>Maps</h4>${w.maps.map(x => `<button class="mu-cw-row ${x.id === m?.id ? 'is-on' : ''}" data-act="me-map" data-id="${esc(x.id)}"><b>${esc(x.name)}</b><small>${x.parent ? `in ${esc(w.maps.find(y => y.id === x.parent)?.name ?? '')}` : 'Top map'}</small></button>`).join('')}
         <button class="mu-primary" data-act="me-add-map">${icon('plus')}<span>Add a map</span></button>
+        <details class="mu-me-lib"><summary>Add one of Mundi's maps</summary><div class="mu-me-libgrid">${libraryMaps().map(x => `<button data-act="me-add-lib" data-url="${esc(x.url)}" data-ratio="${x.ratio}" data-name="${esc(x.name.replace(/ \(.*\)$/, ''))}" title="${esc(x.name)}"><i style="background-image:url('${esc(x.url)}')"></i><span>${esc(x.name)}</span></button>`).join('')}</div></details>
         ${m ? `<div class="mu-me-mapform">${txt('Name', `maps.${mi}.name`)}
+            ${txt('Where it is (its city, state or province)', `maps.${mi}.area`, 'Porto Alto')}
             ${sel('It is inside', `maps.${mi}.parent`, [['', '(nothing: a top map)'], ...w.maps.filter(x => x.id !== m.id).map(x => [x.id, x.name])])}
+            ${m.parent ? num('Minutes to get here from the map it is inside (empty: like any trip between maps)', `maps.${mi}.trip`, 0, 5) : ''}
+            ${w.maps.some(x => x.parent === m.id) ? chk('A town with districts (trips between its own places stay short)', `maps.${mi}.town`) : ''}
+            <details class="mu-me-region"><summary>Life in this region</summary>
+                ${num('Public mood (−100 … 100)', `maps.${mi}.mood`, -100)}${num('Tension (0 … 100)', `maps.${mi}.tension`, 0)}
+                ${num('Prices ×', `maps.${mi}.prices`, 0.2, 0.05)}${num('Crowds ×', `maps.${mi}.crowd`, 0, 0.1)}
+                ${chk('Its own weather', `maps.${mi}.ownWeather`)}
+                ${sel('Climate (its extreme weather)', `maps.${mi}.climate`, [['', '(as the map it is in; else temperate)'], ['temperate', 'Temperate'], ['cold', 'Cold'], ['hot', 'Hot'], ['coastal', 'Coastal']])}
+                <small class="mu-muted">Empty: mood 15, tension 10, prices and crowds ×1. They drift day by day around these (weather, weekends, what happens there).</small></details>
+            <details class="mu-me-times" ${Object.keys(m.images ?? {}).length ? 'open' : ''}><summary>Picture at other times of the day</summary>
+                ${TIME_SLOTS.map(per => {
+        const b = m.images?.[per.id] ? worldFile(w, m.images[per.id]) : '';
+        return `<div class="mu-me-time"><div class="mu-cw-cover is-mini" style="${b ? `background-image:url('${esc(b)}')` : ''}">${b ? '' : '<span>usual</span>'}</div><b>${esc(per.name)}</b>
+                    <button class="mu-ghost mu-ibtn" data-act="me-map-img" data-period="${esc(per.id)}" title="Upload">${icon('upload')}</button>${b ? `<button class="mu-ghost mu-ibtn" data-act="me-map-img-clear" data-period="${esc(per.id)}" title="Use the usual one">${icon('x')}</button>` : ''}</div>`;
+    }).join('')}
+                <small class="mu-muted">Day 5–12 h, afternoon 12–18 h, night 18–5 h (same size as the usual picture, so pins stay in place).</small></details>
+            <details class="mu-me-lib"><summary>Use one of Mundi's maps</summary><div class="mu-me-libgrid">${libraryMaps().map(x => `<button class="${m.image === x.url ? 'is-on' : ''}" data-act="me-map-lib" data-url="${esc(x.url)}" data-ratio="${x.ratio}" title="${esc(x.name)}"><i style="background-image:url('${esc(x.url)}')"></i><span>${esc(x.name)}</span></button>`).join('')}</div>
+                <small class="mu-muted">The pictures of the ready worlds: pick one for this map (the original stays in its world).</small></details>
             <div class="mu-row"><button class="mu-ghost" data-act="me-map-img">${icon('image')}<span>Change picture</span></button><button class="mu-ghost" data-act="me-del-map">${icon('trash')}</button></div></div>` : ''}
         <p class="mu-muted">One map per city or area. On a bigger map (a region, a kingdom), add a link where each city is: in the game it opens that city's map.</p></aside>`;
     if (!m)
@@ -79,7 +141,7 @@ export function mapEditorHtml(w) {
         <span class="mu-me-zoom"><button data-act="me-zoom" data-d="-1">−</button><button data-act="me-zoom" data-d="1">+</button></span></div>`;
     return `<div class="mu-me">${maps}
         <div class="mu-me-center">${tools}
-            <div class="mu-me-stage is-${ME.mode}" data-keep="me-stage"><div class="mu-me-img" data-me-img style="${esc(`width:${num(ME.zoom, 1) * 100}%;aspect-ratio:${num(m.ratio, 1.7914)};${bgOf(w, m.image)}`)}">
+            <div class="mu-me-stage is-${ME.mode}" data-keep="me-stage"><div class="mu-me-img" data-me-img style="${esc(`width:${safeNum(ME.zoom, 1) * 100}%;aspect-ratio:${safeNum(m.ratio, 1.7914)};${bgOf(w, m.image)}`)}">
                 ${homesHtml(w, m)}${w.places.filter(p => p.map === m.id).map(p => pinHtml(w, p)).join('')}</div></div></div>
         <aside class="mu-me-side" data-keep="me-side">${placeForm(w)}</aside></div>${bgPicker()}`;
 }
@@ -246,8 +308,76 @@ Object.assign(ACT, {
         CW.dirty = true;
         notify();
     },
-    'me-map-img': async () => { const m = curMap(W()); const pic = await addMapPicture(); if (!m || !pic)
-        return; Object.assign(m, pic); CW.dirty = true; notify(); },
+    'me-map-img': async (el) => {
+        const m = curMap(W());
+        if (!m)
+            return;
+        const per = el.dataset.period;
+        if (per) { // the picture of one part of the day (the usual one keeps the map's size)
+            const f = await pickFile('image/*');
+            if (!f)
+                return;
+            try {
+                (m.images ??= {})[per] = await uploadWorldPicture(W(), f, `map-${m.id}-${per}`);
+                CW.dirty = true;
+            }
+            catch (e) {
+                toast(String(e?.message ?? e), 'error');
+            }
+            notify();
+            return;
+        }
+        const pic = await addMapPicture();
+        if (!pic)
+            return;
+        Object.assign(m, pic);
+        CW.dirty = true;
+        notify();
+    },
+    'me-add-lib': (el) => {
+        const w = W();
+        const m = { id: newId('map'), name: w.maps.length ? el.dataset.name || 'New map' : w.name, image: el.dataset.url, ratio: Number(el.dataset.ratio) || 1.79 };
+        w.maps.push(m);
+        ME.map = m.id;
+        ME.pin = '';
+        CW.dirty = true;
+        notify();
+    },
+    'me-map-lib': (el) => { const m = curMap(W()); if (!m)
+        return; m.image = el.dataset.url; m.ratio = Number(el.dataset.ratio) || m.ratio; delete m.images; CW.dirty = true; notify(); },
+    'me-map-img-clear': (el) => { const m = curMap(W()); if (!m?.images)
+        return; delete m.images[el.dataset.period]; if (!Object.keys(m.images).length)
+        delete m.images; CW.dirty = true; notify(); },
+    'me-role': (el) => {
+        const w = W();
+        const p = w.places.find(x => x.id === ME.pin);
+        if (!p)
+            return;
+        const list = new Set(p.roles ?? guessRoles(p));
+        const r = el.dataset.v;
+        if (list.has(r))
+            list.delete(r);
+        else
+            list.add(r);
+        p.roles = PLACE_ROLES.map(x => x.id).filter(id => list.has(id));
+        CW.dirty = true;
+        notify();
+    },
+    'me-closed': (el) => {
+        const w = W();
+        const p = w.places.find(x => x.id === ME.pin);
+        if (!p)
+            return;
+        const list = new Set(closedOf(w, p));
+        const per = el.dataset.period;
+        if (list.has(per))
+            list.delete(per);
+        else
+            list.add(per);
+        p.closed = w.time.periods.map(x => x.id).filter(id => list.has(id));
+        CW.dirty = true;
+        notify();
+    },
     'me-del-map': () => {
         const w = W();
         const m = curMap(w);
@@ -291,21 +421,22 @@ Object.assign(ACT, {
         CW.dirty = true;
         notify();
     },
-    'me-bg-pick': () => { ME.bgPick = true; ME.bgq = ''; ME.bgs = null; notify(); },
+    'me-bg-pick': (el) => { ME.bgPick = true; ME.bgq = ''; ME.bgs = null; ME.bgPeriod = el.dataset.period ?? ''; notify(); },
     'me-bg-close': () => { ME.bgPick = false; notify(); },
     'me-bg': (el) => { const p = W().places.find(p => p.id === ME.pin); if (p) {
-        p.bg = `/backgrounds/${encodeURIComponent(el.dataset.file)}`;
+        setBg(p, ME.bgPeriod, bgHref(el.dataset.file));
         CW.dirty = true;
     } ME.bgPick = false; notify(); },
-    'me-bg-upload': async () => {
+    'me-bg-upload': async (el) => {
         const p = W().places.find(p => p.id === ME.pin);
         if (!p)
             return;
         const f = await pickFile('image/*');
         if (!f)
             return;
+        const per = el.dataset.period ?? '';
         try {
-            p.bg = await uploadWorldPicture(W(), f, `place-${p.name}`);
+            setBg(p, per, await uploadWorldPicture(W(), f, `place-${p.name}${per ? `-${per}` : ''}`));
             CW.dirty = true;
         }
         catch (e) {
@@ -313,8 +444,8 @@ Object.assign(ACT, {
         }
         notify();
     },
-    'me-bg-clear': () => { const p = W().places.find(p => p.id === ME.pin); if (p) {
-        delete p.bg;
+    'me-bg-clear': (el) => { const p = W().places.find(p => p.id === ME.pin); if (p) {
+        setBg(p, el.dataset.period ?? '', '');
         CW.dirty = true;
     } notify(); },
 });

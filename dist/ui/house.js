@@ -1,7 +1,7 @@
 // Your household on the HUD: the faces of who lives with you, under your card. Click one for: play as them,
 // call them over, or go to where they are.
 import { esc, game, notify, saveGame, toast, nowAbs } from '../core/store.js';
-import { getWorld } from '../core/world.js';
+import { getWorld, isScenario } from '../core/world.js';
 import { thumb } from '../st/bridge.js';
 import { homeKey } from '../sim/living.js';
 import { social, isWith } from '../sim/social.js';
@@ -24,7 +24,7 @@ export function houseBar(g, w) {
     return `<aside class="mh-house mh-glass" aria-label="Your household"><span class="mh-house-ic" title="Lives with you">${icon('home')}</span>
         ${list.map(r => `<button class="mh-house-p ${H.open === r.avatar ? 'is-on' : ''}" data-act="hs-open" data-who="${esc(r.avatar)}" title="${esc(r.name)}"><img src="${esc(thumb(r.avatar))}" alt=""></button>`).join('')}
         ${sel ? `<div class="mh-house-pop mh-glass"><b data-notr>${esc(sel.name)}</b><small>${here ? 'Here with you' : esc(placeOf(g, w, where)?.name ?? 'Out')}</small>
-            <button data-act="swap-to" data-who="${esc(sel.avatar)}">${icon('user')}<span>Play as ${esc(sel.name)}</span></button>
+            ${isScenario(w) ? '' : `<button data-act="swap-to" data-who="${esc(sel.avatar)}">${icon('user')}<span>Play as ${esc(sel.name)}</span></button>`}
             ${here ? '' : `<button data-act="hs-call" data-who="${esc(sel.avatar)}" ${tooLittle(g, sel.avatar) ? 'aria-disabled="true" title="Too little to come on their own"' : ''}>${icon('phone')}<span>Call them over</span></button>
             <button data-act="hs-go" data-who="${esc(sel.avatar)}">${icon('map')}<span>Go to where they are</span></button>`}</div>` : ''}
     </aside>`;

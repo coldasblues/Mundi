@@ -7,11 +7,13 @@
 import { nowAbs } from '../core/store.js';
 import { placeOf, playerHomeId } from './places.js';
 import { personaName } from '../st/bridge.js';
+import { seenAs } from './hooks.js';
+export { seenAs };
 const MAX = 500;
 export const facts = (g) => (g.facts ??= []);
 // Writes a fact. `who`: the people it is about (their avatars); `place`: where it happened (by default, here).
 export function note(g, t, a = [], who = [], place = g.player.loc, kind = 'event') {
-    const f = { id: `f${nowAbs(g)}_${facts(g).length}`, at: nowAbs(g), place, who: [...new Set(who)], t, a, kind, u: personaName() };
+    const f = { id: `f${nowAbs(g)}_${facts(g).length}`, at: nowAbs(g), place, who: [...new Set(who)], t, a, kind, u: seenAs.map(f => f(g)).find(Boolean) || personaName() };
     const list = facts(g);
     // the same thing twice in a row (two clicks) is one fact
     const last = list.at(-1);
@@ -25,7 +27,7 @@ export function note(g, t, a = [], who = [], place = g.player.loc, kind = 'event
 export const fill = (t, a = [], u = 'You') => t.replace(/\{u\}/g, u).replace(/\{(\d)\}/g, (_, n) => a[Number(n)] ?? '');
 // someone else (an earlier character you played) did it: their name, not yours
 export const factText = (f, u = 'You') => fill(f.t, f.a, f.u && f.u !== personaName() ? f.u : u);
-export const placeName = (g, w, id) => (id === playerHomeId ? 'home' : placeOf(g, w, id)?.name ?? id);
+export const placeName = (g, w, id) => (id === playerHomeId ? 'home' : id === 'out' ? 'out of the house' : placeOf(g, w, id)?.name ?? id);
 export const factsOf = (g, avatar, n = 6) => facts(g).filter(f => f.who.includes(avatar)).slice(-n);
 export const factsAt = (g, place, n = 3) => facts(g).filter(f => f.place === place).slice(-n);
 // For the AI: only the people in this scene, and this place (surgical injection).

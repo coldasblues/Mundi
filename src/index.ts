@@ -3,6 +3,8 @@
 import { ctx, on, scenarioOpen, openChatRef, chat, deleteMessageAt } from './st/bridge.js';
 import { settings, saveSettings, state, notify, game, toast } from './core/store.js';
 import { loadAllWorlds } from './core/world.js';
+import { setLang } from './core/tr.js';
+import './core/saves.js';   // save safety: migrations, backups and repairs when a save is opened
 import { mount, openApp, closeApp } from './ui/app.js';
 import { patchLastLine } from './ui/scene.js';
 import { installSfx } from './ui/sfx.js';
@@ -100,6 +102,13 @@ function follow() {
     on('MESSAGE_UPDATED', (id: number) => { if (game()) onReply(id); });
     on('MESSAGE_EDITED', (id: number) => { if (game()) onEdited(id); });
     for (const ev of ['MESSAGE_SWIPED', 'MESSAGE_DELETED']) on(ev, () => { if (game()) refreshPState(); });
+    // Home: time passes with every message you send (Settings › This save can turn it off)
+    on('MESSAGE_SENT', async (id: number) => {
+        const m: any = (globalThis as any).SillyTavern?.getContext?.().chat?.[id];
+        if (!m?.is_user || m.is_system) return;
+        const { homeTick } = await import('./sim/hometime.js');
+        if (await homeTick()) redraw();
+    });
     // someone you did not know answered you in the scene: now you know them
     on('MESSAGE_RECEIVED', async (id: number) => {
         const { game, saveGame } = await import('./core/store.js');
@@ -133,7 +142,7 @@ async function init() {
     settings();
     initHostile();
     initMatch();
-    await loadAllWorlds();
+    await Promise.all([loadAllWorlds(), setLang((settings() as any).uiLang ?? 'en')]);
     mount();
     installSfx();
     addLauncher();

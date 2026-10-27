@@ -1,15 +1,20 @@
 // This world (the globe button, in game): the people who live here (job, home, routine), this save's notes,
 // the lorebooks the world uses, and the world's rules. "Advanced" shows the finer settings.
+import { castLevel, neighbors, NEIGHBORS_MIN, FRIEND_BOND } from '../sim/happenings.js';
+import { bondOf } from '../sim/social.js';
 import { state, notify, esc, game, toast, saveGame, cfg, type Save } from '../core/store.js';
 import { DIFFICULTIES, difficultyOf } from '../sim/bills.js';
-import { getWorld, activeStatuses, gameMode, GAME_MODES, type WorldDef } from '../core/world.js';
+import { isCustom, getWorld, activeStatuses, gameMode, GAME_MODES, systemOn, isScenario, type WorldDef } from '../core/world.js';
+import { dressHtml } from './dressui.js';
+import { homeJobOf, SHIFTS, DAYS } from '../sim/hometime.js';
+import './homeui.js';
 import { ctx, thumb, characters, charOf, personaThumb, personaName, lorebooks, chatLore, bindChatLore, createLorebook } from '../st/bridge.js';
 import { homeAddress, placeOf } from '../sim/places.js';
-import { resident, homeSpot, syncScene, currentEntry } from '../sim/game.js';
+import { resident, homeSpot, takenHomes, syncScene, currentEntry } from '../sim/game.js';
 import { social, bondLabel, isPartner } from '../sim/social.js';
 import { romOf } from '../sim/romance.js';
 import { romanceBlocked } from '../sim/family.js';
-import { tiesOf, setTie, removeTie, liveTogether, TIE_TYPES, TIE_TONES, type TieType, type TieTone } from '../sim/living.js';
+import { tiesOf, setTie, removeTie, liveTogether, normalizeHomes, TIE_TYPES, TIE_TONES, type TieType, type TieTone } from '../sim/living.js';
 import { freeSpots } from '../sim/work.js';
 import { refreshPrompt } from '../sim/prompt.js';
 import { facts } from '../sim/facts.js';
@@ -18,12 +23,14 @@ import { applyGameLore } from '../sim/lore.js';
 import { icon } from './icons.js';
 import { weekday } from '../sim/time.js';
 import { tabHouseholds } from './households.js';
+import { houseRoomsHtml } from './newgame.js';
+import { openCreatorEdit, CW as CREATOR } from './creator.js';
 import { tabAiContext } from './aictx.js';
 import { warningsBanner } from './warnings.js';
 import { ACT, INPUT } from './reg.js';
 
-type Tab = 'people' | 'homes' | 'save' | 'lore' | 'ai' | 'rules';
-const TABS: [Tab, string][] = [['people', 'People'], ['homes', 'Households'], ['save', "Author's Note"], ['lore', 'Lorebooks'], ['ai', 'AI context'], ['rules', 'World']];
+type Tab = 'people' | 'homes' | 'house' | 'save' | 'lore' | 'ai' | 'rules';
+const TABS: [Tab, string][] = [['people', 'People'], ['homes', 'Households'], ['house', 'The house'], ['save', "Author's Note"], ['lore', 'Lorebooks'], ['ai', 'AI context'], ['rules', 'World']];
 const WC = { tab: 'people' as Tab, adv: false, who: '', adding: false, q: '', lq: '', back: 'map' as string };
 
 const opt = (v: string, label: string, sel: boolean) => `<option value="${esc(v)}" ${sel ? 'selected' : ''}>${esc(label)}</option>`;
@@ -38,8 +45,13 @@ function personForm(g: Save, w: WorldDef): string {
     const bond = social(g).bond[r.avatar] ?? 0;
     const leisure = w.places.filter(p => (p.tags ?? []).some(t => ['leisure', 'food', 'shop'].includes(t)));
     return `<header class="mu-wc-head"><img src="${esc(thumb(r.avatar))}" alt=""><div><h3 data-notr>${esc(r.name)}</h3><small>${esc(homeAddress(w, r.home))}</small></div></header>
-        <label class="mu-field"><span>Job</span><select data-input="wc-job">${opt('', 'No job', !r.occupation)}${w.occupations.map(o => opt(o.id, `${o.name} · ${placeOf(g, w, o.place)?.name ?? ''}`, r.occupation === o.id)).join('')}</select></label>
-        <label class="mu-field"><span>Lives in</span><select data-input="wc-zone">${w.homes.zones.map(z => opt(z.id, `${z.name} (${w.homes.kinds[z.kind]?.name ?? z.kind})`, r.home.zone === z.id)).join('')}</select></label>
+        ${isScenario(w) ? (() => { const j = homeJobOf(r); const timed = !!SHIFTS.find(x => x.id === j.shift && x.from !== undefined);
+            // Home: no ready-made jobs; write what they do, and when they are out for it (the bedroom is in the Bedrooms tab)
+            return `<label class="mu-field"><span>What they do (optional)</span><input type="text" maxlength="60" placeholder="nurse, barista, student…" value="${esc(j.name ?? '')}" data-input="home-job" data-who="${esc(r.avatar)}" data-focus="wcjob"></label>
+            <div class="mu-row2"><label class="mu-field"><span>When they are out for it</span><select data-input="home-shift" data-who="${esc(r.avatar)}">${SHIFTS.map(x => opt(x.id, x.name, x.id === (j.shift ?? ''))).join('')}</select></label>
+                ${timed ? `<label class="mu-field"><span>Days</span><select data-input="home-days" data-who="${esc(r.avatar)}">${DAYS.map(([v, l]) => opt(v, l, (j.days ?? 'weekdays') === v)).join('')}</select></label>` : ''}</div>`; })()
+        : `<label class="mu-field"><span>Job</span><select data-input="wc-job">${opt('', 'No job', !r.occupation)}${w.occupations.map(o => opt(o.id, `${o.name} · ${placeOf(g, w, o.place)?.name ?? ''}`, r.occupation === o.id)).join('')}</select></label>
+        <label class="mu-field"><span>Lives in</span><select data-input="wc-zone">${w.homes.zones.map(z => opt(z.id, `${z.name} (${w.homes.kinds[z.kind]?.name ?? z.kind})`, r.home.zone === z.id)).join('')}</select></label>`}
         <label class="mu-check"><input type="checkbox" data-input="wc-met" ${r.met ? 'checked' : ''}><span>You know them<small>They show up by name, in People and in Messages.</small></span></label>
         ${tiesHtml(g, r.avatar)}
         ${WC.adv ? `<h4 class="mu-lib-advhead">Advanced settings</h4>
@@ -62,6 +74,17 @@ function addPicker(g: Save): string {
 }
 
 // Opens a person's page in People (from Households).
+// How alive this world is with the people in it, and which social systems are working (they need cards).
+function lifeSection(g: Save, w: WorldDef) {
+    const n = Object.keys(g.cast).length, c = castLevel(n, gameMode(w)), nb = neighbors(g).length;
+    const friends = Object.values(g.cast).filter(r => r.met && bondOf(g, r.avatar) >= FRIEND_BOND).length;
+    const row = (on: boolean, name: string, why: string) => `<li class="${on ? 'is-on' : 'is-off'}"><b>${on ? '●' : '○'} ${esc(name)}</b> <small>${esc(why)}</small></li>`;
+    return `<section class="mu-wc-sec"><h4>Life in the world</h4>
+        <p><b>${n} ${n === 1 ? 'person' : 'people'}</b> · ${esc(c.level)}. <span class="mu-muted">${esc(c.tip)}</span></p>
+        <ul class="mu-wc-life">${row(systemOn(w, 'neighbors') && nb >= NEIGHBORS_MIN, 'Neighbors', !systemOn(w, 'neighbors') ? 'Off in this world.' : nb >= NEIGHBORS_MIN ? `${nb} live in your area.` : `Needs ${NEIGHBORS_MIN} of the world's people living in your area (now ${nb}). Move near people, or add cards.`)}
+            ${row(systemOn(w, 'consults') && friends > 0, 'Advice and life events', !systemOn(w, 'consults') ? 'Off in this world.' : friends ? `${friends} close ${friends === 1 ? 'friend' : 'friends'} may ask your advice.` : 'Comes when you have close friends (bond 40+).')}
+            ${row(systemOn(w, 'rumors') && n >= 4, 'Rumors', n >= 4 ? 'Going around.' : 'Need at least 4 people to travel.')}</ul></section>`;
+}
 export function editPerson(avatar: string) { WC.tab = 'people'; WC.who = avatar; notify(); }
 
 function tabPeople(g: Save, w: WorldDef): string {
@@ -79,10 +102,22 @@ function tabPeople(g: Save, w: WorldDef): string {
             <div class="mu-wc-row is-you"><img src="${esc(personaThumb())}" alt=""><span><b data-notr>${esc(personaName())}</b><small>You · ${esc(homeAddress(w, g.player.home))}</small></span></div>
             ${ordered.map(([k, rs]) => `<h5 class="mu-wc-addr">${k === mine ? `${icon('home')} ` : ''}${esc(homeAddress(w, rs[0].home))}${k === mine ? ' · with you' : ''}</h5>
                 ${rs.map(r => `<button class="mu-wc-row ${WC.who === r.avatar ? 'is-on' : ''}" data-act="wc-who" data-who="${esc(r.avatar)}"><img src="${esc(thumb(r.avatar))}" alt="">
-                <span><b data-notr>${esc(r.name)}</b><small>${esc(w.occupations.find(o => o.id === r.occupation)?.name ?? 'No job')}</small></span></button>`).join('')}`).join('')}
+                <span><b data-notr>${esc(r.name)}</b><small>${esc(isScenario(w) ? homeJobOf(r).name || '' : w.occupations.find(o => o.id === r.occupation)?.name ?? 'No job')}</small></span></button>`).join('')}`).join('')}
         </aside>
         <section class="mu-wc-form" data-keep="wc-form">${personForm(g, w)}</section>
     </div>${WC.adding ? addPicker(g) : ''}`;
+}
+
+/* ---------- a Home: the house itself ---------- */
+
+// Its rooms in this game (on or off, what can be done in each, rooms of your own), and its floor plan (the Home's own
+// maps: the Home creator, for a Home you made).
+function tabHouse(w: WorldDef): string {
+    const own = isCustom(w.id);
+    return `<div class="mu-house-rooms">${houseRoomsHtml()}</div>
+        <section class="mu-wc-sec"><h4>Floor plan and pictures</h4>
+            <p class="mu-muted">${own ? 'The floors, where each room is on them and the pictures of the rooms are part of this Home: change them in the Home creator (this game follows).' : 'This is a ready Home: its floor plan and pictures stay as they are. To change them, make a copy of it in the Home creator (New game › Create a Home) and play that one.'}</p>
+            ${own ? `<button data-act="wc-house-plan">${icon('map')}<span>Edit the floor plan and pictures</span></button>` : ''}</section>`;
 }
 
 /* ---------- this save: Author's Note ---------- */
@@ -141,12 +176,15 @@ function tabRules(g: Save, w: WorldDef): string {
         `<label class="mu-field slider"><span>${label} · ${v}${unit}</span><input type="range" min="${min}" max="${max}" step="${step}" value="${v}" data-input="wc-cfg" data-k="${key}"></label>`;
     const live = (c.clock ?? 'action') === 'live';
     return `<section class="mu-wc-sec"><h4>${esc(w.name)}</h4><p>${esc(w.description)}</p><p class="mu-muted">Game mode: <b>${GAME_MODES.find(m => m.id === gameMode(w))!.name}</b> (change it in the world creator).</p></section>
+        ${isScenario(w) ? `${dressHtml(g, w)}${systemOn(w, 'romance') ? `<section class="mu-wc-sec"><h4>Love</h4><label class="mu-check"><input type="checkbox" data-input="wc-poly" ${c.poly ? 'checked' : ''}><span>Open relationships</span></label></section>` : ''}<section class="mu-wc-sec"><h4>Rooms</h4>${list(w.places.map(p => p.name))}</section>` : `
         <section class="mu-wc-sec"><h4>Time</h4>
             <div class="mu-heropick is-start">
                 <button class="mu-herocard ${live ? '' : 'is-on'}" data-act="wc-clock" data-v="action"><b>Only with actions</b><p>The clock moves only when you do something: eat, drink, sleep, work, travel, or let time pass. Talking does not spend time.</p></button>
                 <button class="mu-herocard ${live ? 'is-on' : ''}" data-act="wc-clock" data-v="live"><b>Running clock</b><p>Time also passes by itself while you play (1 real second = 1 game minute at ×1). For testing.</p></button></div></section>
         <section class="mu-wc-sec"><h4>Difficulty</h4><p class="mu-muted">Changes the economy: what work pays, what things cost and what bills are.</p>
             <div class="mu-heropick is-start mu-diff">${DIFFICULTIES.map(d => `<button class="mu-herocard ${difficultyOf(g).id === d.id ? 'is-on' : ''}" data-act="wc-diff" data-v="${d.id}"><b>${d.name}</b><p>${d.desc}</p></button>`).join('')}</div></section>
+        ${systemOn(w, 'romance') ? `<section class="mu-wc-sec"><h4>Love</h4><label class="mu-check"><input type="checkbox" data-input="wc-poly" ${c.poly ? 'checked' : ''}><span>Open relationships (polyamory)<small>No jealousy: you can date several people at once, freely, and everyone knows. Off: a new romance hurts the partners you already have.</small></span></label></section>` : ''}
+        ${lifeSection(g, w)}
         <section class="mu-wc-sec"><h4>Needs</h4>${list(activeStatuses(w).map(s => `${s.icon} ${s.name}`))}</section>
         <section class="mu-wc-sec"><h4>Places</h4>${list(w.places.map(p => p.name))}</section>
         <section class="mu-wc-sec"><h4>Jobs</h4><ul class="mu-lib-jobs">${w.occupations.map(o => `<li><b>${esc(o.name)}</b> <small>${o.ranks.map(r => esc(r.name)).join(' → ')}</small></li>`).join('')}</ul></section>
@@ -156,19 +194,19 @@ function tabRules(g: Save, w: WorldDef): string {
             ${slider('Days in each season', 'seasonDays', c.seasonDays ?? 14, 3, 60, 1, ' days')}
             ${slider('Most bond you can gain with someone in a day', 'bondCap', c.bondCap ?? 15, 5, 50, 5, '')}
             <button class="mu-ghost" data-act="wc-cfg-reset">${icon('undo')}<span>Back to the world's defaults</span></button></section>`
-            : '<p class="mu-muted">Turn on "Advanced" for travel time, how fast needs drop and more.</p>'}`;
+            : '<p class="mu-muted">Turn on "Advanced" for travel time, how fast needs drop and more.</p>'}`}`;
 }
 
 export function worldCfgHtml(): string {
     const g = game(); const w = g && getWorld(g.world);
     if (!g || !w) return '';
-    const body = WC.tab === 'people' ? tabPeople(g, w) : WC.tab === 'homes' ? tabHouseholds(g, w) : WC.tab === 'ai' ? tabAiContext() : WC.tab === 'save' ? tabSave() : WC.tab === 'lore' ? tabLore(g) : tabRules(g, w);
+    const body = WC.tab === 'people' ? tabPeople(g, w) : WC.tab === 'homes' ? tabHouseholds(g, w) : WC.tab === 'house' ? tabHouse(w) : WC.tab === 'ai' ? tabAiContext() : WC.tab === 'save' ? tabSave() : WC.tab === 'lore' ? tabLore(g) : tabRules(g, w);
     return `<div class="mu-settings mu-worldcfg">
-        <div class="mu-subhead"><button data-act="wc-back" data-sfx="back">← Back</button><h2>This world</h2><small data-notr>${esc(currentEntry()?.title ?? w.name)}</small>
+        <div class="mu-subhead"><button data-act="wc-back" data-sfx="back">← Back</button><h2>${isScenario(w) ? 'This Home' : 'This world'}</h2><small data-notr>${esc(currentEntry()?.title ?? w.name)}</small>
             <label class="mu-switch-row"><span>Advanced</span><input type="checkbox" class="mu-toggle" data-input="wc-adv" ${WC.adv ? 'checked' : ''}></label></div>
         ${warningsBanner()}
         <div class="mu-settings-layout">
-            <nav class="mu-tabs">${TABS.map(([id, l]) => `<button class="${WC.tab === id ? 'is-on' : ''}" data-act="wc-tab" data-tab="${id}">${l}</button>`).join('')}</nav>
+            <nav class="mu-tabs">${TABS.filter(([id]) => id !== 'house' || isScenario(w)).map(([id, l]) => `<button class="${WC.tab === id ? 'is-on' : ''}" data-act="wc-tab" data-tab="${id}">${isScenario(w) && id === 'rules' ? 'Home' : isScenario(w) && id === 'homes' ? 'Bedrooms' : l}</button>`).join('')}</nav>
             <div class="mu-settings-body mu-panel" data-keep="worldcfg">${body}</div>
         </div></div>`;
 }
@@ -203,6 +241,7 @@ function tiesHtml(g: Save, avatar: string) {
 }
 
 Object.assign(ACT, {
+    'wc-house-plan': () => { const g = game(); if (!g) return; openCreatorEdit(g.world); (CREATOR as any).tab = 'maps'; notify(); },
     'open-world': () => { WC.back = state.view; state.view = 'worldcfg' as any; notify(); },
     'wc-back': () => { state.view = (WC.back === 'scene' ? 'scene' : 'map') as any; notify(); },
     'wc-memday': (el) => { const d = Number(el.dataset.d); const g = game(); const newest = g ? Math.max(...facts(g).map(f => Math.floor(f.at / 1440))) : d; const cur = MEMDAYS.has(d) ? MEMDAYS.get(d)! : d === newest; MEMDAYS.set(d, !cur); notify(); },
@@ -215,7 +254,7 @@ Object.assign(ACT, {
         const a = el.dataset.avatar!;
         const taken = new Set(Object.values(c.g.cast).map(r => `${r.home.x},${r.home.y}`));
         taken.add(`${c.g.player.home.x},${c.g.player.home.y}`);
-        c.g.cast[a] = resident(c.w, a, taken);
+        c.g.cast[a] = resident(c.w, a, taken, c.g.player.home);
         WC.adding = false; WC.who = a;
         toast(`${charOf(a)?.name ?? ''} now lives in ${c.w.name}.`, 'success');
         await changed();
@@ -279,8 +318,7 @@ Object.assign(INPUT, {
     'wc-zone': async (el) => {
         const c = ctxGW(); const r = c?.g.cast[WC.who]; if (!c || !r) return;
         if (!freeSpots(c.g, c.w, el.value).length) { toast('There is no free home there.', 'info'); notify(); return; }
-        const taken = new Set([...Object.values(c.g.cast).filter(x => x !== r).map(x => `${x.home.x},${x.home.y}`), `${c.g.player.home.x},${c.g.player.home.y}`]);
-        r.home = homeSpot(c.w, el.value, taken);
+        r.home = homeSpot(c.w, el.value, takenHomes(c.g, r), c.g.player.home); normalizeHomes(c.g);
         await changed();
     },
     'wc-met': async (el) => { const c = ctxGW(); const r = c?.g.cast[WC.who]; if (!r) return; r.met = el.checked; await changed(); },
@@ -303,5 +341,6 @@ Object.assign(INPUT, {
         } else l.splice(l.indexOf(n), 1);
         saveGame(); await applyGameLore(); notify();
     },
+    'wc-poly': (el) => { const g = game(); if (!g) return; cfg(g).poly = (el as HTMLInputElement).checked || undefined; saveGame(); notify(); },
     'wc-cfg': (el) => { const g = game(); if (!g) return; (cfg(g) as any)[el.dataset.k!] = Number(el.value); saveGame(); notify(); },
 });
