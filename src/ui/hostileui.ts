@@ -10,7 +10,7 @@ import {
     newLead, takePrisoner, followLeader, rolesOf, canTakeIn, takeIn, turnInOf, turnIn, actsOf, type HerePerson, type Lead, type Option,
 } from '../sim/hostile.js';
 import { CRIME_WORD, SEVERITY, worst } from '../sim/hostile-rules.js';
-import { ROLES, CODES, type StoryLaw } from '../sim/judge.js';
+import { ROLES, CODES, type StoryLaw } from '../sim/verdict.js';
 import { money as moneyText } from '../sim/needs.js';
 import { setupButton } from './setupui.js';
 import { currentState, psHooks } from '../sim/pstate-live.js';

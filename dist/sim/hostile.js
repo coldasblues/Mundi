@@ -19,7 +19,7 @@ import { onStep, onHour, onDay } from './hooks.js';
 import { keyFor, applyNow, rosterHooks, statusOf, pendingChanges } from './roster.js';
 import { currentState, walkOns, psOn, psHooks, visitLines, keepNarration, refreshPState, seenWalkOns } from './pstate-live.js';
 import { payOf } from './bills.js';
-import { judge, isNotPerson, ATTACK_WORDS, ROLES, CODES, outsiders, enforcerOf, kindMatches, lawsAbout } from './judge.js';
+import { judge, isNotPerson, ATTACK_WORDS, ROLES, CODES, outsiders, enforcerOf, kindMatches, lawsAbout } from './verdict.js';
 import { charOf } from '../st/bridge.js';
 import { money as moneyText } from './needs.js';
 import { addStatus } from './needs.js';

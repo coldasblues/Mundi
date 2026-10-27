@@ -5,7 +5,7 @@ import { game, saveGame } from '../core/store.js';
 import { charOf, loadLore, chatLore } from '../st/bridge.js';
 import { askPart, reading, startReading, endReading, titlesOf } from './reading.js';
 import { hs, resolvePlace, actsOf } from './hostile.js';
-import { stemWord } from './judge.js';
+import { stemWord } from './verdict.js';
 const clean = (t) => String(t ?? '').replace(/\r/g, '').trim();
 const CHUNK = 10000;
 const entryText = (e) => (clean(e.content) ? `### ${clean(e.comment) || (e.key ?? []).join(', ')}\n${clean(e.content)}` : '');

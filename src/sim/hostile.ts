@@ -20,7 +20,7 @@ import { keyFor, applyNow, rosterHooks, statusOf, pendingChanges } from './roste
 import { currentState, walkOns, psOn, psHooks, visitLines, keepNarration, refreshPState, seenWalkOns } from './pstate-live.js';
 import { payOf } from './bills.js';
 import type { Mobility } from './pstate.js';
-import { judge, isNotPerson, ATTACK_WORDS, ROLES, CODES, outsiders, enforcerOf, kindMatches, lawsAbout, type Who, type Verdict, type StoryLaw } from './judge.js';
+import { judge, isNotPerson, ATTACK_WORDS, ROLES, CODES, outsiders, enforcerOf, kindMatches, lawsAbout, type Who, type Verdict, type StoryLaw } from './verdict.js';
 import { charOf } from '../st/bridge.js';
 import { money as moneyText } from './needs.js';
 import { addStatus } from './needs.js';

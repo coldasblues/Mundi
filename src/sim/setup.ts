@@ -6,7 +6,7 @@ import type { WorldDef } from '../core/world.js';
 import { charOf, loadLore, chatLore } from '../st/bridge.js';
 import { askPart, reading, startReading, endReading, titlesOf } from './reading.js';
 import { hs, resolvePlace, actsOf } from './hostile.js';
-import { stemWord, type StoryLaw } from './judge.js';
+import { stemWord, type StoryLaw } from './verdict.js';
 import type { Think } from '../st/bridge.js';
 
 export interface PlanPerson { key: string; avatar: string; name: string; kind: string; law: boolean; group: string; keep: boolean }

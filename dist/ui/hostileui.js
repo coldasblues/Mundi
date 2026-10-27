@@ -6,7 +6,7 @@ import { getWorld } from '../core/world.js';
 import { thumb, personaName, charOf } from '../st/bridge.js';
 import { hxOn, hxPrefs, hs, lawOf, peopleHere, optionsFor, cannotAct, resolveAct, captives, letGo, surrender, lawHolding, openCrimes, knownCrimes, crowdHere, CROWD_WORD, pushDirective, armAct, hardCapture, arrivedCaptive, flushEvents, groupOf, newLead, takePrisoner, followLeader, rolesOf, canTakeIn, takeIn, turnInOf, turnIn, actsOf, } from '../sim/hostile.js';
 import { CRIME_WORD, SEVERITY, worst } from '../sim/hostile-rules.js';
-import { ROLES, CODES } from '../sim/judge.js';
+import { ROLES, CODES } from '../sim/verdict.js';
 import { money as moneyText } from '../sim/needs.js';
 import { setupButton } from './setupui.js';
 import { currentState, psHooks } from '../sim/pstate-live.js';

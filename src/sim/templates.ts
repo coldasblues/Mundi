@@ -9,7 +9,7 @@
 import { settings, saveSettings, type Save } from '../core/store.js';
 import type { WorldDef } from '../core/world.js';
 import { hs, resolvePlace } from './hostile.js';
-import type { StoryLaw } from './judge.js';
+import type { StoryLaw } from './verdict.js';
 import type { Plan } from './setup.js';
 
 /** How a new game starts (the new game's choices, except your own character). */
