@@ -14,7 +14,7 @@ import { slidesHtml, toneTag } from './slides.js';
 import { presetChipsHtml } from './castpresets.js';
 import { isScenario, SCENARIO_STARTS } from '../core/world.js';
 import { lorebooks, loadLore, quiet } from '../st/bridge.js';
-import { worlds, getWorld, shortDesc, worldFile, bgOf, isCustom, exampleTag, styleOf, GAME_MODES, worldLocked, lockedFor, hasTag } from '../core/world.js';
+import { worlds, getWorld, shortDesc, worldFile, bgOf, bgUrl, isCustom, exampleTag, styleOf, GAME_MODES, worldLocked, lockedFor, hasTag } from '../core/world.js';
 import { openCreatorNew, openCreatorEdit, importWorldFile } from './creator.js';
 import { setWorldDicts } from '../core/tr.js';
 import { characters, thumb, personas, personaThumb, persona, openCharacter, usePersona, charLorebooks, charOf, personaSheet } from '../st/bridge.js';
@@ -117,7 +117,7 @@ function roomsPickHtml() {
     const on = roomsOf(), extra = extraOf();
     // Clicking a room opens what can be done in it; only its round button adds or removes it.
     const tile = (p, isOn, extraRoom) => `<div class="mu-ng-room-w"><button class="mu-ng-room ${isOn ? 'is-on' : ''} ${ui().roomEdit === p.id ? 'is-edit' : ''}" data-act="ng-room-edit" data-id="${esc(p.id)}" title="${esc(p.desc ? `${p.desc} · ` : '')}Click: what can be done here">
-            <i style="${p.bg ? `background-image:url('${esc(extraRoom ? p.bg : worldFile(w, p.bg))}')` : ''}">${p.bg ? '' : icon('home')}</i><b data-notr>${esc(p.name)}</b></button>
+            <i style="${esc(bgUrl(p.bg ? (extraRoom ? p.bg : worldFile(w, p.bg)) : ''))}">${p.bg ? '' : icon('home')}</i><b data-notr>${esc(p.name)}</b></button>
             <button class="mu-ng-room-tick ${isOn ? 'is-on' : ''} ${extraRoom ? 'is-x' : ''}" data-act="${extraRoom ? 'ng-room-x' : 'ng-room'}" data-id="${esc(p.id)}" title="${extraRoom ? 'Remove this room' : isOn ? 'Take this room out of the house' : 'Put this room in the house'}" aria-pressed="${isOn}">${extraRoom ? '×' : isOn ? '✓' : ''}</button></div>`;
     const edit = roomEditHtml(w);
     return `<h3>Rooms</h3><p class="mu-muted">Which rooms this house has (the bedrooms are always there). The round button adds or removes a room; click a room to choose what can be done in it.</p>
@@ -128,7 +128,7 @@ function roomsPickHtml() {
 function roomFormHtml() {
     const f = ui().roomForm;
     return `<section class="mu-panel mu-ng-roomform"><h4>A new room</h4>
-        <div class="mu-row"><span class="mu-ng-roompic" style="${f.bg ? `background-image:url('${esc(f.bg)}')` : ''}">${f.bg ? '' : icon('image')}</span><button data-act="ng-room-pic">${icon('upload')}<span>${f.bg ? 'Change picture' : 'Picture (optional)'}</span></button></div>
+        <div class="mu-row"><span class="mu-ng-roompic" style="${esc(bgUrl(f.bg))}">${f.bg ? '' : icon('image')}</span><button data-act="ng-room-pic">${icon('upload')}<span>${f.bg ? 'Change picture' : 'Picture (optional)'}</span></button></div>
         <label class="mu-field"><span>Name</span><input data-input="ng-room-f" data-k="name" data-focus="ngroomname" maxlength="60" value="${esc(f.name)}" placeholder="Home cinema"></label>
         <label class="mu-field"><span>What it is like (the AI reads this)</span><textarea rows="2" data-input="ng-room-f" data-k="desc" data-focus="ngroomdesc" placeholder="a dark room with a projector and big beanbags">${esc(f.desc)}</textarea></label>
         <div class="mu-field"><span>What it is for</span><div class="mu-chips">${ROOM_TAGS.map(([t, l]) => `<button class="mu-chip ${f.tags.includes(t) ? 'is-on' : ''}" data-act="ng-room-tag" data-v="${t}">${l}</button>`).join('')}</div></div>
@@ -259,7 +259,7 @@ function stepHeroNew() {
     const h = state.wizard.hero, sh = W().sheet;
     return `<div class="mu-creator ${asks(W(), 'portrait') ? '' : 'no-portrait'}">
         <section class="mu-portrait" ${asks(W(), 'portrait') ? '' : 'hidden'}>
-            <div class="mu-portrait-img" style="${state.wizard.portraitUrl ? `background-image:url('${state.wizard.portraitUrl}')` : ''}">${state.wizard.portraitUrl ? '' : `<span>${esc((h.name || '?').slice(0, 2).toUpperCase())}</span>`}</div>
+            <div class="mu-portrait-img" style="${esc(bgUrl(state.wizard.portraitUrl))}">${state.wizard.portraitUrl ? '' : `<span>${esc((h.name || '?').slice(0, 2).toUpperCase())}</span>`}</div>
             <button data-act="ng-portrait">Choose an image</button>
             ${state.wizard.portraitUrl ? '<button class="mu-ghost" data-act="ng-portrait-clear">Use initials</button>' : '<small class="mu-muted">Without an image, your initials are used.</small>'}
         </section>

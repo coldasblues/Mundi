@@ -20,7 +20,7 @@ import { relBar } from './relui.js';
 import { note } from '../sim/facts.js';
 import { notify, esc, game, toast, saveGame, settings, saveSettings } from '../core/store.js';
 import { galleryPictures, photosOf } from './gallery.js';
-import { getWorld, bgOf, cssUrl as cssUrlSafe, deviceLook, socialKind, messageKind, appsShown, systemOn, type WorldDef, type Occupation, isScenario } from '../core/world.js';
+import { getWorld, bgOf, cssColor, cssUrl as cssUrlSafe, deviceLook, socialKind, messageKind, appsShown, systemOn, type WorldDef, type Occupation, isScenario } from '../core/world.js';
 import { upcoming } from '../sim/plans.js';
 import { lex, appRef } from '../core/lexicon.js';
 import { whenText } from './plans.js';
@@ -107,7 +107,7 @@ function head(title: string, back: App | null) {
 function homeApp(g: Save, w: WorldDef) {
     const unread = Object.values(social(g).unread).reduce((a, b) => a + b, 0);
     return `<div class="mu-ph-apps">${APPS(w).map(([id, name, ic, color]) => `<button class="mu-ph-app" data-act="ph-go" data-app="${id}">
-        <i style="--c:${color}">${icon(ic)}</i><span>${esc(name)}</span>${id === 'messages' && unread ? `<em>${unread}</em>` : id === 'plans' && plansBadge(g) ? `<em>${plansBadge(g)}</em>` : id === 'homes' && billList(w).some(b => billAmount(g, w, b.id) && owed(g, b.id)) ? `<em>!</em>` : ''}</button>`).join('')}
+        <i style="--c:${esc(cssColor(color))}">${icon(ic)}</i><span>${esc(name)}</span>${id === 'messages' && unread ? `<em>${unread}</em>` : id === 'plans' && plansBadge(g) ? `<em>${plansBadge(g)}</em>` : id === 'homes' && billList(w).some(b => billAmount(g, w, b.id) && owed(g, b.id)) ? `<em>!</em>` : ''}</button>`).join('')}
         <button class="mu-ph-app" data-act="ph-go" data-app="settings"><i style="--c:#7d8597">${icon('gear')}</i><span>Settings</span></button>
         <button class="mu-ph-app" data-act="ph-help"><i style="--c:#30b0c7">${icon('help')}</i><span>${T('help')}</span></button></div>`;
 }

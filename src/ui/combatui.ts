@@ -1,7 +1,7 @@
 // Combat on screen: the fight screen (monster-battle style) and the Party app (formation, companions, sellswords).
 import { lex } from '../core/lexicon.js';
 import { esc, game, notify, saveGame, toast, type Save } from '../core/store.js';
-import { getWorld, worldFile, type WorldDef } from '../core/world.js';
+import { getWorld, bgOf, type WorldDef } from '../core/world.js';
 import { rpgOf } from '../core/rpgdef.js';
 import { ACT } from './reg.js';
 import { thumb, setPrompt, personaThumb } from '../st/bridge.js';
@@ -32,7 +32,7 @@ function backdrop(g: Save, w: WorldDef, where: string): string {
     let img = p ? pictureAt(w, g.minutes, p.bg, w.places.find(x => x.id === p.id)?.bgs) ?? '' : '';
     if (!img && p?.home) { const k = w.homes.kinds[p.id === 'home:player' ? g.player.home.kind : (w.homes.zones.find(z => z.id === g.cast[p.id.slice(5)]?.home.zone)?.kind ?? '')]; img = (k && pictureAt(w, g.minutes, k.image, k.images)) ?? ''; }
     if (!img && p) { const m = w.maps.find(x => x.id === p.map); img = m ? pictureAt(w, g.minutes, m.image, m.images) ?? '' : ''; }
-    return img ? `background-image:url('${esc(worldFile(w, img))}')` : '';
+    return bgOf(w, img);
 }
 function sprite(g: Save, w: WorldDef, c: Combat, f: Fighter, hp: number, hit: boolean, targets: Set<string>): string {
     const foe = f.who === 'foe' ? rpgOf(w)?.bestiary?.find(x => x.id === f.ref) : null;
@@ -109,7 +109,7 @@ export function combatHtml(): string {
         menu = `<div class="mu-pkb-menu">${B('pkb-menu', 'FIGHT', 'data-v="fight" class="is-fight"')}${me.ability ? B('fight-ability', esc(me.ability.name.toUpperCase()), `class="is-ability" title="${esc(me.ability.desc ?? '')}" ${me.used ? 'aria-disabled="true"' : ''}`, me.used ? 'used' : 'once a fight') : B('fight-defend', 'DEFEND', 'class="is-ability"')}${B('pkb-menu', lex(w, 'magicMenu'), `data-v="magic" class="is-magic" ${casts ? '' : 'aria-disabled="true"'}`)}${B('fight-flee', 'RUN', 'class="is-run"')}</div>
             <button class="mu-pkb-story" data-act="fight-mode" data-v="quick" title="Let the engine play out the rest">📜 Finish as a story</button>`;
     } else text = '<p>…</p>';
-    return `<div class="mu-pkb-veil"><section class="mu-pkb" role="dialog" aria-label="Fight" style="${backdrop(g, w, c.where)}">
+    return `<div class="mu-pkb-veil"><section class="mu-pkb" role="dialog" aria-label="Fight" style="${esc(backdrop(g, w, c.where))}">
         ${field}<div class="mu-pkb-bottom"><div class="mu-pkb-text" ${shown ? 'data-act="pkb-next"' : ''}>${text}</div>${menu}</div></section></div>`;
 }
 

@@ -10,7 +10,7 @@ import { nativeHost } from './native.js';
 import { lockScene } from '../sim/life.js';
 import { judgeLine, judgeReaction } from '../sim/mood.js';
 import { state, notify, esc, game, toast, ROOT_ID, saveGame } from '../core/store.js';
-import { getWorld, bgOf, num, systemOn } from '../core/world.js';
+import { getWorld, bgOf, cssUrl, num, systemOn } from '../core/world.js';
 import { chat, speakerOf, thumb, sendText, replyAs, regenerate, continueLast, impersonate, stop, swipeLeft, swipeRight, editMessage, deleteMessageAt, expressionOf, fetchSprites, saveChat, me, currentCharacter, charOf, characters, ctx, addUserLine, narratorLine, personaName, quiet, lorebooks, chatLores, setChatLores, scenarioOpen, scenarioCast, scenarioTitle, addToScenario, removeFromScenario, setChatBackground, newScenarioChat, persona, personas, personaThumb, usePersona, } from '../st/bridge.js';
 import { placeOf, isOuting } from '../sim/places.js';
 import { outingOf } from '../sim/outing.js';
@@ -303,9 +303,10 @@ export function chatHtml() {
     const bgEl = document.getElementById('bg1');
     const locked = String(ctx().chatMetadata?.custom_background ?? '');
     const bg = locked || (bgEl ? (bgEl.style.backgroundImage || getComputedStyle(bgEl).backgroundImage) : 'none');
+    const chatBg = (() => { const m = /^url\((['"]?)(.*)\1\)$/.exec(String(bg).trim()); return m ? cssUrl(m[2]) : ''; })(); // only a picture (the chat file can say anything)
     const group = !currentCharacter();
     return `<div class="mu-scene is-chat">
-        <div class="mu-scene-bg" style="${bg && bg !== 'none' ? `background-image:${esc(bg)};background-size:cover;background-position:center` : ''}"></div>
+        <div class="mu-scene-bg" style="${chatBg ? `background-image:${esc(chatBg)};background-size:cover;background-position:center` : ''}"></div>
         <div class="mu-sprites">${sprites}</div>
         ${group ? `<nav class="mu-people" aria-label="People here">${cast.map(a => `<span class="mu-person"><img src="${esc(thumb(a))}" alt=""><b data-notr>${esc(charOf(a)?.name ?? '')}</b>${cast.length > 1 ? `<button class="mu-ghost" data-act="sc-remove" data-avatar="${esc(a)}" title="Remove from the scene">${icon('x')}</button>` : ''}</span>`).join('')}</nav>` : ''}
         <section class="mu-dialog">

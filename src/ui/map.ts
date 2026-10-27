@@ -13,7 +13,7 @@ import { maybeBump } from './bump.js';
 import { rollAction, gradeName } from '../sim/dice.js';
 import { setPrompt } from '../st/bridge.js';
 import { beforeTravel, beforeSleep } from '../sim/plans.js';
-import { getWorld, worldFile, bgOf, num, systemOn, type WorldDef, isScenario } from '../core/world.js';
+import { getWorld, bgOf, num, cssColor, systemOn, type WorldDef, isScenario } from '../core/world.js';
 import { openNow, pictureAt } from '../sim/daynight.js';
 import { isRpg, longRest } from '../sim/rpg.js';
 import { journeyOf, travelRoad } from '../sim/journey.js';
@@ -177,7 +177,7 @@ function mapsPickerHtml(g: Save, w: WorldDef, shown: string) {
     return `<div class="mu-worlds-veil" data-act="maps-pick"><section class="mu-worlds mh-glass" role="dialog" aria-label="Maps" data-keep="maps">
         <header><h3>${icon('home')} ${esc(w.name)}</h3><button class="mu-ibtn mu-ghost" data-act="maps-pick" title="Close">${icon('x')}</button></header>
         <div class="mu-worlds-grid">${list.map(m => `<button class="mu-world-dot ${m.id === shown ? 'is-on' : ''}" data-act="maps-go" data-map="${esc(m.id)}">
-            <i style="background-image:url('${esc(worldFile(w, pictureAt(w, g.minutes, m.image, m.images)!))}')">${m.id === here ? `<em>${icon('pin')} You</em>` : ''}</i>
+            <i style="${esc(bgOf(w, pictureAt(w, g.minutes, m.image, m.images)!))}">${m.id === here ? `<em>${icon('pin')} You</em>` : ''}</i>
             <b data-notr>${esc(m.name)}</b><small data-notr>${esc(m.area ?? (m.parent ? w.maps.find(x => x.id === m.parent)?.name ?? '' : 'Main map'))}${m.trip ? ` · ${m.trip} min` : ''}</small>${knownHtml(g, w, m.id)}</button>`).join('')}</div></section></div>`;
 }
 
@@ -187,7 +187,7 @@ function roomsHtml(g: Save, w: WorldDef) {
     const list = pins(g, w).filter(p => !p.link);
     const yours = list.filter(p => p.id === playerHomeId), rooms = list.filter(p => !p.home), beds = list.filter(p => p.home && p.id !== playerHomeId);
     const card = (p: any) => { const pic = p.home ? kindPic(p) : pictureAt(w, g.minutes, p.bg, p.bgs); const here = presentAt(g, w, p.id); const you = p.id === g.player.loc;
-        return `<button class="mu-room ${you ? 'is-you' : ''}" data-act="go" data-loc="${esc(p.id)}" title="${you ? 'Back to this room' : 'Go here'}"><i style="${pic ? `background-image:url('${esc(worldFile(w, pic))}')` : ''}">${you ? `<em>${icon('pin')} You</em>` : ''}</i>
+        return `<button class="mu-room ${you ? 'is-you' : ''}" data-act="go" data-loc="${esc(p.id)}" title="${you ? 'Back to this room' : 'Go here'}"><i style="${esc(bgOf(w, pic || ''))}">${you ? `<em>${icon('pin')} You</em>` : ''}</i>
             <b data-notr>${esc(p.id === playerHomeId ? 'Your room' : String(p.name).replace(/'s home$/, "'s room"))}</b>${here.length ? `<span class="faces">${here.slice(0, 5).map(r => `<img src="${esc(thumb(r.avatar))}" alt="" title="${esc(r.met ? r.name : 'Someone')}">`).join('')}${here.length > 5 ? `<i>+${here.length - 5}</i>` : ''}</span>` : ''}</button>`; };
     const head = `<div class="mu-rooms-head"><h3 data-notr>${esc(w.name)}</h3></div>`;
     // floors set in the creator (no picture of the plan): the rooms floor by floor, one block above the other
@@ -216,7 +216,7 @@ function planHtml(g: Save, w: WorldDef & { plan: NonNullable<WorldDef['plan']> }
     const kindPic = (loc: string) => { const k = loc === playerHomeId ? w.homes.kinds[g.player.home.kind] : w.homes.kinds[w.homes.zones.find(z => z.id === g.cast[loc.slice(5)]?.home.zone)?.kind ?? '']; return k ? pictureAt(w, g.minutes, k.image, k.images) : ''; };
     const faces = (loc: string) => { const here = presentAt(g, w, loc); return here.length ? `<span class="faces">${here.slice(0, 4).map(r => `<img src="${esc(thumb(r.avatar))}" alt="" title="${esc(r.met ? r.name : 'Someone')}">`).join('')}${here.length > 4 ? `<i>+${here.length - 4}</i>` : ''}</span>` : ''; };
     const rooms = plan.rooms.filter(r => r.floor === floor.id).map(r => {
-        const t = planTarget(g, w, r); const box = `left:${r.x}%;top:${r.y}%;width:${r.w}%;height:${r.h}%`;
+        const t = planTarget(g, w, r); const box = `left:${num(r.x)}%;top:${num(r.y)}%;width:${num(r.w, 10)}%;height:${num(r.h, 10)}%`;
         if (!t) return `<div class="mu-plan-room is-off" style="${box}"><b>${esc(r.id.startsWith('spot:') ? 'Empty bedroom' : w.places.find(p => p.id === r.id)?.name ?? '')}</b></div>`;
         if (!t.known) return `<div class="mu-plan-room is-off" style="${box}" title="You have not met who sleeps here"><b>A bedroom</b></div>`;
         const p = placeOf(g, w, t.loc); if (!p) return '';
@@ -224,11 +224,11 @@ function planHtml(g: Save, w: WorldDef & { plan: NonNullable<WorldDef['plan']> }
         const you = t.loc === g.player.loc;
         const name = t.loc === playerHomeId ? 'Your room' : String(p.name).replace(/'s home$/, "'s room");
         return `<button class="mu-plan-room ${you ? 'is-you' : ''}" style="${box}" data-act="go" data-loc="${esc(t.loc)}" title="${you ? 'You are here' : `Go to ${esc(name)}`}">
-            <i style="${pic ? `background-image:url('${esc(worldFile(w, pic))}')` : ''}"></i><b data-notr>${esc(name)}</b>${faces(t.loc)}${you ? `<em>${icon('pin')} You</em>` : ''}</button>`;
+            <i style="${esc(bgOf(w, pic || ''))}"></i><b data-notr>${esc(name)}</b>${faces(t.loc)}${you ? `<em>${icon('pin')} You</em>` : ''}</button>`;
     }).join('');
     const lost = unplaced(g, w);
-    const ratio = floor.ratio ?? 1.6;
-    return `<div class="mu-map is-plan"><div class="mu-plan-stage"><div class="mu-plan ${floor.image ? 'has-pic' : ''} ${plan.labels === false ? 'no-labels' : ''}" style="--r:${ratio};${plan.glow ? `--glow:${esc(plan.glow)};` : ''}${floor.image ? `background-image:url('${esc(worldFile(w, pictureAt(w, g.minutes, floor.image, floor.images) ?? floor.image))}')` : ''}">${rooms}</div></div>
+    const ratio = num(floor.ratio, 1.6);
+    return `<div class="mu-map is-plan"><div class="mu-plan-stage"><div class="mu-plan ${floor.image ? 'has-pic' : ''} ${plan.labels === false ? 'no-labels' : ''}" style="--r:${ratio};${cssColor(plan.glow) ? `--glow:${esc(cssColor(plan.glow))};` : ''}${floor.image ? esc(bgOf(w, pictureAt(w, g.minutes, floor.image, floor.images) ?? floor.image)) : ''}">${rooms}</div></div>
         <div class="mu-plan-bar">${lost.length ? `<div class="mu-plan-lost"><small>Not on the plan</small>${lost.map(p => { const name = p.id === playerHomeId ? 'Your room' : String(p.name).replace(/'s home$/, "'s room");
             return `<button data-act="go" data-loc="${esc(p.id)}" class="${p.id === g.player.loc ? 'is-you' : ''}" title="${esc(name)}: where this room is on the floor plan is not set yet (World creator › Maps › Floor plan). Click to go there."><b class="mu-plan-bang">!</b><span data-notr>${esc(name)}</span></button>`; }).join('')}</div>` : ''}
             ${plan.floors.length > 1 ? `<nav class="mu-plan-floors" aria-label="Floors">${plan.floors.map(f => { const who = Object.values(g.cast).filter(r => r.met && floorOf(g, w, whereNow(g, w, r)) === f.id);

@@ -527,6 +527,10 @@ export function cssUrl(u: unknown): string {
 }
 /** "background-image:url(…)" for one of a world's pictures, or ''. */
 export const bgOf = (w: WorldDef, file?: string) => { const u = cssUrl(worldFile(w, file)); return u ? `background-image:${u}` : ''; };
+/** "background-image:url(…)" for a picture address that is already whole (a worldFile(), an upload, a blob:), or ''. */
+export const bgUrl = (u?: string | null) => { const c = cssUrl(u); return c ? `background-image:${c}` : ''; };
+/** A color for CSS: #hex, a color's name, or rgb()/hsl() with numbers in it; `fallback` for anything else. */
+export const cssColor = (v: unknown, fallback = ''): string => { const s = String(v ?? '').trim(); return /^#[0-9a-f]{3,8}$|^[a-z]{3,24}$|^(rgb|hsl)a?\(\s*[\d.,%\s/+-]+\)$/i.test(s) ? s : fallback; };
 
 // How this world's device, social app and messages work, and how its people write (from the world; its style's
 // preset fills them in when missing, see core/presets.ts).

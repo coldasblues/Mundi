@@ -4,7 +4,7 @@ import { state, notify, esc, game, saveGame, toast, nowAbs } from '../core/store
 import { advance, hm } from '../sim/time.js';
 import { runPlans } from './plans.js';
 const OUTING_MIN = 240; // the shortest time out, in game minutes
-import { getWorld, isScenario, styleOf } from '../core/world.js';
+import { getWorld, isScenario, styleOf, cssUrl } from '../core/world.js';
 import { thumb } from '../st/bridge.js';
 import { bgHead, bgGrid, bgHref } from './bgpick.js';
 import { whereNow } from '../sim/people.js';
@@ -17,7 +17,7 @@ import { showTransition } from './lifeui.js';
 import { icon } from './icons.js';
 import { ACT, INPUT } from './reg.js';
 export const OD = { open: false, bgOnly: false, place: '', with: [], bg: '', q: '', back: false, miss: false };
-export const bgStyle = (file) => (file ? `background-image:url('${bgHref(file)}');background-size:cover;background-position:center` : '');
+export const bgStyle = (file) => { const u = file ? cssUrl(bgHref(file)) : ''; return u ? `background-image:${u};background-size:cover;background-position:center` : ''; };
 // Who can come: the people you know who are in the house now.
 function canCome() {
     const g = game();

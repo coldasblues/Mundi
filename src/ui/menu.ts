@@ -4,7 +4,7 @@ import { fmtDateTime } from '../core/fmt.js';
 import { VERSION } from '../core/version.js';
 import { state, notify, settings, saveSettings, esc, busy, game, toast } from '../core/store.js';
 import { tutorialTarget } from './tutorial.js';
-import { worlds, worldFile, cssUrl, loadAllWorlds, getWorld, isScenario } from '../core/world.js';
+import { worlds, worldFile, cssUrl, bgUrl, loadAllWorlds, getWorld, isScenario } from '../core/world.js';
 import { groupOf, charOf, thumb, openChat, openChatRef, personaThumb } from '../st/bridge.js';
 import { enterGame, listSaves, deleteSave, gameEntry, type SaveRow } from '../sim/game.js';
 import { cardFor, playFromSlot } from '../sim/saves.js';
@@ -36,7 +36,7 @@ function slideshow() {
     if (n < 2) return '';
     const T = n * SLIDE, fade = (2.5 / T) * 100, show = 100 / n;
     const kf = `@keyframes mu-slide-${n}{0%{opacity:0;transform:scale(1.04)}${fade.toFixed(2)}%{opacity:1}${show.toFixed(2)}%{opacity:1}${(show + fade).toFixed(2)}%{opacity:0;transform:scale(1.12)}100%{opacity:0;transform:scale(1.12)}}`;
-    return `<style>${kf}</style>${pics.map((src, i) => `<div class="mu-menu-bg mu-menu-slide" style="background-image:url('${src}');animation:mu-slide-${n} ${T}s linear ${i * SLIDE - fade / 100 * T}s infinite"></div>`).join('')}`;
+    return `<style>${kf}</style>${pics.map((src, i) => `<div class="mu-menu-bg mu-menu-slide" style="${esc(`${bgUrl(src)};animation:mu-slide-${n} ${T}s linear ${i * SLIDE - fade / 100 * T}s infinite`)}"></div>`).join('')}`;
 }
 function cover() {
     const w = getWorld('modern') ?? worlds()[0];

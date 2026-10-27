@@ -1,7 +1,7 @@
 // Combat on screen: the fight screen (monster-battle style) and the Party app (formation, companions, sellswords).
 import { lex } from '../core/lexicon.js';
 import { esc, game, notify, saveGame, toast } from '../core/store.js';
-import { getWorld, worldFile } from '../core/world.js';
+import { getWorld, bgOf } from '../core/world.js';
 import { rpgOf } from '../core/rpgdef.js';
 import { ACT } from './reg.js';
 import { thumb, setPrompt, personaThumb } from '../st/bridge.js';
@@ -27,7 +27,7 @@ function backdrop(g, w, where) {
         const m = w.maps.find(x => x.id === p.map);
         img = m ? pictureAt(w, g.minutes, m.image, m.images) ?? '' : '';
     }
-    return img ? `background-image:url('${esc(worldFile(w, img))}')` : '';
+    return bgOf(w, img);
 }
 function sprite(g, w, c, f, hp, hit, targets) {
     const foe = f.who === 'foe' ? rpgOf(w)?.bestiary?.find(x => x.id === f.ref) : null;
@@ -124,7 +124,7 @@ export function combatHtml() {
     }
     else
         text = '<p>…</p>';
-    return `<div class="mu-pkb-veil"><section class="mu-pkb" role="dialog" aria-label="Fight" style="${backdrop(g, w, c.where)}">
+    return `<div class="mu-pkb-veil"><section class="mu-pkb" role="dialog" aria-label="Fight" style="${esc(backdrop(g, w, c.where))}">
         ${field}<div class="mu-pkb-bottom"><div class="mu-pkb-text" ${shown ? 'data-act="pkb-next"' : ''}>${text}</div>${menu}</div></section></div>`;
 }
 const S = () => { const g = game(); const w = g && getWorld(g.world); return g && w ? { g, w } : null; };

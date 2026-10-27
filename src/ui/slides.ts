@@ -1,6 +1,7 @@
 // World cards: a world with several maps shows them one after another (the cover first), and its tone next to
 // its style. Used by the new game and the world creator.
-import { worldFile, madeFor, isScenario, type WorldDef } from '../core/world.js';
+import { bgOf, madeFor, isScenario, type WorldDef } from '../core/world.js';
+import { esc } from '../core/store.js';
 
 // A world with several maps shows them one after another on its card (the cover first); its tone next to its style.
 // (a scenario shows its rooms by day instead of its maps)
@@ -8,7 +9,7 @@ const slidePics = (w: WorldDef) => [...new Set([w.cover, ...(isScenario(w) ? w.p
 // The cards show only the world's cover now (no slideshow); kept so the screens can still call it.
 export const slidesHtml = (w: WorldDef) => (SLIDES ? slidesOn(w) : '');
 const SLIDES = false;
-const slidesOn = (w: WorldDef) => { const pics = slidePics(w); if (pics.length > 1) setTimeout(startSlides, 0); return pics.length > 1 ? `<span class="mu-slides" data-slides>${pics.map((p, i) => `<i class="${i ? '' : 'is-on'}" style="background-image:url('${worldFile(w, p)}')"></i>`).join('')}</span>` : ''; };
+const slidesOn = (w: WorldDef) => { const pics = slidePics(w); if (pics.length > 1) setTimeout(startSlides, 0); return pics.length > 1 ? `<span class="mu-slides" data-slides>${pics.map((p, i) => `<i class="${i ? '' : 'is-on'}" style="${esc(bgOf(w, p))}"></i>`).join('')}</span>` : ''; };
 // The ways a world can be played (Life-Sim, RPG), as tags on its card.
 export const toneTag = (w: WorldDef) => { const t = madeFor(w); return `<em class="mu-style-tag is-tone is-${t}">${t === 'rpg' ? 'RPG' : 'Life-Sim'}</em>`; };
 let slideTimer = 0;

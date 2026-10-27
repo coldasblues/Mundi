@@ -151,7 +151,9 @@ export async function removeFromScenario(avatar: string) {
 }
 // The chat's own background (SillyTavern's "lock background to this chat").
 export function setChatBackground(file: string) {
-    const url = file.includes('/') ? `url("${file}")` : `url("backgrounds/${encodeURIComponent(file)}")`;   // a Mundi picture: its path
+    const path = file.includes('/') ? file : `backgrounds/${encodeURIComponent(file)}`;   // a Mundi picture: its path
+    if (/^(?!https?:)[a-z][a-z0-9+.-]*:/i.test(path)) return;   // only a path or a web address
+    const url = `url("${path.replace(/["'()\\<>\s]/g, c => `%${c.charCodeAt(0).toString(16).toUpperCase().padStart(2, '0')}`)}")`;
     ctx().chatMetadata['custom_background'] = url;
     ctx().saveMetadataDebounced();
     const bg = document.getElementById('bg1');

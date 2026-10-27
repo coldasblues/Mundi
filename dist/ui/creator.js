@@ -11,7 +11,7 @@ import { MEDIEVAL_RPG, MODERN_RPG, POWERS_RPG } from '../core/rpgdef.js';
 import { TIE_TYPES, TIE_TONES } from '../sim/living.js';
 import { GOVERNMENTS, POWERS } from '../sim/realm.js';
 import { state, notify, esc, toast, busy } from '../core/store.js';
-import { getWorld, bgOf, shortDesc, WORLD_DESC_MAX, worldFile, worlds, styleOf, isCustom, gameMode, GAME_MODES, SYSTEMS, systemOn, appSystem, isScenario, worldTags, allTags, WORLD_TAGS, RPG_LOCKED, RPG_NOTE, worldLocked } from '../core/world.js';
+import { getWorld, bgOf, bgUrl, cssColor, shortDesc, WORLD_DESC_MAX, worldFile, worlds, styleOf, isCustom, gameMode, GAME_MODES, SYSTEMS, systemOn, appSystem, isScenario, worldTags, allTags, WORLD_TAGS, RPG_LOCKED, RPG_NOTE, worldLocked } from '../core/world.js';
 import { STYLES, inWorld } from './styles.js';
 import { SKINS } from './skins.js';
 import { tr, setWorldDicts } from '../core/tr.js';
@@ -80,10 +80,10 @@ function tabGeneral(w) {
             ${area('Setting (what the AI always knows about this world)', 'setting', 5)}
             ${isScenario(w) ? `${area('Premise (how the story starts: shown when the game begins, and told to the AI)', 'scenario.premise', 5)}
                 <label class="mu-check"><input type="checkbox" data-input="cw-alltabs" ${CW.allTabs ? 'checked' : ''}><span>Show every tab<small>A Home hides Realm, Economy and RPG (a Home is always Life-Sim). Jobs and courses happen off-screen.</small></span></label>` : ''}</section>
-        <section class="mu-cw-sec"><h4>Cover</h4><div class="mu-cw-cover" style="${w.cover ? `background-image:url('${esc(worldFile(w, w.cover))}')` : ''}">${w.cover ? '' : '<span>No cover</span>'}</div>
+        <section class="mu-cw-sec"><h4>Cover</h4><div class="mu-cw-cover" style="${esc(bgOf(w, w.cover))}">${w.cover ? '' : '<span>No cover</span>'}</div>
             <div class="mu-row"><button data-act="cw-cover">${icon('upload')}<span>Choose a picture</span></button>${!isScenario(w) && w.maps[0] ? `<button class="mu-ghost" data-act="cw-cover-map">Use the first map</button>` : ''}${w.cover ? `<button class="mu-ghost" data-act="cw-cover-clear">${icon('x')}<span>Remove</span></button>` : ''}</div>
             <small class="mu-muted">The picture on the ${isScenario(w) ? 'Home' : 'world'}'s card. Best at 16:9 (1400 × 782).</small>
-            ${isScenario(w) ? (() => { const pics = [...new Set(w.places.filter(p => !p.link && p.bg).map(p => p.bg))]; return pics.length ? `<span class="mu-cw-sub">Or use a room's picture</span><div class="mu-cw-coverpick">${pics.map(f => `<button class="${w.cover === f ? 'is-on' : ''}" data-act="cw-cover-room" data-file="${esc(f)}" title="${esc(w.places.find(p => p.bg === f)?.name ?? '')}" style="background-image:url('${esc(worldFile(w, f))}')"></button>`).join('')}</div>` : ''; })() : ''}</section>
+            ${isScenario(w) ? (() => { const pics = [...new Set(w.places.filter(p => !p.link && p.bg).map(p => p.bg))]; return pics.length ? `<span class="mu-cw-sub">Or use a room's picture</span><div class="mu-cw-coverpick">${pics.map(f => `<button class="${w.cover === f ? 'is-on' : ''}" data-act="cw-cover-room" data-file="${esc(f)}" title="${esc(w.places.find(p => p.bg === f)?.name ?? '')}" style="${esc(bgOf(w, f))}"></button>`).join('')}</div>` : ''; })() : ''}</section>
         <section class="mu-cw-sec"><h4>Look: style and skin</h4>
             ${sel('Style (the words of the game and the device)', 'style', STYLES.filter(x => x.ready).map(x => [x.id, x.name]))}
             ${sel('Skin (colors of the HUD)', 'skin', (SKINS[styleOf(w)] ?? []).map(k => [k.id, k.name]))}
@@ -111,7 +111,7 @@ function tabFeatures(w) {
         ${isScenario(w) ? '' : `<section class="mu-cw-sec mu-cw-wide"><h4>Game mode</h4><p class="mu-muted">How a new game starts (the player can pick another way the tags allow).</p>${modeCards(gameMode(w), 'cw-mode')}
             ${gameMode(w) === 'custom' ? '<small class="mu-muted">Custom: turn each need on or off in the Needs tab, and the systems below here.</small>' : ''}</section>`}
         <section class="mu-cw-sec"><h4>Phone</h4>${chk('The player has a phone', 'features.phone')}${txt('What it is called', 'features.device', 'Phone')}
-            <div class="mu-cw-apps">${apps.map((a, k) => `<div class="mu-cw-app ${a.on && (!appSystem(a.id) || systemOn(w, appSystem(a.id))) ? '' : 'is-off'}" ${appSystem(a.id) && !systemOn(w, appSystem(a.id)) ? `title="Its system is off (Systems, below)"` : ''}><i style="--c:${esc(a.color)}">${icon(a.icon)}</i>
+            <div class="mu-cw-apps">${apps.map((a, k) => `<div class="mu-cw-app ${a.on && (!appSystem(a.id) || systemOn(w, appSystem(a.id))) ? '' : 'is-off'}" ${appSystem(a.id) && !systemOn(w, appSystem(a.id)) ? `title="Its system is off (Systems, below)"` : ''}><i style="--c:${esc(cssColor(a.color))}">${icon(a.icon)}</i>
                 <input type="checkbox" data-input="cw" data-type="bool" data-path="features.apps.${k}.on" ${a.on ? 'checked' : ''} title="On">
                 <input data-input="cw" data-path="features.apps.${k}.name" data-focus="app${k}" value="${esc(a.name)}">
                 <select data-input="cw" data-path="features.apps.${k}.icon">${ICON_NAMES().map(n => `<option ${n === a.icon ? 'selected' : ''}>${n}</option>`).join('')}</select>
@@ -561,7 +561,7 @@ function tabHomes(w) {
                 <details class="mu-me-times" ${Object.keys(k.images ?? {}).length ? 'open' : ''}><summary>Inside at other times of the day</summary>
                     ${TIME_SLOTS.map(per => {
         const b = k.images?.[per.id] ? worldFile(w, k.images[per.id]) : '';
-        return `<div class="mu-me-time"><div class="mu-cw-cover is-mini" style="${b ? `background-image:url('${esc(b)}')` : ''}">${b ? '' : '<span>usual</span>'}</div><b>${esc(per.name)}</b>
+        return `<div class="mu-me-time"><div class="mu-cw-cover is-mini" style="${esc(bgUrl(b))}">${b ? '' : '<span>usual</span>'}</div><b>${esc(per.name)}</b>
                         <button class="mu-ghost mu-ibtn" data-act="cw-kind-img" data-id="${esc(id)}" data-period="${esc(per.id)}" title="Upload">${icon('upload')}</button>${b ? `<button class="mu-ghost mu-ibtn" data-act="cw-kind-img-clear" data-id="${esc(id)}" data-period="${esc(per.id)}" title="Use the usual one">${icon('x')}</button>` : ''}</div>`;
     }).join('')}</details>
                 <div class="mu-row"><button class="mu-ghost" data-act="cw-kind-img" data-id="${esc(id)}">${icon('image')}<span>Inside picture (scene)</span></button>
@@ -745,7 +745,7 @@ function startPage() {
             <h3>Start from</h3>
             <p class="mu-muted">A preset is a ready world: you get a copy of it to change as you like (the original stays as it is).</p>
             <div class="mu-cards">${presets.map(w => `<button class="mu-worldcard ${s.mode === 'copy' && s.base === w.id ? 'is-on' : ''}" data-act="cw-start-preset" data-id="${esc(w.id)}">
-                    <span class="mu-worldart" style="${w.cover ? `background-image:url('${worldFile(w, w.cover)}')` : ''}">${slidesHtml(w)}<span class="mu-style-tags"><em class="mu-style-tag is-${esc(styleOf(w))}">${esc(STYLES.find(x => x.id === styleOf(w))?.name ?? st.name)}</em>${toneTag(w)}</span></span>
+                    <span class="mu-worldart" style="${esc(bgOf(w, w.cover))}">${slidesHtml(w)}<span class="mu-style-tags"><em class="mu-style-tag is-${esc(styleOf(w))}">${esc(STYLES.find(x => x.id === styleOf(w))?.name ?? st.name)}</em>${toneTag(w)}</span></span>
                     <b data-notr>${esc(inWorld(w, w.name))}</b><small>${isCustom(w.id) ? 'Made by you' : 'Ready world'}</small><p data-notr>${esc(shortDesc(inWorld(w, w.description)))}</p></button>`).join('')}
                 <div class="mu-cw-startnew"><button class="mu-worldcard is-new ${s.mode === 'empty' ? 'is-on' : ''}" data-act="cw-start-empty"><span class="mu-worldart">${icon('map')}</span><b>Start from nothing</b><small>Only the ${esc(st.name)} rules</small><p>Needs, things to do, the device and the character sheet of this style; you draw the maps, places and people.</p></button>
                 <button class="mu-worldcard is-new is-later" aria-disabled="true"><span class="mu-worldart">${icon('book')}</span><b>From lorebooks</b><small>Coming soon</small><p>Your AI reads lorebooks you choose and builds the world from them.</p></button></div></div></section></div>

@@ -14,7 +14,7 @@ import { payOf, lockedOut } from '../sim/bills.js';
 import { needWord } from '../sim/life.js';
 import { lifeOverlays, soloOf } from './lifeui.js';
 import { game, esc, state, UI, saveSettings, notify, nowAbs, clockMode, onPhone, toast, saveGame } from '../core/store.js';
-import { getWorld, activeStatuses, systemOn, deviceLook, offScreenWork, isScenario } from '../core/world.js';
+import { getWorld, activeStatuses, cssColor, systemOn, deviceLook, offScreenWork, isScenario } from '../core/world.js';
 import { levelChip } from './rpgui.js';
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 import { personaThumb, personaName, thumb, setPrompt } from '../st/bridge.js';
@@ -82,9 +82,9 @@ function personaCard(g, w) {
         <button class="mh-face" data-act="pa-open" title="Play as…">${img ? `<img src="${esc(img)}" alt="">` : icon('user')}<i class="mh-face-swap">${icon('users')}</i></button>
         <div class="mh-needs">
             <div class="mh-who"><b>${esc(personaName())}</b>${levelChip()}<span class="mu-cash">${esc(money(w, g.player.money))}</span></div>
-            ${shown.filter(isBar).map(s => `<div class="mh-bar ${v(s) <= 20 ? 'is-low' : ''}" data-stat="${esc(s.id)}" data-word="${esc(sh && (s.id === 'life' || s.id === 'health') ? `${sh.hp}/${hpMax(w, sh)} HP` : needWord(s, v(s)))}" style="--c:${esc(s.color)};--v:${v(s)}">
+            ${shown.filter(isBar).map(s => `<div class="mh-bar ${v(s) <= 20 ? 'is-low' : ''}" data-stat="${esc(s.id)}" data-word="${esc(sh && (s.id === 'life' || s.id === 'health') ? `${sh.hp}/${hpMax(w, sh)} HP` : needWord(s, v(s)))}" style="--c:${esc(cssColor(s.color))};--v:${v(s)}">
                 <span class="mh-bar-ic">${needIcon(s)}</span><span class="mh-bar-name">${esc(s.name)}</span><span class="mh-bar-track"><i></i></span></div>`).join('')}${focusBar}
-            <div class="mh-rings">${shown.filter(s => !isBar(s)).map(s => `<div class="mh-ring ${v(s) <= 20 ? 'is-low' : ''}" data-stat="${esc(s.id)}" data-word="${esc(`${s.name}: ${needWord(s, v(s))}`)}" aria-label="${esc(s.name)}" style="--c:${esc(s.color)};--v:${v(s)}">
+            <div class="mh-rings">${shown.filter(s => !isBar(s)).map(s => `<div class="mh-ring ${v(s) <= 20 ? 'is-low' : ''}" data-stat="${esc(s.id)}" data-word="${esc(`${s.name}: ${needWord(s, v(s))}`)}" aria-label="${esc(s.name)}" style="--c:${esc(cssColor(s.color))};--v:${v(s)}">
                 <span class="mh-ring-ic">${needIcon(s)}</span><small>${esc(s.name)}</small></div>`).join('')}</div>
         </div></aside>`;
 }

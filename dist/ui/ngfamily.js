@@ -2,7 +2,7 @@
 // (who lives with you), and choosing your home on the map. Everyone left over gets a home of their own at random.
 import { homeKindName } from '../sim/places.js';
 import { state, notify, esc, toast, busy } from '../core/store.js';
-import { getWorld, worldFile, cssUrl, isScenario, systemOn } from '../core/world.js';
+import { getWorld, worldFile, cssUrl, bgOf, bgUrl, num, isScenario, systemOn } from '../core/world.js';
 import { characters, thumb, charOf, createCharacter } from '../st/bridge.js';
 import { pickFile } from './cropper.js';
 import { TIE_TYPES, TIE_TONES } from '../sim/living.js';
@@ -133,13 +133,13 @@ function homePicker(who, mapKey) {
     const others = [...(who === 'you' ? [] : [z.home]), ...hhs().filter((_h, i) => i !== who).map(h => h.home)].filter(Boolean);
     const act = who === 'you' ? 'ngm' : 'nghm';
     return `${maps.length > 1 ? `<div class="mu-chips">${maps.map(x => `<button class="mu-chip ${x.id === mapId ? 'is-on' : ''}" data-act="${act}-map" data-id="${esc(x.id)}">${esc(x.name)}</button>`).join('')}</div>` : ''}
-        ${m ? `<div class="mu-nghome-map" style="aspect-ratio:${m.ratio};width:min(100%, calc(64vh * ${m.ratio}));background-image:url('${esc(worldFile(w, m.image))}')">
+        ${m ? `<div class="mu-nghome-map" style="${esc(`aspect-ratio:${num(m.ratio, 1.7914)};width:min(100%, calc(64vh * ${num(m.ratio, 1.7914)}));${bgOf(w, m.image)}`)}">
             ${w.homes.zones.filter(zn => zn.map === m.id).map(zn => zn.spots.map(([x, y], k) => {
         const on = sameHome(mine, zn.id, x, y), taken = others.some(o => sameHome(o, zn.id, x, y));
-        return `<button class="mu-nghome-spot ${on ? 'is-on' : ''} ${taken ? 'is-taken' : ''}" style="left:${x}%;top:${y}%" data-act="${act}-pick" data-zone="${esc(zn.id)}" data-k="${k}" ${taken ? 'aria-disabled="true"' : ''} title="${esc(zn.name)} · ${zn.kind === 'house' ? 'House' : 'Apartment'} ${k + 1} · rent ${zn.rent}${taken ? ' · taken' : ''}">${icon('home')}</button>`;
+        return `<button class="mu-nghome-spot ${on ? 'is-on' : ''} ${taken ? 'is-taken' : ''}" style="left:${num(x)}%;top:${num(y)}%" data-act="${act}-pick" data-zone="${esc(zn.id)}" data-k="${k}" ${taken ? 'aria-disabled="true"' : ''} title="${esc(zn.name)} · ${zn.kind === 'house' ? 'House' : 'Apartment'} ${k + 1} · rent ${esc(zn.rent)}${taken ? ' · taken' : ''}">${icon('home')}</button>`;
     }).join('')).join('')}</div>` : ''}`;
 }
-const homeLine = (h, none) => { const w = W(); const zone = h && w.homes.zones.find(zn => zn.id === h.zone); return zone && h ? `${icon('home')} <b>${esc(zone.name)}, ${esc(homeKindName(w, zone.kind))} ${h.n}</b> · ${esc(w.homes.kinds[zone.kind]?.name ?? zone.kind)} · rent ${zone.rent}` : `<span class="mu-muted">${none}</span>`; };
+const homeLine = (h, none) => { const w = W(); const zone = h && w.homes.zones.find(zn => zn.id === h.zone); return zone && h ? `${icon('home')} <b>${esc(zone.name)}, ${esc(homeKindName(w, zone.kind))} ${esc(h.n)}</b> · ${esc(w.homes.kinds[zone.kind]?.name ?? zone.kind)} · rent ${esc(zone.rent)}` : `<span class="mu-muted">${none}</span>`; };
 /* ---------- step: choosing your home ---------- */
 export function stepHome() {
     const w = W();
@@ -149,7 +149,7 @@ export function stepHome() {
             <div class="mu-rooms-grid">${w.homes.zones.map(zn => {
             const k = w.homes.kinds[zn.kind];
             const pic = k?.image ? worldFile(w, k.image) : '';
-            return `<button class="mu-room ${cur?.zone === zn.id ? 'is-you' : ''}" data-act="ngm-pick" data-zone="${esc(zn.id)}" data-k="0"><i style="${pic ? `background-image:url('${esc(pic)}')` : ''}">${cur?.zone === zn.id ? `<em>${icon('pin')} Yours</em>` : ''}</i>
+            return `<button class="mu-room ${cur?.zone === zn.id ? 'is-you' : ''}" data-act="ngm-pick" data-zone="${esc(zn.id)}" data-k="0"><i style="${esc(bgUrl(pic))}">${cur?.zone === zn.id ? `<em>${icon('pin')} Yours</em>` : ''}</i>
                     <b data-notr>${esc(k?.name ?? zn.name)}</b><small class="mu-muted" data-notr>${esc(k?.desc ?? zn.desc ?? '')}</small></button>`;
         }).join('')}</div>`;
     }
