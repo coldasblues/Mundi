@@ -13,6 +13,16 @@ Merged the original Mundi 0.2.0 (tjalis/Mundi): Home mode, the bigger Porto Alto
 - The update notice checks this fork's manifest, not the original's. Versions with a `-ps.N` suffix compare correctly.
 - The new-game Start step keeps Set up from the lore and the template options, in the new two-panel layout. Templates for Homes and for worlds are offered separately.
 
+### Fixed (security, in the code 0.2.0 brought in)
+
+The fixes from ps.21 and ps.22, applied to the original's new screens:
+
+- **World pictures** (Home rooms, floor plans, the fight backdrop, the main menu's slideshow, preset cards, the map editor, the room and portrait pickers, Go out's background) go through the safe `url()` builder, and their style attributes are escaped.
+- **Numbers from world files** (floor-plan room boxes and proportions, home spots, the map editor's pins, the map library's proportions) are forced to be numbers.
+- **Colors from world files** (phone apps, stats, the floor plan's glow) must be a plain color: a `#hex`, a name, or `rgb()`/`hsl()` with numbers.
+- **A chat's saved background** is used only when it is a plain `url()`.
+- **The home picker** escapes rents and home numbers.
+
 ## 0.1.0-ps.22 — 2026-10-22
 
 More security fixes from the review: HTML and CSS injection through world files.
