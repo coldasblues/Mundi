@@ -22,6 +22,10 @@ The fixes from ps.21 and ps.22, applied to the original's new screens:
 - **Colors from world files** (phone apps, stats, the floor plan's glow) must be a plain color: a `#hex`, a name, or `rgb()`/`hsl()` with numbers.
 - **A chat's saved background** is used only when it is a plain `url()`.
 - **The home picker** escapes rents and home numbers.
+- **A world's `madeFor`** is no longer put in a class name as it is (world and Home cards).
+- **Bill ids, home spots and property numbers** are escaped in the phone and the holdings screen.
+- **Relationship ties' tone** is escaped (World settings).
+- **The update notice** escapes the version number it reads from GitHub.
 
 ## 0.1.0-ps.22 — 2026-10-22
 

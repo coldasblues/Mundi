@@ -44,8 +44,8 @@ export function holdingsApp(g, w, head) {
     if (systemOn(w, 'property')) {
         const region = regionOf(g, w, g.player.loc);
         const forSale = freeHomes(g, w).filter(x => w.homes.zones.find(z => z.id === x.zone)?.map === region).slice(0, 4);
-        parts.push(`<section><h4>Property</h4>${h.estates.map((e, i) => `<div class="mu-lp-row"><b>${esc(w.homes.zones.find(z => z.id === e.zone)?.name ?? '')}, ${e.n}</b><small>${e.tenant ? 'rented out' : 'empty this week'} · worth ${e.price}</small><button class="mu-ghost" data-act="hd-sellhome" data-i="${i}">Sell (${Math.round(e.price * 0.85)})</button></div>`).join('')}
-            ${forSale.length ? `<small class="mu-muted">For sale in this town:</small>${forSale.map(x => `<div class="mu-lp-row"><b>${esc(x.name)}</b><small>${money(w, x.price)} · rent ${money(w, x.rent)}/day</small><button class="mu-primary" data-act="hd-buyhome" data-z="${esc(x.zone)}" data-x="${x.x}" data-y="${x.y}" ${g.player.money < x.price ? 'aria-disabled="true"' : ''}>Buy</button></div>`).join('')}` : ''}</section>`);
+        parts.push(`<section><h4>Property</h4>${h.estates.map((e, i) => `<div class="mu-lp-row"><b>${esc(w.homes.zones.find(z => z.id === e.zone)?.name ?? '')}, ${esc(e.n)}</b><small>${e.tenant ? 'rented out' : 'empty this week'} · worth ${esc(e.price)}</small><button class="mu-ghost" data-act="hd-sellhome" data-i="${i}">Sell (${Math.round(e.price * 0.85)})</button></div>`).join('')}
+            ${forSale.length ? `<small class="mu-muted">For sale in this town:</small>${forSale.map(x => `<div class="mu-lp-row"><b>${esc(x.name)}</b><small>${money(w, x.price)} · rent ${money(w, x.rent)}/day</small><button class="mu-primary" data-act="hd-buyhome" data-z="${esc(x.zone)}" data-x="${esc(x.x)}" data-y="${esc(x.y)}" ${g.player.money < x.price ? 'aria-disabled="true"' : ''}>Buy</button></div>`).join('')}` : ''}</section>`);
         // businesses
         const kinds = bizKinds(g, w);
         parts.push(`<section><h4>Businesses</h4>${h.biz.map(x => {

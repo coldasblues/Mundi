@@ -11,7 +11,7 @@ export const slidesHtml = (w: WorldDef) => (SLIDES ? slidesOn(w) : '');
 const SLIDES = false;
 const slidesOn = (w: WorldDef) => { const pics = slidePics(w); if (pics.length > 1) setTimeout(startSlides, 0); return pics.length > 1 ? `<span class="mu-slides" data-slides>${pics.map((p, i) => `<i class="${i ? '' : 'is-on'}" style="${esc(bgOf(w, p))}"></i>`).join('')}</span>` : ''; };
 // The ways a world can be played (Life-Sim, RPG), as tags on its card.
-export const toneTag = (w: WorldDef) => { const t = madeFor(w); return `<em class="mu-style-tag is-tone is-${t}">${t === 'rpg' ? 'RPG' : 'Life-Sim'}</em>`; };
+export const toneTag = (w: WorldDef) => { const t = madeFor(w); return `<em class="mu-style-tag is-tone is-${t === 'rpg' ? 'rpg' : 'lifesim'}">${t === 'rpg' ? 'RPG' : 'Life-Sim'}</em>`; };
 let slideTimer = 0;
 // one timer while any card shows slides; it stops itself when none is on screen
 function startSlides() {

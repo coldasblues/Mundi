@@ -230,7 +230,7 @@ function tiesHtml(g: Save, avatar: string) {
     const others = [['__you', 'You'] as [string, string], ...Object.values(g.cast).filter(x => x.avatar !== avatar).map(x => [x.avatar, x.name] as [string, string])];
     const list = tiesOf(g, avatar);
     return `<section class="mu-ties"><h4>Family and ties</h4>
-        ${list.length ? `<ul>${list.map(t => { const v = viewTie(t, avatar); return `<li><span data-notr>${esc(nm(v.a))} · ${esc(TIE_TYPES.find(x => x[0] === v.type)?.[1] ?? v.type)} · ${esc(nm(v.b))}</span><em class="is-${t.tone}">${t.tone}</em><button class="mu-ibtn mu-ghost" data-act="wc-tie-del" data-a="${esc(t.a)}" data-b="${esc(t.b)}" title="Remove">${icon('x')}</button></li>`; }).join('')}</ul>` : '<p class="mu-muted">No family or ties yet.</p>'}
+        ${list.length ? `<ul>${list.map(t => { const v = viewTie(t, avatar); return `<li><span data-notr>${esc(nm(v.a))} · ${esc(TIE_TYPES.find(x => x[0] === v.type)?.[1] ?? v.type)} · ${esc(nm(v.b))}</span><em class="is-${esc(t.tone)}">${esc(t.tone)}</em><button class="mu-ibtn mu-ghost" data-act="wc-tie-del" data-a="${esc(t.a)}" data-b="${esc(t.b)}" title="Remove">${icon('x')}</button></li>`; }).join('')}</ul>` : '<p class="mu-muted">No family or ties yet.</p>'}
         <div class="mu-ties-add"><span data-notr>${esc(g.cast[avatar]?.name ?? '')} is</span>
             <select data-input="wc-tie" data-k="type">${TIE_TYPES.map(([id, l]) => `<option value="${id}" ${TIE.type === id ? 'selected' : ''}>${l}</option>`).join('')}</select>
             <select data-input="wc-tie" data-k="other"><option value="">who?</option>${others.map(([id, n]) => `<option value="${esc(id)}" ${TIE.other === id ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select>

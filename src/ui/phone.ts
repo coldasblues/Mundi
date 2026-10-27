@@ -297,7 +297,7 @@ function homesApp(g: Save, w: WorldDef) {
         const amount = billAmount(g, w, b.id); if (!amount) return '';
         const n = owed(g, b.id), cut = isCut(g, b.id), left = daysLeft(g, b.id);
         const state = cut ? (b.id === 'rent' ? T('lockedOutShort') : T('cutOff')) : n ? 'Due now' : left <= 1 ? 'Due tomorrow' : `Paid · due in ${left} days`;
-        return `<button class="mu-bill ${n ? 'is-due' : 'is-paid'} ${cut ? 'is-cut' : ''}" data-act="ph-bill" data-id="${b.id}" ${n ? '' : 'aria-disabled="true"'} title="${n ? `Pay ${money(w, amount * n)}` : 'Paid'}">
+        return `<button class="mu-bill ${n ? 'is-due' : 'is-paid'} ${cut ? 'is-cut' : ''}" data-act="ph-bill" data-id="${esc(b.id)}" ${n ? '' : 'aria-disabled="true"'} title="${n ? `Pay ${money(w, amount * n)}` : 'Paid'}">
             <i>${icon(b.icon)}</i><b>${esc(billName(w, b.id))}</b><span>${money(w, amount * Math.max(1, n))}${n > 1 ? ` (${n} wk)` : ''}</span><small>${state}</small></button>`;
     };
     return `${head(appName('homes'), 'home')}<div class="mu-ph-body mu-homes">

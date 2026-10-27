@@ -1,6 +1,6 @@
 // After an update: a window with what the new version brought, and the tour of only that. And on the main menu, a
 // small note at the top right when a newer Mundi is out (from the manifest on GitHub; quiet when offline).
-import { state, notify, settings, saveSettings, toast } from '../core/store.js';
+import { state, notify, settings, saveSettings, toast, esc } from '../core/store.js';
 import { VERSION, CHANGELOG, newer } from '../core/version.js';
 import { tutorialOn, startTutorial } from './tutorial.js';
 import { icon } from './icons.js';
@@ -48,7 +48,7 @@ export function updateHtml(): string {
     if (!U.remote || S().updateDismissed === U.remote || tutorialOn() || whatsNewHtml()) return '';   // not over the changelog
     return `<aside class="mu-upd mh-glass" role="status">
         <span class="mu-upd-ic">${icon('download')}</span>
-        <div><b>Mundi ${U.remote} is out</b><small>You have ${VERSION}.${U.help ? ' Update it in SillyTavern: Extensions → Manage extensions → Mundi → Update, then reload the page.' : ''}</small>
+        <div><b>Mundi ${esc(U.remote)} is out</b><small>You have ${VERSION}.${U.help ? ' Update it in SillyTavern: Extensions → Manage extensions → Mundi → Update, then reload the page.' : ''}</small>
             <div class="mu-row"><button class="mu-primary" data-act="upd-go" ${U.busy ? 'aria-disabled="true"' : ''}>${U.busy ? 'Updating…' : 'Update'}</button><a class="mu-upd-link" href="${REPO}" target="_blank" rel="noopener">What's new</a></div></div>
         <button class="mu-ibtn mu-ghost" data-act="upd-x" aria-label="Dismiss" title="Not now">${icon('x')}</button></aside>`;
 }
