@@ -337,9 +337,9 @@ export function instructionText(s: PState, walkOns: string[], opts: { crimes?: b
         'changes: what happened to OTHER people in this reply, as Name = arrived | left | injured | recovered | captured | freed | missing | returned | dead (several separated by ;), or none',
         ...(opts.crimes ? ['crimes: a crime someone OTHER than {{user}} committed in this reply, as Name = assault | theft | kidnapping | murder | disturbance on Victim (separated by ;), or none'] : []),
         ...(opts.crimes ? ['captor: the one who has taken {{user}} prisoner (tied up, locked in, carried off; not a scuffle), or none',
-            'going: someone taking or leading {{user}} to ANOTHER place right now (a prisoner being moved, or an invitation to come along), as Name → Place, or none'] : []),
+            'going: someone taking or leading {{user}} to ANOTHER place right now (a prisoner being moved, someone luring or compelling {{user}} to follow, or an invitation to come along), as Name → Place, or none'] : []),
         '</state>',
-        'Pick ONE value per line. free = {{user}} can walk away; engaged = in a conversation or task they could leave, but it would be rude; held = someone is keeping {{user}} here (blocking the way, questioning, guarding); restrained = tied, cuffed, grabbed, locked in; incapacitated = unconscious or too hurt to move. outcome stays none unless {{user}} has died or has failed for good. Being captured, kidnapped, arrested, locked up, shrunk or carried off is not an ending: that is mobility restrained (and captor), and the story goes on.',
+        'Pick ONE value per line. free = {{user}} can walk away; engaged = in a conversation or task they could leave, but it would be rude; held = someone is keeping {{user}} here (blocking the way, questioning, guarding), or a power or spell keeps {{user}} here or makes them follow (entranced, charmed, compelled); restrained = tied, cuffed, grabbed, locked in, or {{user}} is not in control of their own body (possessed, puppeted); incapacitated = unconscious or too hurt to move. outcome stays none unless {{user}} has died or has failed for good. Being captured, kidnapped, arrested, locked up, shrunk or carried off is not an ending: that is mobility restrained (and captor), and the story goes on.',
         'Only the game decides whether {{user}} gets away: never write {{user}} leaving the place on their own.',
     ].join('\n');
 }
@@ -356,6 +356,6 @@ export function checkPrompt(reply: string, before: PState, user: string): string
         'outcome: none | dead | failed',
         `changes: what happened to people other than ${user} in the reply, as Name = arrived | left | injured | recovered | captured | freed | missing | returned | dead (separated by ;), or none`,
         '</state>',
-        `free = ${user} can walk away; engaged = in a conversation they could leave; held = someone keeps ${user} there; restrained = tied, cuffed, grabbed, locked in; incapacitated = unconscious or cannot move. outcome is none unless ${user} died or failed for good; being captured or taken prisoner is mobility restrained, not an outcome.`,
+        `free = ${user} can walk away; engaged = in a conversation they could leave; held = someone keeps ${user} there, or a power makes them stay or follow (entranced, compelled); restrained = tied, cuffed, grabbed, locked in, or possessed; incapacitated = unconscious or cannot move. outcome is none unless ${user} died or failed for good; being captured or taken prisoner is mobility restrained, not an outcome.`,
     ].join('\n');
 }

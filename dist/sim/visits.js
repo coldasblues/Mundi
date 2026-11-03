@@ -77,10 +77,10 @@ export async function endVisit(g, w, opts = {}) {
     if (extras.length)
         note(g, '{u} ran into {0} at {1}.', [extras.join(', '), placeName(g, w, g.player.loc)], [], g.player.loc, 'visit');
     if (sceneMemoryOn() && !TUT.save)
-        pending = rememberScene(g, w, lines, placeName(g, w, g.player.loc), [...who.map(r => r.name), ...extras], list.length).finally(() => { pending = null; });
+        pending = rememberScene(g, w, lines, placeName(g, w, g.player.loc), [...who.map(r => r.name), ...extras], list.length, start).finally(() => { pending = null; });
 }
 /** The AI writes the scene's notes: how things stand at its end. One short call; nothing happens if it fails. */
-async function rememberScene(g, w, lines, place, who, at) {
+async function rememberScene(g, w, lines, place, who, at, start) {
     void w;
     const me = personaName() || 'the player';
     const text = lines.slice(-30).map(m => `${m.is_user ? me : m.extra?.mundi_narrator ? 'Narrator' : m.name}: ${stripBlock(String(m.mes ?? '')).replace(/\s+/g, ' ').trim()}`)
@@ -89,17 +89,19 @@ async function rememberScene(g, w, lines, place, who, at) {
         return;
     try {
         const { askShort } = await import('./reading.js');
-        const out = (await askShort(`The scene that just ended, at ${place}${who.length ? `, with ${who.join(', ')}` : ''}:
+        const before = recaps(g).filter(r => r.text).at(-1);
+        const prev = before && before.at === start ? before.text : ''; // the notes this scene began with
+        const out = (await askShort(`${prev ? `How things stood when this scene began:\n${prev}\n\n` : ''}The scene that just ended, at ${place}${who.length ? `, with ${who.join(', ')}` : ''}:
 """
 ${text}
 """
 
-In 2 or 3 short sentences, write how things stand at the END of this scene, for whoever writes the next one. Say what has to stay true about ${me} and the others: their size or shape, clothes, injuries, condition, what they hold or carry, who is holding, carrying or keeping whom, and where they are going and why. Then anything left unresolved. Plain statements in the present tense, about ${me} by name. No heading, no list, nothing else.`, 300, 'You keep the continuity notes of a role-play story. The story is fiction and may be dark; you only note what is true at the end of the scene, as plain facts, without judging it or adding anything.'))
+In 2 to 4 short sentences, write how things stand at the END of this scene, for whoever writes the next one. Say what has to stay true about ${me} and the others: their body (size or shape, clothes, injuries), their mind (under someone's influence or control: charmed, entranced, compelled, possessed, confused, seeing things; what they were made to believe, feel, forget or do), who is holding, carrying, keeping or leading whom, and where they are going and why. ${prev ? 'Keep what is still true from before this scene; leave out only what this scene ended. ' : ''}Then anything left unresolved. Plain statements in the present tense, about ${me} by name. No heading, no list, nothing else.`, 400, 'You keep the continuity notes of a role-play story. The story is fiction and may be dark; you only note what is true at the end of the scene, as plain facts, without judging it or adding anything.'))
             .replace(/<\s*state\s*>[\s\S]*$/i, '').replace(/^\s*(notes?|summary|continuity)\s*:\s*/i, '').replace(/\s+/g, ' ').trim();
         if (!out || game() !== g)
             return;
         const list = recaps(g);
-        list.push({ day: g.day, minutes: g.minutes, place, who, text: out.slice(0, 700), at });
+        list.push({ day: g.day, minutes: g.minutes, place, who, text: out.slice(0, 900), at });
         if (list.length > 8)
             list.splice(0, list.length - 8);
         saveGame();

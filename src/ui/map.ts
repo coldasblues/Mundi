@@ -396,7 +396,8 @@ export async function travelTo(loc: string, arg: 'camp' | 'push' | { force?: boo
     if (trip && trip.camps > 0 && !road) { Object.assign(JOURNEY, { to: loc, minutes: mins, camps: trip.camps }); notify(); return false; }
     // the scene you leave closes; the next one starts clean. Not in a Home: walking from room to room (often with
     // the same people) is one long scene, and closing it made them forget what was just said.
-    if (!isScenario(w)) await endVisit(g, w, { carry: !!(opts as any).carry || companions(g).length > 0 });
+    const hx0 = await import('../sim/hostile.js');
+    if (!isScenario(w)) await endVisit(g, w, { carry: !!(opts as any).carry || companions(g).length > 0 || hx0.followers(g).length > 0 || !!hx0.hs(g).captor });
     beforeTravel(g, w, loc).forEach(m => toast(m, 'info'));
     const from = g.player.loc;
     (g as any).traveling = true;   // the trip itself costs no energy (only what you do does)

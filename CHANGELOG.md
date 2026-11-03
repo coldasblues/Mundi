@@ -2,6 +2,15 @@
 
 This is a fork of [tjalis/Mundi](https://github.com/tjalis/Mundi) (AGPL-3.0). Changes made in this fork are listed here, with their dates, as the license asks.
 
+## 0.2.0-ps.26 — 2026-11-03
+
+### Changed
+
+- **Scene notes cover minds as well as bodies.** They now also note when someone is charmed, entranced, compelled or possessed, confused or seeing things, and what they were made to believe, feel, forget or do. They also note who is leading whom, and where and why.
+- **Scene notes carry forward.** Each scene's notes are written knowing the notes it began with. Whatever is still true (still entranced, still possessed, still tiny) stays in them until a scene ends it, not just for one scene.
+- **Lured or compelled away:** the state block now counts being entranced, charmed or compelled to stay or follow as held. It counts not being in control of your own body (possessed, puppeted) as restrained. "going:" includes someone luring or compelling you to follow. So a vampire's Presence that walks you to their place moves you like a captor would, and the arrival keeps the story's words ("entranced by Ana's gaze").
+- The last lines of a scene also stay in view when someone follows you, or when a captor is with you.
+
 ## 0.2.0-ps.25 — 2026-11-03
 
 ### Changed
