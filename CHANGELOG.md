@@ -2,6 +2,18 @@
 
 This is a fork of [tjalis/Mundi](https://github.com/tjalis/Mundi) (AGPL-3.0). Changes made in this fork are listed here, with their dates, as the license asks.
 
+## 0.2.0-ps.24 — 2026-11-03
+
+### Fixed
+
+- **Set up from the lore read lorebooks you had turned off.** It read every character's linked lorebook, even one unticked in the new game's "Characters' lorebooks" or in World settings → Lorebooks, and the lorebook built into the card along with it. Now it reads only:
+  - the lorebooks on in this world (the chat's, and the ones ticked in World settings → Lorebooks);
+  - the characters' own lorebooks that are not turned off.
+- The save remembers which lorebooks are turned off. Ticking or unticking one in World settings changes it.
+- Saves from before this count every character lorebook that is not on as off.
+- The setup review now says which lorebooks were read and which were left out because they are off.
+- The new game's lorebook note says plainly what unticking does. SillyTavern itself still uses a character's linked lorebook when that character speaks.
+
 ## 0.2.0-ps.23 — 2026-10-27
 
 Merged the original Mundi 0.2.0 (tjalis/Mundi): Home mode, the bigger Porto Alto, a living world, save migrations, backups and branches, Português and Español. The original's own changelog is at the end of this file. Everything this fork adds is kept.

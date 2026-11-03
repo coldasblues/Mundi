@@ -334,8 +334,7 @@ export async function startNewGame(o) {
     normalizeHomes(save);
     // the world's lorebooks and the characters' lorebooks chosen to stay on in this world
     const books = [...new Set([...(w.lorebooks ?? []), ...(o.lore ?? [])])];
-    if (books.length)
-        save.cfg = { ...save.cfg, lore: books }; // keeps the difficulty
+    save.cfg = { ...save.cfg, ...(books.length ? { lore: books } : {}), loreOff: [...new Set(o.loreOff ?? [])].filter(b => !books.includes(b)) }; // keeps the difficulty
     Object.values(save.cast).slice(0, origin?.knows ?? 0).forEach(r => { r.met = true; });
     setGame(save);
     await bindChatLore(loreName);

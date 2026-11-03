@@ -143,6 +143,8 @@ export function resident(w: WorldDef, avatar: string, taken: Set<string>, avoid?
 
 export interface NewGame {
     world: WorldDef; cast: string[]; examples: boolean; hero: Hero; persona?: string; lore?: string[];
+    /** characters' lorebooks unticked in the new game: Set up from the lore leaves them out */
+    loreOff?: string[];
     /** households made at the start (people who share a home, and their ties), your household, and your chosen home */
     households?: { members: string[]; ties: { a: string; b: string; type: TieType; tone: TieTone }[]; home?: { zone: string; x: number; y: number; n: number } }[];
     family?: { avatar: string; type: TieType; tone: TieTone }[];
@@ -295,7 +297,7 @@ export async function startNewGame(o: NewGame) {
     normalizeHomes(save);
     // the world's lorebooks and the characters' lorebooks chosen to stay on in this world
     const books = [...new Set([...(w.lorebooks ?? []), ...(o.lore ?? [])])];
-    if (books.length) (save as any).cfg = { ...(save as any).cfg, lore: books };   // keeps the difficulty
+    (save as any).cfg = { ...(save as any).cfg, ...(books.length ? { lore: books } : {}), loreOff: [...new Set(o.loreOff ?? [])].filter(b => !books.includes(b)) };   // keeps the difficulty
     Object.values(save.cast).slice(0, origin?.knows ?? 0).forEach(r => { r.met = true; });
     setGame(save);
     await bindChatLore(loreName);

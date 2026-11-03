@@ -2,7 +2,8 @@
 // rough-stuff and people systems use: what each person is, who is the law, the groups (with members and a base), the
 // world's own laws, whether there is police at all, and what is not a person. Nothing is applied until you review it.
 import { game, saveGame } from '../core/store.js';
-import { charOf, loadLore, chatLore } from '../st/bridge.js';
+import { charOf, loadLore } from '../st/bridge.js';
+import { gameLorebooks } from './lore.js';
 import { askPart, reading, startReading, endReading, titlesOf } from './reading.js';
 import { hs, resolvePlace, actsOf } from './hostile.js';
 import { stemWord } from './verdict.js';
@@ -28,25 +29,28 @@ function chunks(blocks) {
         out.push(cur);
     return out;
 }
-/** The lorebooks of this game: the world's, this save's, and the ones linked to its characters. */
-async function lore(g, w) {
-    const names = new Set([...(w.lorebooks ?? []), chatLore()].filter(Boolean));
-    for (const r of Object.values(g.cast)) {
-        const lw = clean(charOf(r.avatar)?.data?.extensions?.world);
-        if (lw)
-            names.add(lw);
-    }
+/**
+ * The text of this game's lorebooks (see gameLorebooks: the ones on, and the characters' own ones not turned off) and
+ * of the lorebooks built into the characters' cards. A card's built-in one is left out when the lorebook it is linked
+ * to (usually made from it when the card was imported) is turned off.
+ */
+async function lore(g, w, books = gameLorebooks(g, w)) {
     const blocks = [];
-    for (const n of names) {
+    for (const n of books.read) {
         try {
             blocks.push(...Object.values((await loadLore(n)).entries ?? {}).filter((e) => !e.disable).map(entryText));
         }
         catch { /* gone */ }
     }
-    for (const r of Object.values(g.cast))
-        for (const e of charOf(r.avatar)?.data?.character_book?.entries ?? [])
+    for (const r of Object.values(g.cast)) {
+        const d = charOf(r.avatar)?.data;
+        const linked = clean(d?.extensions?.world), own = clean(d?.character_book?.name);
+        if ((linked && books.off.includes(linked)) || (own && books.off.includes(own)))
+            continue;
+        for (const e of d?.character_book?.entries ?? [])
             blocks.push(entryText(e));
-    return chunks([...new Set(blocks)]);
+    }
+    return chunks([...new Set(blocks)].filter(Boolean));
 }
 function jsonLines(out) {
     const list = [];
@@ -193,7 +197,8 @@ export async function readLore(g, w, progress = () => { }) {
 async function read(g, w, progress) {
     const plan = { people: [], groups: [], laws: [], police: null, notPeople: [], issues: { failed: 0, total: 0, error: '', skipped: [], unread: [] } };
     const actIds = actsOf(w, g).filter(a => a.target).map(a => a.id);
-    const parts = await lore(g, w);
+    plan.books = gameLorebooks(g, w);
+    const parts = await lore(g, w, plan.books);
     const cast = Object.values(g.cast);
     const batches = [];
     for (let i = 0; i < cast.length; i += 8)

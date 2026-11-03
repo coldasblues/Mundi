@@ -393,10 +393,11 @@ function charLoreHtml() {
         return '';
     const off = state.wizard.loreOff ?? [];
     return `<section class="mu-charlore-pick"><h4>Characters' lorebooks</h4>
-        <p class="mu-muted">Checked: always on in this world. Unchecked: SillyTavern still uses it when that character speaks.</p>
+        <p class="mu-muted">Checked: always on in this world. Unchecked: Set up from the lore does not read it (SillyTavern itself still uses it when that character speaks, because it is linked to the card).</p>
         ${rows.map(r => `<div class="mu-charlore-row"><img src="${esc(thumb(r.a))}" alt=""><b data-notr>${esc(charOf(r.a)?.name ?? '')}</b>
             <div class="mu-chips">${r.books.map(b => `<label class="mu-check"><input type="checkbox" data-act="ng-lore" data-name="${esc(b)}" ${off.includes(b) ? '' : 'checked'}><span data-notr>${esc(b)}</span></label>`).join('')}</div></div>`).join('')}</section>`;
 }
+const offLore = () => { const all = new Set(gameCast().flatMap(a => charLorebooks(a))); return (state.wizard.loreOff ?? []).filter((b) => all.has(b)); };
 const chosenLore = () => { const off = state.wizard.loreOff ?? []; return [...new Set(gameCast().flatMap(a => charLorebooks(a)))].filter(b => !off.includes(b)); };
 function canGo(step) {
     const wz = state.wizard;
@@ -728,7 +729,7 @@ Object.assign(ACT, {
     'ng-start': async () => {
         const wz = state.wizard;
         try {
-            await startNewGame({ world: W(), cast: wz.cast, examples: wz.examples, hero: { ...wz.hero, name: wz.hero.name.trim() }, persona: wz.heroMode === 'existing' ? wz.persona : undefined, lore: chosenLore(),
+            await startNewGame({ world: W(), cast: wz.cast, examples: wz.examples, hero: { ...wz.hero, name: wz.hero.name.trim() }, persona: wz.heroMode === 'existing' ? wz.persona : undefined, lore: chosenLore(), loreOff: offLore(),
                 households: (wz.hh ?? []).filter((h) => h.members.length), family: wz.family ?? [], home: wz.home ?? undefined, difficulty: wz.difficulty ?? 'normal',
                 approval: wz.approval ?? undefined, ties: (wz.rels ?? []).filter((t) => t.a !== t.b), mode: rpgOf(W()) ? playMode() : undefined, rpg: rpgState()?.s, memoriesFrom: wz.memories || undefined, jobs: wz.jobs ?? undefined, rooms: isScenario(W()) ? roomsOf() : undefined, extraRooms: isScenario(W()) ? extraOf() : undefined, roomActs: isScenario(W()) ? wz.roomActs : undefined, start: isScenario(W()) ? { id: startOf().id, text: startOf().text } : undefined });
             const setup = !!wz.setup, tplSetup = usingTplSetup() ? wz.tpl : '';

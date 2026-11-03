@@ -119,12 +119,18 @@ function groupsHtml(p: Plan, places: WorldDef['places']): string {
     return `<section><h4>Groups</h4>${on.length ? on.map(([x, i]) => row(x, i)).join('') : '<p class="mu-muted">None in use here yet.</p>'}
         ${off.length ? `<details class="mu-su-more" ${SU.openMore ? 'open' : ''}><summary data-act="su-more">${off.length} more group${off.length === 1 ? '' : 's'} in the lore that nobody here belongs to (tick the ones you want)</summary>${off.map(([x, i]) => row(x, i)).join('')}</details>` : ''}</section>`;
 }
+// Which lorebooks were read, and which were left out because they are off in this game.
+function booksHtml(p: Plan): string {
+    const b = p.books; if (!b || (!b.read.length && !b.off.length)) return '';
+    const list = (l: string[]) => l.map(x => `<b data-notr>${esc(x)}</b>`).join(', ');
+    return `<p class="mu-muted mu-su-books">${b.read.length ? `Lorebooks read: ${list(b.read)}.` : 'No lorebook was read, only the characters\' cards.'}${b.off.length ? ` Turned off, so not read: ${list(b.off)} (turn them on in World settings → Lorebooks).` : ''}</p>`;
+}
 function planHtml(g: Save, w: WorldDef, p: Plan): string {
     const places = w.places.filter(x => !x.link);
     const groupNames = p.groups.filter(x => x.keep).map(x => x.name);
     const nothing = !p.people.length && !p.groups.length && !p.laws.length && !p.police && !p.notPeople.length;
-    if (nothing) return `${issuesHtml(p, true)}<p class="mu-muted">${p.issues.gaveUp ? 'Nothing was read.' : p.issues.stopped ? 'Nothing was found before you stopped it.' : p.issues.total && p.issues.failed === p.issues.total ? 'Nothing could be read.' : 'The AI found nothing to set up in the lore: no groups, laws or people it could classify.'}</p><div class="mu-row">${againButton(p, true) || '<button data-act="su-open">Try again</button>'}<button data-act="su-close">Close</button></div>`;
-    return `${issuesHtml(p)}${thinkHtml(p)}
+    if (nothing) return `${booksHtml(p)}${issuesHtml(p, true)}<p class="mu-muted">${p.issues.gaveUp ? 'Nothing was read.' : p.issues.stopped ? 'Nothing was found before you stopped it.' : p.issues.total && p.issues.failed === p.issues.total ? 'Nothing could be read.' : 'The AI found nothing to set up in the lore: no groups, laws or people it could classify.'}</p><div class="mu-row">${againButton(p, true) || '<button data-act="su-open">Try again</button>'}<button data-act="su-close">Close</button></div>`;
+    return `${booksHtml(p)}${issuesHtml(p)}${thinkHtml(p)}
         ${p.police ? `<section><h4>The law</h4><label class="mu-check"><input type="checkbox" data-input="su-keep" data-k="police" ${p.police.keep ? 'checked' : ''}><span>${p.police.exists ? `There is law here: <b>${esc(p.police.name || 'yes')}</b>` : '<b>No law</b>: no police, nobody comes'}</span></label></section>` : ''}
         ${p.laws.length ? `<section><h4>Laws of this world</h4>${p.laws.map((l, i) => `<label class="mu-check"><input type="checkbox" data-input="su-keep" data-k="law" data-i="${i}" ${l.keep ? 'checked' : ''}><span><b>${esc(l.name)}</b><small>${esc(lawText(w, l))}</small></span></label>`).join('')}</section>` : ''}
         ${p.groups.length ? groupsHtml(p, places) : ''}

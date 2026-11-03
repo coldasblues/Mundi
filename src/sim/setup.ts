@@ -3,7 +3,8 @@
 // world's own laws, whether there is police at all, and what is not a person. Nothing is applied until you review it.
 import { game, saveGame, type Save } from '../core/store.js';
 import type { WorldDef } from '../core/world.js';
-import { charOf, loadLore, chatLore } from '../st/bridge.js';
+import { charOf, loadLore } from '../st/bridge.js';
+import { gameLorebooks } from './lore.js';
 import { askPart, reading, startReading, endReading, titlesOf } from './reading.js';
 import { hs, resolvePlace, actsOf } from './hostile.js';
 import { stemWord, type StoryLaw } from './verdict.js';
@@ -23,6 +24,8 @@ export interface Plan {
     issues: { failed: number; total: number; error: string; skipped: Piece[]; unread: Piece[]; stopped?: string; gaveUp?: boolean; think?: Think; stepped?: boolean };
     /** When it comes from a template: its name, and the people in it who are not in this game. */
     from?: string; unmatched?: string[];
+    /** The lorebooks it read, and the ones it left out because they are turned off in this game. */
+    books?: { read: string[]; off: string[] };
 }
 
 const clean = (t: unknown) => String(t ?? '').replace(/\r/g, '').trim();
@@ -38,14 +41,20 @@ function chunks(blocks: string[]): string[] {
     if (cur) out.push(cur);
     return out;
 }
-/** The lorebooks of this game: the world's, this save's, and the ones linked to its characters. */
-async function lore(g: Save, w: WorldDef): Promise<string[]> {
-    const names = new Set<string>([...(w.lorebooks ?? []), chatLore()].filter(Boolean));
-    for (const r of Object.values(g.cast)) { const lw = clean(charOf(r.avatar)?.data?.extensions?.world); if (lw) names.add(lw); }
+/**
+ * The text of this game's lorebooks (see gameLorebooks: the ones on, and the characters' own ones not turned off) and
+ * of the lorebooks built into the characters' cards. A card's built-in one is left out when the lorebook it is linked
+ * to (usually made from it when the card was imported) is turned off.
+ */
+async function lore(g: Save, w: WorldDef, books = gameLorebooks(g, w)): Promise<string[]> {
     const blocks: string[] = [];
-    for (const n of names) { try { blocks.push(...Object.values((await loadLore(n)).entries ?? {}).filter((e: any) => !e.disable).map(entryText)); } catch { /* gone */ } }
-    for (const r of Object.values(g.cast)) for (const e of charOf(r.avatar)?.data?.character_book?.entries ?? []) blocks.push(entryText(e));
-    return chunks([...new Set(blocks)]);
+    for (const n of books.read) { try { blocks.push(...Object.values((await loadLore(n)).entries ?? {}).filter((e: any) => !e.disable).map(entryText)); } catch { /* gone */ } }
+    for (const r of Object.values(g.cast)) {
+        const d = charOf(r.avatar)?.data; const linked = clean(d?.extensions?.world), own = clean(d?.character_book?.name);
+        if ((linked && books.off.includes(linked)) || (own && books.off.includes(own))) continue;
+        for (const e of d?.character_book?.entries ?? []) blocks.push(entryText(e));
+    }
+    return chunks([...new Set(blocks)].filter(Boolean));
 }
 function jsonLines(out: string): any[] {
     const list: any[] = [];
@@ -168,7 +177,8 @@ export async function readLore(g: Save, w: WorldDef, progress: (t: string) => vo
 async function read(g: Save, w: WorldDef, progress: (t: string) => void): Promise<Plan> {
     const plan: Plan = { people: [], groups: [], laws: [], police: null, notPeople: [], issues: { failed: 0, total: 0, error: '', skipped: [], unread: [] } };
     const actIds = actsOf(w, g).filter(a => a.target).map(a => a.id);
-    const parts = await lore(g, w);
+    plan.books = gameLorebooks(g, w);
+    const parts = await lore(g, w, plan.books);
     const cast = Object.values(g.cast);
     const batches: CastRec[][] = []; for (let i = 0; i < cast.length; i += 8) batches.push(cast.slice(i, i + 8));
     // 1. the world: its groups, its laws, its police, what is not a person

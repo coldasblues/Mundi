@@ -19,7 +19,7 @@ import { freeSpots } from '../sim/work.js';
 import { refreshPrompt } from '../sim/prompt.js';
 import { facts } from '../sim/facts.js';
 import { factUi, stamp } from './journal.js';
-import { applyGameLore } from '../sim/lore.js';
+import { applyGameLore, setLoreOff } from '../sim/lore.js';
 import { icon } from './icons.js';
 import { weekday } from '../sim/time.js';
 import { tabHouseholds } from './households.js';
@@ -403,8 +403,9 @@ Object.assign(INPUT, {
                 ctx().saveMetadataDebounced();
             }
         }
-        else
+        else if (l.includes(n))
             l.splice(l.indexOf(n), 1);
+        setLoreOff(g, n, !el.checked); // Set up from the lore reads it, or leaves it out
         saveGame();
         await applyGameLore();
         notify();

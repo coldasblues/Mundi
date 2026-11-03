@@ -19,7 +19,7 @@ import { freeSpots } from '../sim/work.js';
 import { refreshPrompt } from '../sim/prompt.js';
 import { facts } from '../sim/facts.js';
 import { factUi, stamp } from './journal.js';
-import { applyGameLore } from '../sim/lore.js';
+import { applyGameLore, setLoreOff } from '../sim/lore.js';
 import { icon } from './icons.js';
 import { weekday } from '../sim/time.js';
 import { tabHouseholds } from './households.js';
@@ -338,7 +338,8 @@ Object.assign(INPUT, {
         } else if (n === chatLore()) {
             const next = l.shift();                          // another ticked one takes its place
             if (next) await bindChatLore(next); else { delete ctx().chatMetadata.world_info; ctx().saveMetadataDebounced(); }
-        } else l.splice(l.indexOf(n), 1);
+        } else if (l.includes(n)) l.splice(l.indexOf(n), 1);
+        setLoreOff(g, n, !el.checked);                       // Set up from the lore reads it, or leaves it out
         saveGame(); await applyGameLore(); notify();
     },
     'wc-poly': (el) => { const g = game(); if (!g) return; cfg(g).poly = (el as HTMLInputElement).checked || undefined; saveGame(); notify(); },

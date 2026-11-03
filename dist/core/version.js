@@ -1,5 +1,5 @@
 // The version of Mundi (the same as manifest.json: a test checks it) and what each version brought.
-export const VERSION = '0.2.0-ps.23';
+export const VERSION = '0.2.0-ps.24';
 // Newest first. The first one is what the window shows after an update.
 export const CHANGELOG = [
     { v: '0.2.0', title: 'Homes', items: [
