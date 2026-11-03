@@ -440,7 +440,7 @@ export function turnIn(g: Save, w: WorldDef, key: string): { name: string; to: s
 
 /* ---------- giving yourself up ---------- */
 
-export interface Surrender { crime: Crime; fine: number; jail: boolean; ending: boolean; directive: string; line: string; act: { free?: boolean; mobility?: Mobility; reason?: string; outcome?: 'captured'; outcomeReason?: string } }
+export interface Surrender { crime: Crime; fine: number; jail: boolean; ending: boolean; directive: string; line: string; act: { free?: boolean; mobility?: Mobility; reason?: string; outcomeReason?: string } }
 export const openCrimes = (g: Save) => hs(g).incidents.filter(i => i.by === 'you' && i.state !== 'closed');
 /** The ones the law knows about (reported, seen by an officer, or looking for you): what giving up is about. */
 export const knownCrimes = (g: Save) => openCrimes(g).filter(i => i.reported || i.lawSaw || i.state === 'wanted');
@@ -466,9 +466,9 @@ export function surrender(g: Save, w: WorldDef): Surrender {
     const word = CRIME_WORD[crime] || 'what happened';
     return {
         crime, fine, jail, ending, line: '*gives up and lets them make the arrest*',
-        act: ending ? { outcome: 'captured', outcomeReason: `arrested for ${word}`, mobility: 'restrained', reason: `arrested for ${word}` } : jail ? { mobility: 'restrained', reason: `arrested for ${word}` } : { free: true, reason: 'let off with a fine' },
+        act: ending ? { mobility: 'restrained', reason: `arrested for ${word}, in custody` } : jail ? { mobility: 'restrained', reason: `arrested for ${word}` } : { free: true, reason: 'let off with a fine' },
         directive: ending
-            ? `[{{user}} gives up to ${law.name} and is arrested for ${word}. This is the end of {{user}}'s story: they are taken away and will not be free again. In the state block: mobility: restrained; outcome: captured.]`
+            ? `[{{user}} gives up to ${law.name} and is arrested for ${word}: handcuffed and taken into custody. It is serious and they will not be let go soon, but the story goes on from there (a cell, questioning, a trial, a chance to get out). In the state block: mobility: restrained; captor: ${law.name}; outcome: none.]`
             : jail ? `[{{user}} gives up to ${law.name} and is arrested for ${word}: handcuffed and taken to a cell for the night. In the state block: mobility: restrained.]`
                 : `[{{user}} gives up. ${law.name} let {{user}} off with a warning and a fine. In the state block: mobility: free.]`,
     };

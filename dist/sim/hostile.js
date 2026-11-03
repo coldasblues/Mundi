@@ -483,9 +483,9 @@ export function surrender(g, w) {
     const word = CRIME_WORD[crime] || 'what happened';
     return {
         crime, fine, jail, ending, line: '*gives up and lets them make the arrest*',
-        act: ending ? { outcome: 'captured', outcomeReason: `arrested for ${word}`, mobility: 'restrained', reason: `arrested for ${word}` } : jail ? { mobility: 'restrained', reason: `arrested for ${word}` } : { free: true, reason: 'let off with a fine' },
+        act: ending ? { mobility: 'restrained', reason: `arrested for ${word}, in custody` } : jail ? { mobility: 'restrained', reason: `arrested for ${word}` } : { free: true, reason: 'let off with a fine' },
         directive: ending
-            ? `[{{user}} gives up to ${law.name} and is arrested for ${word}. This is the end of {{user}}'s story: they are taken away and will not be free again. In the state block: mobility: restrained; outcome: captured.]`
+            ? `[{{user}} gives up to ${law.name} and is arrested for ${word}: handcuffed and taken into custody. It is serious and they will not be let go soon, but the story goes on from there (a cell, questioning, a trial, a chance to get out). In the state block: mobility: restrained; captor: ${law.name}; outcome: none.]`
             : jail ? `[{{user}} gives up to ${law.name} and is arrested for ${word}: handcuffed and taken to a cell for the night. In the state block: mobility: restrained.]`
                 : `[{{user}} gives up. ${law.name} let {{user}} off with a warning and a fine. In the state block: mobility: free.]`,
     };

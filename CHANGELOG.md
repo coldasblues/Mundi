@@ -2,6 +2,16 @@
 
 This is a fork of [tjalis/Mundi](https://github.com/tjalis/Mundi) (AGPL-3.0). Changes made in this fork are listed here, with their dates, as the license asks.
 
+## 0.2.0-ps.25 — 2026-11-03
+
+### Changed
+
+- **Being captured no longer ends the story.** When the story says you were captured, kidnapped, arrested, locked up, shrunk or carried off, you are now restrained, with whoever holds you as your captor. The story goes on: you can play it out, or try to get away (the usual roll).
+  - Only dying or failing for good ends a story now, with the ending card and the epilogue.
+  - The model is told that being captured is not an outcome.
+  - A reply that still says "outcome: captured" (including older ones in your saves) is read as restrained. A save that ended this way is open again.
+- **Giving yourself up for kidnapping or murder** now gets you handcuffed and taken into custody, and the story goes on from there. Before, it ended the story.
+
 ## 0.2.0-ps.24 — 2026-11-03
 
 ### Fixed

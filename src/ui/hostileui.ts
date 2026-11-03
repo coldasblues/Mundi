@@ -145,7 +145,7 @@ function surrenderChip(g: Save, w: WorldDef): string {
 function surrenderHtml(g: Save, w: WorldDef): string {
     const crime = worst(knownCrimes(g).map(i => i.crime));
     const law = lawOf(g, w);
-    const what = SEVERITY[crime] >= SEVERITY.kidnapping ? `It's ${CRIME_WORD[crime]}: you'll be taken away, and <b>your story ends here</b>.`
+    const what = SEVERITY[crime] >= SEVERITY.kidnapping ? `It's ${CRIME_WORD[crime]}: you'll be handcuffed and taken into custody, and they won't let you go soon. The story goes on from there.`
         : SEVERITY[crime] >= SEVERITY.theft ? `For ${CRIME_WORD[crime]}, you'll spend the night in a cell and pay a fine. You're out in the morning.`
             : crime === 'none' ? 'They have nothing on you: they let you go with a warning.' : 'For causing a disturbance, you pay a fine and go.';
     return `<div class="mu-dlg-veil is-fixed" data-act="hx-surrender-no"></div><div class="mu-panel mu-confirm" role="dialog"><h3>Give yourself up to ${esc(law.name)}?</h3>

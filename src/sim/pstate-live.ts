@@ -257,7 +257,7 @@ export function registerMacros() {
         ['mundi_walkons', 'People the story added to the scene who are not in the cast (Mundi).', () => { const s = g(), x = w(); return s && x ? walkOns(s, x).join(', ') : ''; }],
         ['mundi_mobility', 'free, engaged, held, restrained or incapacitated (Mundi).', () => currentState(g()).mobility],
         ['mundi_mobility_reason', 'Why you are held, restrained… (Mundi).', () => currentState(g()).reason],
-        ['mundi_outcome', 'none, dead, failed or captured (Mundi).', () => currentState(g()).outcome],
+        ['mundi_outcome', 'none, dead or failed (Mundi).', () => currentState(g()).outcome],
         ['mundi_can_leave', '"yes" when you can walk away right now (Mundi).', () => (gateFor(currentState(g()), gateCfg(w())).kind === 'go' ? 'yes' : 'no')],
     ];
     const engine = !!c.powerUserSettings?.experimental_macro_engine && c.macros?.register;

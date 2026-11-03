@@ -4,7 +4,7 @@
 //     mobility: free | engaged | held | restrained | incapacitated
 //     reason: a few words
 //     present: everyone else in the scene
-//     outcome: none | dead | failed | captured
+//     outcome: none | dead | failed
 //     </state>
 // The block is cut from the message (the player never sees it) and kept in the message's `extra`, so the state is
 // always worked out again from the chat itself: swipes, edits, deletes and loaded saves need no bookkeeping.
@@ -17,6 +17,12 @@ export type Outcome = 'none' | 'dead' | 'failed' | 'captured';
 export const MOBILITY: Mobility[] = ['free', 'engaged', 'held', 'restrained', 'incapacitated'];
 export const OUTCOMES: Outcome[] = ['none', 'dead', 'failed', 'captured'];
 export const rank = (m: Mobility) => MOBILITY.indexOf(m);
+/**
+ * The outcomes that end the story. Being captured does not: the model may still say "captured" (and older replies
+ * do), and the engine reads it as {{user}} being restrained, so the story goes on and they can try to get away.
+ */
+export const ENDINGS: Outcome[] = ['dead', 'failed'];
+export const ends = (o: Outcome | undefined) => !!o && ENDINGS.includes(o);
 const worse = (a: Mobility, b: Mobility) => (rank(a) >= rank(b) ? a : b);
 
 /** What happened to someone else in a reply (the roster keeps it). */
@@ -234,8 +240,8 @@ export function fold(lines: PLine[], start: PState = freshState()): PState {
             return;
         }
         if (l.kind === 'user' && l.act) {
-            const a = l.act;
-            if (a.outcome && a.outcome !== 'none' && s.outcome === 'none') { s.outcome = a.outcome; s.outcomeReason = a.outcomeReason ?? ''; s.outcomeAt = i; }
+            const a = l.act.outcome === 'captured' ? { ...l.act, outcome: undefined, mobility: worse(l.act.mobility ?? 'restrained', 'restrained'), reason: l.act.reason ?? l.act.outcomeReason } : l.act;
+            if (ends(a.outcome) && s.outcome === 'none') { s.outcome = a.outcome!; s.outcomeReason = a.outcomeReason ?? ''; s.outcomeAt = i; }
             if (a.free) { s.mobility = 'free'; s.reason = a.reason ?? ''; s.pending = null; s.grace = 1; s.cooldown = 0; s.captor = ''; }
             else if (a.mobility && rank(a.mobility) >= rank(s.mobility)) { s.mobility = a.mobility; if (a.reason) s.reason = a.reason; s.pending = null; }
             return;
@@ -243,13 +249,14 @@ export function fold(lines: PLine[], start: PState = freshState()): PState {
         if (l.kind !== 'ai') return;
         s.lastAi = i;
         if (s.cooldown > 0) s.cooldown--;
-        const r = l.dismissed ? null : l.rep;   // "that's not what happened": the whole block of that reply is ignored
+        let r = l.dismissed ? null : l.rep;   // "that's not what happened": the whole block of that reply is ignored
+        if (r?.outcome === 'captured') r = { ...r, outcome: 'none', mobility: worse(r.mobility ?? 'restrained', 'restrained') };   // captured: restrained, the story goes on
         if (!r) { s.misses++; s.pending = null; if (s.grace > 0) s.grace--; return; }
         s.misses = 0;
         if (r.present) s.present = [...r.present];
         if (r.captor !== undefined) s.captor = r.captor ?? '';
-        if (r.outcome && r.outcome !== 'none' && s.outcome === 'none') {
-            s.outcome = r.outcome; s.outcomeReason = r.reason ?? ''; s.outcomeAt = i;
+        if (ends(r.outcome) && s.outcome === 'none') {
+            s.outcome = r.outcome!; s.outcomeReason = r.reason ?? ''; s.outcomeAt = i;
         }
         if (!r.mobility) { s.pending = null; if (s.grace > 0) s.grace--; return; }
         const now = rank(s.mobility), said = rank(r.mobility);
@@ -299,7 +306,7 @@ export const GATE_DEFAULTS: GateCfg = {
     restrainedTraits: ['Strong', 'Athletic', 'Handy', 'Smart'],
 };
 export function gateFor(s: PState, cfg: GateCfg = GATE_DEFAULTS): Gate {
-    if (s.outcome !== 'none') return { kind: 'over' };
+    if (ends(s.outcome)) return { kind: 'over' };
     switch (s.mobility) {
         case 'free': return { kind: 'go' };
         case 'engaged': return { kind: 'walkout' };
@@ -326,13 +333,13 @@ export function instructionText(s: PState, walkOns: string[], opts: { crimes?: b
         'mobility: free | engaged | held | restrained | incapacitated',
         'reason: a few words',
         'present: everyone else in the scene, comma separated, or none. Include people without a name, each as a few words (a mouse girl, the waiter, two guards), however small or unimportant',
-        'outcome: none | dead | failed | captured',
+        'outcome: none | dead | failed',
         'changes: what happened to OTHER people in this reply, as Name = arrived | left | injured | recovered | captured | freed | missing | returned | dead (several separated by ;), or none',
         ...(opts.crimes ? ['crimes: a crime someone OTHER than {{user}} committed in this reply, as Name = assault | theft | kidnapping | murder | disturbance on Victim (separated by ;), or none'] : []),
         ...(opts.crimes ? ['captor: the one who has taken {{user}} prisoner (tied up, locked in, carried off; not a scuffle), or none',
             'going: someone taking or leading {{user}} to ANOTHER place right now (a prisoner being moved, or an invitation to come along), as Name → Place, or none'] : []),
         '</state>',
-        'Pick ONE value per line. free = {{user}} can walk away; engaged = in a conversation or task they could leave, but it would be rude; held = someone is keeping {{user}} here (blocking the way, questioning, guarding); restrained = tied, cuffed, grabbed, locked in; incapacitated = unconscious or too hurt to move. outcome stays none unless {{user}} has died, has failed for good, or is captured for good.',
+        'Pick ONE value per line. free = {{user}} can walk away; engaged = in a conversation or task they could leave, but it would be rude; held = someone is keeping {{user}} here (blocking the way, questioning, guarding); restrained = tied, cuffed, grabbed, locked in; incapacitated = unconscious or too hurt to move. outcome stays none unless {{user}} has died or has failed for good. Being captured, kidnapped, arrested, locked up, shrunk or carried off is not an ending: that is mobility restrained (and captor), and the story goes on.',
         'Only the game decides whether {{user}} gets away: never write {{user}} leaving the place on their own.',
     ].join('\n');
 }
@@ -346,9 +353,9 @@ export function checkPrompt(reply: string, before: PState, user: string): string
         'mobility: free | engaged | held | restrained | incapacitated',
         'reason: a few words',
         `present: everyone in the scene besides ${user}, comma separated, or none. Include people without a name, each as a few words (a mouse girl, the waiter), however small or unimportant`,
-        'outcome: none | dead | failed | captured',
+        'outcome: none | dead | failed',
         `changes: what happened to people other than ${user} in the reply, as Name = arrived | left | injured | recovered | captured | freed | missing | returned | dead (separated by ;), or none`,
         '</state>',
-        `free = ${user} can walk away; engaged = in a conversation they could leave; held = someone keeps ${user} there; restrained = tied, cuffed, grabbed, locked in; incapacitated = unconscious or cannot move. outcome is none unless ${user} died, failed for good, or was captured for good.`,
+        `free = ${user} can walk away; engaged = in a conversation they could leave; held = someone keeps ${user} there; restrained = tied, cuffed, grabbed, locked in; incapacitated = unconscious or cannot move. outcome is none unless ${user} died or failed for good; being captured or taken prisoner is mobility restrained, not an outcome.`,
     ].join('\n');
 }

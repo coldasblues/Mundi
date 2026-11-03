@@ -3,7 +3,7 @@
 import { game, state, notify, toast, esc, saveGame, type Save } from '../core/store.js';
 import { getWorld, type WorldDef } from '../core/world.js';
 import { currentState, walkOns, gateCfg, psOn, psPrefs, setDirective, markEscape, dismissOutcome, outcomeLine, refreshPState, keepNarration } from '../sim/pstate-live.js';
-import { gateFor, MOBILITY_WORDS, type Mobility, type PState } from '../sim/pstate.js';
+import { gateFor, ends, MOBILITY_WORDS, type Mobility, type PState } from '../sim/pstate.js';
 import { presentAt } from '../sim/people.js';
 import { bonusFor, chanceOf, gradeName, type Grade } from '../sim/dice.js';
 import { feel } from '../sim/life.js';
@@ -156,14 +156,14 @@ export function afterNarration(rep: any) {
 
 /* ---------- the end of the story ---------- */
 
-const ENDING: Record<string, [string, string]> = { dead: ['You died', 'skull'], failed: ['You failed', 'x'], captured: ['You were captured', 'lock'] };
+const ENDING: Record<string, [string, string]> = { dead: ['You died', 'skull'], failed: ['You failed', 'x'] };   // being captured is not an ending (see sim/pstate.ts)
 const endKey = (g: Save) => `${outcomeLine(g)}:${chat().length > 0 ? visitStart(g) : 0}`;
-export const storyOver = (g: Save | null = game()) => !!g && psOn() && currentState(g).outcome !== 'none';
+export const storyOver = (g: Save | null = game()) => !!g && psOn() && ends(currentState(g).outcome);
 
 async function writeEpilogue() {
     const c = ctxW(); if (!c || PSUI.writing) return;
     const { g } = c;
-    const s = currentState(g); if (s.outcome === 'none') return;
+    const s = currentState(g); if (!ends(s.outcome)) return;
     PSUI.writing = true; notify();
     try {
         const me = personaName();
@@ -188,7 +188,7 @@ async function writeEpilogue() {
 export function endCardHtml(g: Save, w: WorldDef): string {
     if (!psOn() || state.view !== 'scene') return '';
     const s = currentState(g);
-    if (s.outcome === 'none') return '';
+    if (!ends(s.outcome)) return '';
     void w;
     const key = endKey(g);
     const [title, ic] = ENDING[s.outcome] ?? ['The end', 'x'];
