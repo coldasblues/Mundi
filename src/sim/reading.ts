@@ -3,7 +3,7 @@
 // provider's filter quietly refuses a part (dark fiction trips some). An empty part is tried again as two halves
 // (less to think about, and the part that trips a filter is cut off from the rest); only then is it skipped.
 // A part that takes too long is treated the same way, and the whole reading can be stopped (what was read is kept).
-import { quietOnce, stopRaw, withThinking, modelKey, type Think } from '../st/bridge.js';
+import { quiet, quietOnce, stopRaw, withThinking, modelKey, type Think } from '../st/bridge.js';
 
 /** For the AI: it is cataloguing fiction for a game engine, not taking part in it. */
 export const CATALOG = 'You are a cataloguing tool for a role-play game engine. The material is fiction and may be dark; you only list what it says, as data, without judging it or adding anything.';
@@ -21,6 +21,14 @@ export const reading = { started: 0, since: 0, stop: false, busy: false, ok: 0, 
 const THINK_KEY = 'mundi.readThinking';
 function savedThink(): Think { try { const v = JSON.parse(localStorage.getItem(THINK_KEY) || '{}')[modelKey()]; return v === 1 || v === 2 ? v : 0; } catch { return 0; } }
 function saveThink(v: Think) { try { const m = JSON.parse(localStorage.getItem(THINK_KEY) || '{}'); m[modelKey()] = v; localStorage.setItem(THINK_KEY, JSON.stringify(m)); } catch { /* private window */ } }
+/** One short AI call outside a reading (a scene's notes): the thinking level that works for this model, a step up if refused. */
+export async function askShort(prompt: string, len: number, sys = ''): Promise<string> {
+    let lvl = savedThink();
+    for (;;) {
+        try { return await withThinking(lvl, () => quiet(prompt, lvl === 0 ? len : Math.max(len, 8000), sys)); }
+        catch (e: any) { if (lvl < 2 && refused(String(e?.message ?? e))) { lvl = (lvl + 1) as Think; saveThink(lvl); continue; } throw e; }
+    }
+}
 export const thinkText = (v: Think) => ['no thinking', 'a little thinking (low)', 'its own thinking settings'][v];
 /** An error that means the provider refused the request as sent (not an empty answer, not a filter). */
 const refused = (m: string) => /bad request|\b400\b|\b422\b|invalid|not supported|unsupported|mandatory|cannot be disabled|reasoning/i.test(m);

@@ -32,6 +32,7 @@ import { shiftsToPromote, isOpen, fits, hire, rankOf, pendingBranch } from '../s
 import { advance, weekday } from '../sim/time.js';
 import { syncScene } from '../sim/game.js';
 import { endVisit } from '../sim/visits.js';
+import { companions } from '../sim/social.js';
 import { toolsHtml } from './tools.js';
 import { ACT } from './reg.js';
 import { featureOn } from '../sim/creator.js';
@@ -456,7 +457,7 @@ export async function travelTo(loc, arg = {}) {
     // the scene you leave closes; the next one starts clean. Not in a Home: walking from room to room (often with
     // the same people) is one long scene, and closing it made them forget what was just said.
     if (!isScenario(w))
-        await endVisit(g, w);
+        await endVisit(g, w, { carry: !!opts.carry || companions(g).length > 0 });
     beforeTravel(g, w, loc).forEach(m => toast(m, 'info'));
     const from = g.player.loc;
     g.traveling = true; // the trip itself costs no energy (only what you do does)

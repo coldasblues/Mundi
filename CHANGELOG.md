@@ -12,6 +12,13 @@ This is a fork of [tjalis/Mundi](https://github.com/tjalis/Mundi) (AGPL-3.0). Ch
   - A reply that still says "outcome: captured" (including older ones in your saves) is read as restrained. A save that ended this way is open again.
 - **Giving yourself up for kidnapping or murder** now gets you handcuffed and taken into custody, and the story goes on from there. Before, it ended the story.
 
+### Fixed
+
+- **The story forgot everything when the scene moved somewhere else.** Leaving a place hides that scene from the AI, and only one engine-written line ("spent time with … at …") carried over. So a captor carrying you home started the next scene knowing nothing. Mundi also told the AI you were "still tied up", whatever the story had said. Now:
+  - **Scene notes:** when you leave a place, one short AI call writes 2 or 3 sentences on how things stand. That covers someone's size or shape, clothes, injuries, who is carrying or holding whom, and anything unresolved. The next scene is told: "Just before this scene (at …): …". Your next line waits for it, briefly, if it is still being written. Turn it off in Settings → Game → Player state → Remember each scene.
+  - **The last lines stay in view** when the scene goes on somewhere else: someone takes you, or you go with someone, or people come with you. The last 4 lines of the scene before stay visible to the AI in the next one, and are hidden when that one ends.
+  - **Taken by a captor:** the arrival keeps the story's own words for how you were taken ("shrunk and carried in Ana's pocket"). It no longer says "tied up". The AI is told nothing about that changed on the way.
+
 ## 0.2.0-ps.24 — 2026-11-03
 
 ### Fixed

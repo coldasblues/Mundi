@@ -820,7 +820,8 @@ export function hardCapture(g, w) {
 export function takePrisoner(g, c) {
     const st = hs(g);
     const again = st.captor?.key === c.key;
-    st.captor = { key: c.key, avatar: c.avatar, name: c.name, kind: c.kind, since: again ? st.captor.since : nowAbs(g), moving: true, moves: again ? st.captor.moves ?? 0 : 0 };
+    const how = again ? st.captor.how : (currentState(g).reason || '').replace(/^held prisoner by .*$/i, '').trim();
+    st.captor = { key: c.key, avatar: c.avatar, name: c.name, kind: c.kind, since: again ? st.captor.since : nowAbs(g), moving: true, moves: again ? st.captor.moves ?? 0 : 0, ...(how ? { how: how.slice(0, 160) } : {}) };
     if (c.avatar && g.cast[c.avatar])
         g.cast[c.avatar].met = true; // you know who did it
     // taken: the people who came along with you do not come along now (your captor does)
@@ -846,10 +847,13 @@ export function arrivedCaptive(g, w, c, how, moved) {
         note(g, '{0} took {u} prisoner and brought {u} to {1}.', [c.name, place], c.avatar ? [c.avatar] : [], g.player.loc, 'life');
     else
         note(g, '{0} took {u} prisoner.', [c.name], c.avatar ? [c.avatar] : [], g.player.loc, 'life');
+    // how the story had you (shrunk and carried, tied up…) stays as it was: the engine does not decide it for the story
+    const was = st.captor?.how ?? '';
+    const still = was ? `as before: ${was}` : how === 'incapacitated' ? 'out of it' : 'their prisoner';
     st.queue.push({
-        text: moved ? `${c.name} brings you to ${there}. You're still ${how === 'incapacitated' ? 'out of it' : 'tied up'}.` : `You're ${c.name}'s prisoner now.`,
-        present: [c.name], mobility: how, reason: `held prisoner by ${c.name}${moved ? ` at ${place}` : ''}`, captor: c.name,
-        directive: `[${c.name} has taken {{user}} prisoner${moved ? ` and brought them to ${place}` : ''}. {{user}} is ${how === 'incapacitated' ? 'barely conscious' : 'restrained'} and cannot leave; ${c.name} stays with {{user}}. Go on with the scene here. In the state block: mobility: ${how}; captor: ${c.name}.]`,
+        text: moved ? `${c.name} brings you to ${there}. You're still ${still}.` : `You're ${c.name}'s prisoner now.`,
+        present: [c.name], mobility: how, reason: was || `held prisoner by ${c.name}${moved ? ` at ${place}` : ''}`, captor: c.name,
+        directive: `[${c.name} has taken {{user}} prisoner${moved ? ` and brought them to ${place}` : ''}. {{user}} is ${how === 'incapacitated' ? 'barely conscious' : 'restrained'} and cannot leave; ${c.name} stays with {{user}}.${was ? ` Nothing about how {{user}} is held changed on the way: ${was}.` : ''} Go on with the scene here, from where the last one left off. In the state block: mobility: ${how}; captor: ${c.name}.]`,
     });
     saveGame();
 }

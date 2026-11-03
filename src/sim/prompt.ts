@@ -16,6 +16,7 @@ import { partyLine as houseLine } from './houseparty.js';
 import { feelings } from './needs.js';
 import { planLines } from './plans.js';
 import { memoryLines } from './facts.js';
+import { recapLines } from './visits.js';
 import { diaryLines } from './diary.js';
 import { tiesLine } from './living.js';
 import { romanceLine } from './romance.js';
@@ -138,6 +139,7 @@ export function sceneBlocks(): Built[] {
             `Place: ${here?.name ?? 'somewhere'}${here?.desc ? ` — ${here.desc}` : ''}${here && !here.home && systemOn(w, 'living') && !openNow(g, w, here.id) ? ' (closed at this hour: the doors are shut; only staff, if anyone, is around)' : ''}`,
             names.length ? `Here with {{user}}: ${names.join(', ')}. Only they${extras.length ? ' and the people below' : ''} are in this scene; nobody else speaks or appears.` : extras.length ? '' : 'Nobody else is here right now.',
             ...(extras.length ? [`Also here, already part of this scene (not regulars): ${extras.join(', ')}. They stay until the story has them leave.`] : []),
+            ...recapLines(g),
             ...(present.some(r => !r.met) ? [`Strangers to {{user}}: ${present.filter(r => !r.met).map(r => r.name).join(', ')}. They and {{user}} have never met: they do not know each other's names until they talk and introduce themselves.`] : []),
         ],
         // only the people in this scene and this place: nobody else's memories, nobody else's whereabouts

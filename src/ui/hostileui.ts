@@ -234,7 +234,7 @@ async function goAlong(l: Lead, forced: boolean) {
     if (l.to && l.to !== g.player.loc) {
         toast(forced ? `${l.name} takes you to ${whereWord(g, w, l)}.` : `You go with ${l.name} to ${whereWord(g, w, l)}.`, forced ? 'warn' : 'info', { ms: 6000 });
         const { travelTo } = await import('./map.js');
-        await travelTo(l.to, { force: true });
+        await travelTo(l.to, { force: true, carry: true });   // the scene goes on there: its last lines stay in view
         (ACT['elev-skip'] as any)?.(document.body, new Event('click'));   // nobody picks the floor on the way
         if (forced) arrivedCaptive(g, w, l, how === 'free' || how === 'engaged' ? 'restrained' : how, true);
         else pushDirective(`[{{user}} went with ${l.name} to ${placeOf(g, w, l.to)?.name ?? l.text}. ${l.name} is here with {{user}}; go on with the scene.]`);

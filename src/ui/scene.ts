@@ -412,6 +412,7 @@ Object.assign(ACT, {
     send: async () => {
         const raw = state.composer.trim();
         if (!raw) return;
+        await (await import('../sim/visits.js')).sceneNotesReady();
         const text = shapeLine(raw);
         const g0 = game(); const w0 = g0 && getWorld(g0.world);
         // alone: nobody is called into the scene; the hidden narrator describes the place, the time and the feelings

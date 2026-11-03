@@ -1,6 +1,6 @@
 // Player state on screen: the gate on leaving (walk out, try to get away, or stuck), the state chip in the scene,
 // the people the story added (walk-ons) and the end of the story (death, failure, capture).
-import { game, state, notify, toast, esc, saveGame } from '../core/store.js';
+import { game, state, notify, toast, esc, saveGame, settings } from '../core/store.js';
 import { getWorld } from '../core/world.js';
 import { currentState, walkOns, gateCfg, psOn, psPrefs, setDirective, markEscape, dismissOutcome, outcomeLine, refreshPState, keepNarration } from '../sim/pstate-live.js';
 import { gateFor, ends, MOBILITY_WORDS } from '../sim/pstate.js';
@@ -324,11 +324,13 @@ Object.assign(ACT, {
 Object.assign(INPUT, {
     'set-ps-on': (el) => { psPrefs().on = el.checked; void import('../core/store.js').then(m => m.saveSettings()); refreshPState(); notify(); },
     'set-ps-check': (el) => { psPrefs().check = el.checked; void import('../core/store.js').then(m => m.saveSettings()); },
+    'set-scene-notes': (el) => { void import('../core/store.js').then(m => { m.settings().sceneMemory = el.checked; m.saveSettings(); }); },
 });
 /** The settings block (Settings → Game). */
 export function pstateSettingsHtml() {
     const p = psPrefs();
     return `<section><h3>Player state</h3>
         <label class="mu-check"><input type="checkbox" data-input="set-ps-on" ${p.on ? 'checked' : ''}><span>Track your situation<small>Each reply ends with a small hidden block (free, in a conversation, held, restrained, can't move; who is here; whether the story ended). The game uses it to decide when you can walk away, to show the people the story brought in, and to end the story when you die or fail.</small></span></label>
-        <label class="mu-check"><input type="checkbox" data-input="set-ps-check" ${p.check ? 'checked' : ''} ${p.on ? '' : 'disabled'}><span>Fill in a missing block<small>When a reply comes without the block, one short extra AI call reads the reply and fills it in.</small></span></label></section>`;
+        <label class="mu-check"><input type="checkbox" data-input="set-ps-check" ${p.check ? 'checked' : ''} ${p.on ? '' : 'disabled'}><span>Fill in a missing block<small>When a reply comes without the block, one short extra AI call reads the reply and fills it in.</small></span></label>
+        <label class="mu-check"><input type="checkbox" data-input="set-scene-notes" ${settings().sceneMemory !== false ? 'checked' : ''}><span>Remember each scene<small>When you leave a place, one short AI call writes how things stand (someone's size, clothes, injuries, who is carrying or holding whom), and the next scene is told. When someone takes you or comes with you, the scene's last lines stay in view too.</small></span></label></section>`;
 }

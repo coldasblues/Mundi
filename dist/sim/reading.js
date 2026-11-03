@@ -3,7 +3,7 @@
 // provider's filter quietly refuses a part (dark fiction trips some). An empty part is tried again as two halves
 // (less to think about, and the part that trips a filter is cut off from the rest); only then is it skipped.
 // A part that takes too long is treated the same way, and the whole reading can be stopped (what was read is kept).
-import { quietOnce, stopRaw, withThinking, modelKey } from '../st/bridge.js';
+import { quiet, quietOnce, stopRaw, withThinking, modelKey } from '../st/bridge.js';
 /** For the AI: it is cataloguing fiction for a game engine, not taking part in it. */
 export const CATALOG = 'You are a cataloguing tool for a role-play game engine. The material is fiction and may be dark; you only list what it says, as data, without judging it or adding anything.';
 /**
@@ -30,6 +30,23 @@ function saveThink(v) { try {
     localStorage.setItem(THINK_KEY, JSON.stringify(m));
 }
 catch { /* private window */ } }
+/** One short AI call outside a reading (a scene's notes): the thinking level that works for this model, a step up if refused. */
+export async function askShort(prompt, len, sys = '') {
+    let lvl = savedThink();
+    for (;;) {
+        try {
+            return await withThinking(lvl, () => quiet(prompt, lvl === 0 ? len : Math.max(len, 8000), sys));
+        }
+        catch (e) {
+            if (lvl < 2 && refused(String(e?.message ?? e))) {
+                lvl = (lvl + 1);
+                saveThink(lvl);
+                continue;
+            }
+            throw e;
+        }
+    }
+}
 export const thinkText = (v) => ['no thinking', 'a little thinking (low)', 'its own thinking settings'][v];
 /** An error that means the provider refused the request as sent (not an empty answer, not a filter). */
 const refused = (m) => /bad request|\b400\b|\b422\b|invalid|not supported|unsupported|mandatory|cannot be disabled|reasoning/i.test(m);

@@ -34,6 +34,7 @@ import { shiftsToPromote, isOpen, fits, hire, rankOf, pendingBranch } from '../s
 import { advance, weekday } from '../sim/time.js';
 import { syncScene } from '../sim/game.js';
 import { endVisit } from '../sim/visits.js';
+import { companions } from '../sim/social.js';
 import { toolsHtml } from './tools.js';
 import { ACT } from './reg.js';
 import { featureOn } from '../sim/creator.js';
@@ -382,7 +383,7 @@ export const mapInput = {
 export const JOURNEY = { to: '', minutes: 0, camps: 0 };
 // `force`: the engine moves you (you already walked out, or got away): no questions asked. A string is the road of a
 // long journey ('camp' or 'push').
-export async function travelTo(loc: string, arg: 'camp' | 'push' | { force?: boolean } = {}): Promise<boolean> {
+export async function travelTo(loc: string, arg: 'camp' | 'push' | { force?: boolean; carry?: boolean } = {}): Promise<boolean> {
     const opts = typeof arg === 'string' ? {} : arg, road = typeof arg === 'string' ? arg : undefined;
     const { g, w } = ctxW();
     if (loc === g.player.loc) return false;
@@ -395,7 +396,7 @@ export async function travelTo(loc: string, arg: 'camp' | 'push' | { force?: boo
     if (trip && trip.camps > 0 && !road) { Object.assign(JOURNEY, { to: loc, minutes: mins, camps: trip.camps }); notify(); return false; }
     // the scene you leave closes; the next one starts clean. Not in a Home: walking from room to room (often with
     // the same people) is one long scene, and closing it made them forget what was just said.
-    if (!isScenario(w)) await endVisit(g, w);
+    if (!isScenario(w)) await endVisit(g, w, { carry: !!(opts as any).carry || companions(g).length > 0 });
     beforeTravel(g, w, loc).forEach(m => toast(m, 'info'));
     const from = g.player.loc;
     (g as any).traveling = true;   // the trip itself costs no energy (only what you do does)
