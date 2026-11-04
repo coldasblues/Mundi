@@ -22,11 +22,21 @@ const THINK_KEY = 'mundi.readThinking';
 function savedThink(): Think { try { const v = JSON.parse(localStorage.getItem(THINK_KEY) || '{}')[modelKey()]; return v === 1 || v === 2 ? v : 0; } catch { return 0; } }
 function saveThink(v: Think) { try { const m = JSON.parse(localStorage.getItem(THINK_KEY) || '{}'); m[modelKey()] = v; localStorage.setItem(THINK_KEY, JSON.stringify(m)); } catch { /* private window */ } }
 /** One short AI call outside a reading (a scene's notes): the thinking level that works for this model, a step up if refused. */
+// An empty answer (a thinking model that spent it all, or would not answer without thinking) gets one more try a
+// level up; a refusal of the thinking setting moves up for good (remembered for this model).
 export async function askShort(prompt: string, len: number, sys = ''): Promise<string> {
-    let lvl = savedThink();
+    let lvl = savedThink(), up = false;
     for (;;) {
-        try { return await withThinking(lvl, () => quiet(prompt, lvl === 0 ? len : Math.max(len, 8000), sys)); }
-        catch (e: any) { if (lvl < 2 && refused(String(e?.message ?? e))) { lvl = (lvl + 1) as Think; saveThink(lvl); continue; } throw e; }
+        try {
+            const out = await withThinking(lvl, () => quiet(prompt, lvl === 0 ? len : Math.max(len, 8000), sys));
+            if (out.trim() || lvl >= 2 || up) return out;
+            lvl = (lvl + 1) as Think; up = true;
+        } catch (e: any) {
+            const m = String(e?.message ?? e);
+            if (lvl < 2 && refused(m)) { lvl = (lvl + 1) as Think; saveThink(lvl); continue; }
+            if (lvl < 2 && !up && /no message generated|empty/i.test(m)) { lvl = (lvl + 1) as Think; up = true; continue; }
+            throw e;
+        }
     }
 }
 export const thinkText = (v: Think) => ['no thinking', 'a little thinking (low)', 'its own thinking settings'][v];

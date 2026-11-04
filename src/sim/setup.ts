@@ -10,7 +10,7 @@ import { hs, resolvePlace, actsOf } from './hostile.js';
 import { stemWord, type StoryLaw } from './verdict.js';
 import type { Think } from '../st/bridge.js';
 
-export interface PlanPerson { key: string; avatar: string; name: string; kind: string; law: boolean; group: string; keep: boolean }
+export interface PlanPerson { key: string; avatar: string; name: string; kind: string; law: boolean; group: string; keep: boolean; /** sleeps by day, up at night */ nocturnal?: boolean }
 export interface PlanGroup { name: string; base: string; baseText: string; keep: boolean }
 export interface PlanLaw extends StoryLaw { keep: boolean }
 export interface Plan {
@@ -113,7 +113,7 @@ const castPrompt = (groups: string[]) => (p: string) => [
     'These are characters of a role-play world.',
     groups.length ? `The world's groups: ${groups.join('; ')}.` : '',
     'For each character, write one JSON object per line, nothing else:',
-    '{"name": "", "kind": "what they are, in a few words (human, mouse kemonomimi, vampire…)", "law": false (true if they are police, a guard or other law enforcement), "group": "one of the groups above, or empty"}',
+    '{"name": "", "kind": "what they are, in a few words (human, mouse kemonomimi, vampire…)", "law": false (true if they are police, a guard or other law enforcement), "group": "one of the groups above, or empty", "nocturnal": false (true only if they sleep by day and live at night: vampires and other creatures of the night)}',
     'Use only what the cards say.',
     '"""', p, '"""',
 ].filter(Boolean).join('\n');
@@ -149,7 +149,7 @@ function takeCast(plan: Plan, batch: CastRec[], outs: string[]) {
         const r = whoIs(batch, o.name);
         if (!r || plan.people.some(p => p.avatar === r.avatar)) continue;
         const grp = groups.find(x => x.toLowerCase() === String(o.group ?? '').toLowerCase()) ?? '';
-        plan.people.push({ key: `cast:${r.avatar}`, avatar: r.avatar, name: r.name, kind: clean(o.kind).slice(0, 60), law: o.law === true, group: grp, keep: true });
+        plan.people.push({ key: `cast:${r.avatar}`, avatar: r.avatar, name: r.name, kind: clean(o.kind).slice(0, 60), law: o.law === true, group: grp, keep: true, ...(o.nocturnal === true ? { nocturnal: true } : {}) });
     }
 }
 /**
@@ -265,6 +265,7 @@ export function applyPlan(g: Save, w: WorldDef, plan: Plan): string {
         for (const x of Object.values(st.groups)) x.members = x.members.filter(m => m !== p.key);
         const gid = p.group ? ids[p.group.toLowerCase()] ?? Object.values(st.groups).find(x => x.name.toLowerCase() === p.group.toLowerCase())?.id : '';
         if (gid) st.groups[gid].members.push(p.key);
+        if (p.nocturnal !== undefined && g.cast[p.avatar]) g.cast[p.avatar].nocturnal = p.nocturnal || undefined;
         n++;
     }
     if (n) done.push(many(n, 'person', 'people'));

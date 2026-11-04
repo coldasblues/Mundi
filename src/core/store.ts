@@ -83,6 +83,8 @@ export interface Resident {
     avatar: string; name: string; occupation: string | null;
     home: { zone: string; x: number; y: number; n?: number; /** a second (third…) flat at the same address, when every home is taken */ unit?: number };
     routine: Routine; leisure: string[]; met: boolean;
+    /** nocturnal: asleep at home from dawn to dusk, out only after dark (a vampire…); their own routine is kept for when it is off */
+    nocturnal?: boolean;
 }
 export interface Save {
     v: 1; world: string; lang: string; day: number; minutes: number; speed: number; asleep?: boolean;

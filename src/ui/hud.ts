@@ -26,7 +26,7 @@ import { isOuting } from '../sim/places.js';
 import { money, actionsHere, canAfford } from '../sim/needs.js';
 import { placeOf, playerHomeId } from '../sim/places.js';
 import { traitsOf, jobDef, isOpen } from '../sim/work.js';
-import { presentAt } from '../sim/people.js';
+import { presentAt, asleepNow } from '../sim/people.js';
 import { period, weekday, seasonOf, toNextPeriod } from '../sim/time.js';
 import { icon } from './icons.js';
 import { featureOn } from '../sim/creator.js';
@@ -181,7 +181,7 @@ function hereBar(g: Save, w: WorldDef) {
     const list = presentAt(g, w, g.player.loc);   // everyone in the place, the people who came with you too
     const extras = walkOnChips(g, w);             // and the people the story brought in
     if (!list.length && !extras) return '';
-    return `<nav class="mh-here mh-glass" aria-label="Who is here"><small>Here</small>${extras}${list.map(r => `<button class="mh-here-p ${PL.card === r.avatar ? 'is-on' : ''} ${inSmallTalk(g, r.avatar) ? 'is-solo' : ''} ${isWith(g, r.avatar) ? 'is-with' : ''}" data-act="pc-open" data-who="${esc(r.avatar)}" title="${esc(r.met ? r.name : 'Someone')}"><img src="${esc(thumb(r.avatar))}" alt=""><b data-notr>${esc(r.met ? r.name : '?')}</b>${hxBadge(g, `cast:${r.avatar}`)}</button>`).join('')}</nav>`;
+    return `<nav class="mh-here mh-glass" aria-label="Who is here"><small>Here</small>${extras}${list.map(r => `<button class="mh-here-p ${PL.card === r.avatar ? 'is-on' : ''} ${inSmallTalk(g, r.avatar) ? 'is-solo' : ''} ${isWith(g, r.avatar) ? 'is-with' : ''}" data-act="pc-open" data-who="${esc(r.avatar)}" title="${esc(r.met ? r.name : 'Someone')}"><img src="${esc(thumb(r.avatar))}" alt=""><b data-notr>${esc(r.met ? r.name : '?')}</b>${hxBadge(g, `cast:${r.avatar}`)}${asleepNow(g, w, r) ? '<em class="mh-here-zz" title="Asleep (nocturnal: it is their night)">💤</em>' : ''}</button>`).join('')}</nav>`;
 }
 
 /* ---------- things to do (inside a scene) ---------- */

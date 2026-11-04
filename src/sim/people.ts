@@ -59,9 +59,15 @@ function leisureSpot(g: Save, w: WorldDef, r: Resident, day: number, stepHour: n
 }
 
 // The step of her routine at a given moment (absolute minutes): [start hour, 'home' | 'work' | 'leisure' | place id].
+/** Daylight, for the people who keep out of it: from 6 to 18 h. */
+export const DAY_FROM = 6, DAY_TO = 18;
+export const isDaytime = (minutes: number) => { const h = Math.floor((((minutes % 1440) + 1440) % 1440) / 60); return h >= DAY_FROM && h < DAY_TO; };
+// A nocturnal person's day: asleep at home through the daylight, up from dusk; work (if any) in the small hours.
+const NIGHT_JOB: [number, string][] = [[0, 'work'], [4, 'leisure'], [DAY_FROM, 'home'], [DAY_TO, 'leisure'], [21, 'work']];
+const NIGHT_FREE: [number, string][] = [[0, 'leisure'], [DAY_FROM, 'home'], [DAY_TO, 'leisure']];
 export function routineStep(r: Resident, at: number): [number, string] {
     const day = Math.floor(at / 1440), h = Math.floor((at % 1440) / 60);
-    const steps = isWeekend(day) ? r.routine.weekend : r.routine.weekday;
+    const steps = r.nocturnal ? (r.occupation && !isWeekend(day) ? NIGHT_JOB : NIGHT_FREE) : isWeekend(day) ? r.routine.weekend : r.routine.weekday;
     let cur = steps[0];
     for (const s of steps) if (s[0] <= h) cur = s;
     return cur as [number, string];
@@ -114,6 +120,12 @@ export function whereNow(g: Save, w: WorldDef, r: Resident): string {
 }
 
 export const residents = (g: Save) => Object.values(g.cast);
+/** A nocturnal person asleep: daytime, and at home where their night routine puts them (a plan or company wakes them). */
+export function asleepNow(g: Save, w: WorldDef, r: Resident): boolean {
+    if (!r.nocturnal || !isDaytime(g.minutes)) return false;
+    const at = nowAbs(g);
+    return routineStep(r, at)[1] === 'home' && whereNow(g, w, r) === routineAt(g, w, r, at);
+}
 // (someone you are playing as is not "here": you are them)
 const selfOf = (g: Save) => { const s = (g as any).swap; return s ? (s.avatar || s.origCard || '') : ''; };
 // (the roster: someone dead, captured or missing is nowhere; someone who just walked out of your scene is not in it)

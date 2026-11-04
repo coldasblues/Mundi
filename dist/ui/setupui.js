@@ -167,6 +167,7 @@ function planHtml(g, w, p) {
         ${p.people.length ? `<section><h4>The people</h4>${p.people.map((x, i) => `<div class="mu-su-row is-person"><label class="mu-check"><input type="checkbox" data-input="su-keep" data-k="person" data-i="${i}" ${x.keep ? 'checked' : ''}><span><b data-notr>${esc(x.name)}</b></span></label>
             <input type="text" data-input="su-kind" data-i="${i}" maxlength="60" value="${esc(x.kind)}" placeholder="what they are">
             <label class="mu-su-law"><input type="checkbox" data-input="su-law" data-i="${i}" ${x.law ? 'checked' : ''}>the law</label>
+            <label class="mu-su-law" title="Asleep by day, up at night"><input type="checkbox" data-input="su-noc" data-i="${i}" ${x.nocturnal ? 'checked' : ''}>🌙 nocturnal</label>
             <select data-input="su-group" data-i="${i}"><option value="">No group</option>${groupNames.map(n => `<option ${x.group === n ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></div>`).join('')}</section>` : ''}
         ${p.notPeople.length ? `<section><h4>Not people</h4>${p.notPeople.map((x, i) => `<label class="mu-check"><input type="checkbox" data-input="su-keep" data-k="np" data-i="${i}" ${x.keep ? 'checked' : ''}><span>${esc(x.word)}</span></label>`).join('')}</section>` : ''}
         <div class="mu-row"><button class="mu-primary" data-act="su-apply">${icon('check')}<span>Apply</span></button>${againButton(p)}<button data-act="su-close">Not now</button></div>`;
@@ -270,6 +271,8 @@ Object.assign(INPUT, {
     },
     'su-kind': (el) => { const x = SU.plan?.people[Number(el.dataset.i)]; if (x)
         x.kind = el.value; },
+    'su-noc': (el) => { const x = SU.plan?.people[Number(el.dataset.i)]; if (x)
+        x.nocturnal = el.checked; },
     'su-law': (el) => { const x = SU.plan?.people[Number(el.dataset.i)]; if (x)
         x.law = el.checked; },
     'su-group': (el) => { const x = SU.plan?.people[Number(el.dataset.i)]; if (x)

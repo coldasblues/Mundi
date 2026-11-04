@@ -53,6 +53,7 @@ function personForm(g: Save, w: WorldDef): string {
         : `<label class="mu-field"><span>Job</span><select data-input="wc-job">${opt('', 'No job', !r.occupation)}${w.occupations.map(o => opt(o.id, `${o.name} · ${placeOf(g, w, o.place)?.name ?? ''}`, r.occupation === o.id)).join('')}</select></label>
         <label class="mu-field"><span>Lives in</span><select data-input="wc-zone">${w.homes.zones.map(z => opt(z.id, `${z.name} (${w.homes.kinds[z.kind]?.name ?? z.kind})`, r.home.zone === z.id)).join('')}</select></label>`}
         <label class="mu-check"><input type="checkbox" data-input="wc-met" ${r.met ? 'checked' : ''}><span>You know them<small>They show up by name, in People and in Messages.</small></span></label>
+        <label class="mu-check"><input type="checkbox" data-input="wc-nocturnal" ${r.nocturnal ? 'checked' : ''}><span>🌙 Nocturnal<small>Asleep at home from dawn to dusk (6 to 18 h), out only after dark. The AI is told daylight is dangerous to them. Their own routine comes back when this is off.</small></span></label>
         ${tiesHtml(g, r.avatar)}
         ${WC.adv ? `<h4 class="mu-lib-advhead">Advanced settings</h4>
             <label class="mu-field"><span>Daily routine</span><select data-input="wc-routine">${tpl ? '' : opt('', 'Custom', true)}${Object.keys(w.cast.routineTemplates).map(k => opt(k, k, tpl === k)).join('')}</select></label>
@@ -321,6 +322,7 @@ Object.assign(INPUT, {
         r.home = homeSpot(c.w, el.value, takenHomes(c.g, r), c.g.player.home); normalizeHomes(c.g);
         await changed();
     },
+    'wc-nocturnal': async (el) => { const c = ctxGW(); const r = c?.g.cast[WC.who]; if (!r) return; r.nocturnal = el.checked || undefined; await changed(); },
     'wc-met': async (el) => { const c = ctxGW(); const r = c?.g.cast[WC.who]; if (!r) return; r.met = el.checked; await changed(); },
     'wc-routine': async (el) => { const c = ctxGW(); const r = c?.g.cast[WC.who]; if (!c || !r || !el.value) return; r.routine = structuredClone(c.w.cast.routineTemplates[el.value]); await changed(); },
     'wc-bond': (el) => { const g = game(); if (!g) return; social(g).bond[WC.who] = Number(el.value); saveGame(); const s = el.previousElementSibling; if (s) s.textContent = `Bond with you · ${el.value}/100`; },

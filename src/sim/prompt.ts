@@ -11,7 +11,7 @@ import { aiLangNote } from '../core/i18n.js';
 import { setPrompt, nameOf } from '../st/bridge.js';
 import { weekday, hm, period, seasonOf } from './time.js';
 import { placeOf } from './places.js';
-import { presentAt, whereNow, OUT } from './people.js';
+import { presentAt, whereNow, OUT, asleepNow, isDaytime } from './people.js';
 import { partyLine as houseLine } from './houseparty.js';
 import { feelings } from './needs.js';
 import { planLines } from './plans.js';
@@ -121,6 +121,18 @@ export function scenarioLines(g: any, w: WorldDef): string[] {
     return [`Home: everything happens in and around this one house; when someone goes out (work, errands, nights out) it is off-screen and only told afterwards.${premise ? ` Premise: ${premise}` : ''}`,
         ...(out.length ? [`Out of the house right now (not in any scene): ${out.join(', ')}.`] : []), homeJobsLine(g), dressLine(g, w), houseLine(g, w)].filter(Boolean);
 }
+// Nocturnal people in the scene: their hours, the danger of daylight, and asleep when it is their night.
+export function nocturnalLines(g: Save, w: WorldDef, present: Resident[]): string[] {
+    const noc = present.filter(r => r.nocturnal); if (!noc.length) return [];
+    const list = (l: Resident[]) => l.map(r => r.name).join(', '), are = (l: Resident[]) => (l.length > 1 ? 'are' : 'is');
+    const out = [`${list(noc)} ${are(noc)} nocturnal: they sleep through the day and are up at night, and daylight is dangerous to them, so they keep out of the sun.`];
+    if (isDaytime(g.minutes)) {
+        const sleeping = noc.filter(r => asleepNow(g, w, r)), awake = noc.filter(r => !sleeping.includes(r));
+        if (sleeping.length) out.push(`It is daytime, their night: ${list(sleeping)} ${are(sleeping)} asleep, and stay${sleeping.length > 1 ? '' : 's'} asleep unless someone wakes them.`);
+        if (awake.length) out.push(`It is daytime, when ${list(awake)} would normally sleep: the sun outside is a real danger to them.`);
+    }
+    return out;
+}
 export function sceneBlocks(): Built[] {
     const g = game();
     const w = g && getWorld(g.world);
@@ -139,6 +151,7 @@ export function sceneBlocks(): Built[] {
             `Place: ${here?.name ?? 'somewhere'}${here?.desc ? ` — ${here.desc}` : ''}${here && !here.home && systemOn(w, 'living') && !openNow(g, w, here.id) ? ' (closed at this hour: the doors are shut; only staff, if anyone, is around)' : ''}`,
             names.length ? `Here with {{user}}: ${names.join(', ')}. Only they${extras.length ? ' and the people below' : ''} are in this scene; nobody else speaks or appears.` : extras.length ? '' : 'Nobody else is here right now.',
             ...(extras.length ? [`Also here, already part of this scene (not regulars): ${extras.join(', ')}. They stay until the story has them leave.`] : []),
+            ...nocturnalLines(g, w, present),
             ...recapLines(g),
             ...(present.some(r => !r.met) ? [`Strangers to {{user}}: ${present.filter(r => !r.met).map(r => r.name).join(', ')}. They and {{user}} have never met: they do not know each other's names until they talk and introduce themselves.`] : []),
         ],

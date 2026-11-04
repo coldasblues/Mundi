@@ -3503,6 +3503,7 @@ body.mundi-open #toast-container { display: none !important; }
 #mundi-root .mu-ps-end-btns { flex-wrap: wrap; justify-content: center; gap: 8px; }
 #mundi-root .mu-ps-over { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 14px; color: var(--hud-muted, #aab); }
 #mundi-root .mu-ps-over button { border-radius: 10px; padding: 6px 14px; }
+#mundi-root .mh-here-zz { position: absolute; right: -4px; top: -6px; font-size: 13px; font-style: normal; pointer-events: none; }
 /* People in your story (the roster) and Save…, from the game menu; save cards on the Load screen. */
 /* "How the day went" is for reading: the stronger glass of the dialogue box, so the map does not show through the diary */
 #mundi-root .mu-recap.mh-glass { background: linear-gradient(180deg, rgba(255, 255, 255, .08), rgba(255, 255, 255, 0) 30%), var(--glass-strong) !important; }

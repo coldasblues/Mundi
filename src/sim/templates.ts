@@ -22,7 +22,7 @@ export interface SetupPart {
     laws: StoryLaw[];
     groups: { name: string; base: string; baseName: string }[];
     /** The people, by card: what they are, whether they are the law, their group (by name). */
-    people: { avatar: string; name: string; kind: string; law: boolean; group: string }[];
+    people: { avatar: string; name: string; kind: string; law: boolean; group: string; nocturnal?: boolean }[];
     notPeople: string[];
 }
 export interface SetupTemplate {
@@ -48,8 +48,8 @@ export function setupOfGame(g: Save, w: WorldDef): SetupPart {
     const groupOf = (key: string) => Object.values(st.groups).find(x => x.members.includes(key))?.name ?? '';
     const people = Object.values(g.cast).map(r => {
         const key = `cast:${r.avatar}`;
-        return { avatar: r.avatar, name: r.name, kind: st.kinds[key] ?? '', law: st.lawKeys.includes(key), group: groupOf(key) };
-    }).filter(p => p.kind || p.law || p.group);
+        return { avatar: r.avatar, name: r.name, kind: st.kinds[key] ?? '', law: st.lawKeys.includes(key), group: groupOf(key), ...(r.nocturnal ? { nocturnal: true } : {}) };
+    }).filter(p => p.kind || p.law || p.group || p.nocturnal);
     return {
         police: st.law.mode === 'auto' ? null : { exists: st.law.mode === 'on', name: st.law.name ?? '' },
         laws: st.laws.map(l => ({ ...l })),
@@ -115,7 +115,7 @@ export function toPlan(g: Save, w: WorldDef, tpl: SetupTemplate): Plan {
         const r = cast.find(x => x.avatar === p.avatar) ?? cast.find(x => x.name.toLowerCase() === p.name.toLowerCase());
         if (!r) { plan.unmatched!.push(p.name); continue; }
         if (plan.people.some(x => x.avatar === r.avatar)) continue;
-        plan.people.push({ key: `cast:${r.avatar}`, avatar: r.avatar, name: r.name, kind: p.kind, law: p.law, group: p.group, keep: true });
+        plan.people.push({ key: `cast:${r.avatar}`, avatar: r.avatar, name: r.name, kind: p.kind, law: p.law, group: p.group, keep: true, ...(p.nocturnal ? { nocturnal: true } : {}) });
     }
     return plan;
 }
@@ -137,7 +137,7 @@ export function importText(text: string): SetupTemplate {
             ...(Array.isArray(l.objectors) ? { objectors: l.objectors.map((x: any) => str(x, 40)) } : {}), ...(l.note ? { note: str(l.note) } : {}),
         })),
         groups: arr(o.groups).filter((x: any) => x?.name).map((x: any) => ({ name: str(x.name, 60), base: str(x.base, 80), baseName: str(x.baseName, 80) })),
-        people: arr(o.people).filter((x: any) => x?.name).map((x: any) => ({ avatar: str(x.avatar, 200), name: str(x.name, 80), kind: str(x.kind, 60), law: x.law === true, group: str(x.group, 60) })),
+        people: arr(o.people).filter((x: any) => x?.name).map((x: any) => ({ avatar: str(x.avatar, 200), name: str(x.name, 80), kind: str(x.kind, 60), law: x.law === true, group: str(x.group, 60), ...(x.nocturnal === true ? { nocturnal: true } : {}) })),
         notPeople: arr(o.notPeople).map((x: any) => str(x, 30)).filter(Boolean),
     });
     const sc = o.start;

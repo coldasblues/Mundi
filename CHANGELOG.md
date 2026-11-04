@@ -2,6 +2,19 @@
 
 This is a fork of [tjalis/Mundi](https://github.com/tjalis/Mundi) (AGPL-3.0). Changes made in this fork are listed here, with their dates, as the license asks.
 
+## 0.2.0-ps.27 — 2026-11-04
+
+### Added
+
+- **Nocturnal people.** A 🌙 Nocturnal switch per person (World settings → People). Someone nocturnal is asleep at home from dawn to dusk (6 to 18 h) and out only after dark; with a job, they work the small hours. Their own routine comes back when the switch is off.
+  - The AI is told when they are in the scene: they sleep by day, are up at night, and daylight is dangerous to them. In the day, it is told they are asleep (unless a plan or company woke them), or that the sun outside is a danger to them.
+  - A 💤 on their face in the "Here" bar while they sleep.
+  - Set up from the lore marks vampires and other creatures of the night as nocturnal (a 🌙 box on each person, to change before applying). Templates keep it.
+
+### Fixed
+
+- **Text messages that got no answer.** A text's answer was asked for with your model's own thinking settings. A thinking model (GLM and others) could spend the whole answer thinking and send nothing back, and two empty answers in a row ended with an error. Now texts use the thinking level that works for your model (the one Set up from the lore found), and an empty answer gets one more try with a little thinking.
+
 ## 0.2.0-ps.26 — 2026-11-03
 
 ### Changed

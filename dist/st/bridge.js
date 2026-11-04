@@ -562,11 +562,15 @@ export function cleanLine(raw, names, max = 280) {
     }
     return t;
 }
+// A short line (a text message, someone's answer): the thinking level that works for this model (a thinking model
+// such as GLM otherwise spends the whole answer thinking and the text comes back empty), one step up when empty.
 export async function sayLine(transcript, speaker, names, max = 280, tokens = 120) {
-    let line = cleanLine(await quiet(`${transcript}\n${speaker}:`, tokens), names, max);
-    // a reply of a word or two ("Vooom!") says nothing: one more try
+    const { askShort } = await import('../sim/reading.js');
+    const ask = async () => cleanLine(await askShort(`${transcript}\n${speaker}:`, tokens), names, max);
+    let line = await ask();
+    // nothing usable, or a word or two ("Vooom!") that says nothing: one more try
     if (line.replace(/[^\p{L}\p{N}]/gu, '').length < 8) {
-        const again = cleanLine(await quiet(`${transcript}\n${speaker}:`, tokens), names, max);
+        const again = await ask().catch(() => '');
         if (again.length > line.length)
             line = again;
     }

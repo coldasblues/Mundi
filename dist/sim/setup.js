@@ -112,7 +112,7 @@ const castPrompt = (groups) => (p) => [
     'These are characters of a role-play world.',
     groups.length ? `The world's groups: ${groups.join('; ')}.` : '',
     'For each character, write one JSON object per line, nothing else:',
-    '{"name": "", "kind": "what they are, in a few words (human, mouse kemonomimi, vampire…)", "law": false (true if they are police, a guard or other law enforcement), "group": "one of the groups above, or empty"}',
+    '{"name": "", "kind": "what they are, in a few words (human, mouse kemonomimi, vampire…)", "law": false (true if they are police, a guard or other law enforcement), "group": "one of the groups above, or empty", "nocturnal": false (true only if they sleep by day and live at night: vampires and other creatures of the night)}',
     'Use only what the cards say.',
     '"""', p, '"""',
 ].filter(Boolean).join('\n');
@@ -163,7 +163,7 @@ function takeCast(plan, batch, outs) {
         if (!r || plan.people.some(p => p.avatar === r.avatar))
             continue;
         const grp = groups.find(x => x.toLowerCase() === String(o.group ?? '').toLowerCase()) ?? '';
-        plan.people.push({ key: `cast:${r.avatar}`, avatar: r.avatar, name: r.name, kind: clean(o.kind).slice(0, 60), law: o.law === true, group: grp, keep: true });
+        plan.people.push({ key: `cast:${r.avatar}`, avatar: r.avatar, name: r.name, kind: clean(o.kind).slice(0, 60), law: o.law === true, group: grp, keep: true, ...(o.nocturnal === true ? { nocturnal: true } : {}) });
     }
 }
 /**
@@ -306,6 +306,8 @@ export function applyPlan(g, w, plan) {
         const gid = p.group ? ids[p.group.toLowerCase()] ?? Object.values(st.groups).find(x => x.name.toLowerCase() === p.group.toLowerCase())?.id : '';
         if (gid)
             st.groups[gid].members.push(p.key);
+        if (p.nocturnal !== undefined && g.cast[p.avatar])
+            g.cast[p.avatar].nocturnal = p.nocturnal || undefined;
         n++;
     }
     if (n)

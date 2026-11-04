@@ -31,16 +31,28 @@ function saveThink(v) { try {
 }
 catch { /* private window */ } }
 /** One short AI call outside a reading (a scene's notes): the thinking level that works for this model, a step up if refused. */
+// An empty answer (a thinking model that spent it all, or would not answer without thinking) gets one more try a
+// level up; a refusal of the thinking setting moves up for good (remembered for this model).
 export async function askShort(prompt, len, sys = '') {
-    let lvl = savedThink();
+    let lvl = savedThink(), up = false;
     for (;;) {
         try {
-            return await withThinking(lvl, () => quiet(prompt, lvl === 0 ? len : Math.max(len, 8000), sys));
+            const out = await withThinking(lvl, () => quiet(prompt, lvl === 0 ? len : Math.max(len, 8000), sys));
+            if (out.trim() || lvl >= 2 || up)
+                return out;
+            lvl = (lvl + 1);
+            up = true;
         }
         catch (e) {
-            if (lvl < 2 && refused(String(e?.message ?? e))) {
+            const m = String(e?.message ?? e);
+            if (lvl < 2 && refused(m)) {
                 lvl = (lvl + 1);
                 saveThink(lvl);
+                continue;
+            }
+            if (lvl < 2 && !up && /no message generated|empty/i.test(m)) {
+                lvl = (lvl + 1);
+                up = true;
                 continue;
             }
             throw e;

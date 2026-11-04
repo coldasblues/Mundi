@@ -33,3 +33,4 @@
 #mundi-root .mu-ps-end-btns { flex-wrap: wrap; justify-content: center; gap: 8px; }
 #mundi-root .mu-ps-over { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 14px; color: var(--hud-muted, #aab); }
 #mundi-root .mu-ps-over button { border-radius: 10px; padding: 6px 14px; }
+#mundi-root .mh-here-zz { position: absolute; right: -4px; top: -6px; font-size: 13px; font-style: normal; pointer-events: none; }
