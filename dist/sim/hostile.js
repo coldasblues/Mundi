@@ -753,12 +753,16 @@ export function resolvePlace(g, w, text, leaderKey = '') {
             return homeOf(leader);
     }
     // a place on the map, by its name (either way round: "the docks" / "Port & Fish Market docks")
+    // words that name no place in particular ("her room", "the guest room") never pick one: they used to match the
+    // first place with "room" in its name, often a bathroom ("Shower room (Floor 2)")
+    const GENERIC = new Set(['room', 'rooms', 'place', 'house', 'home', 'floor', 'area', 'hall', 'side', 'upstairs', 'downstairs', 'inside', 'outside', 'there', 'here', 'back', 'front', 'other', 'guest', 'main', 'little', 'small', 'big', 'own']);
     let best = '', score = 0;
     for (const p of w.places) {
         if (p.link)
             continue;
-        const n = bare(p.name), id = bare(p.id);
-        const sc = n === t || id === t ? 100 : n.includes(t) || t.includes(n) ? 50 + Math.min(n.length, t.length) : t.split(' ').filter(x => x.length > 3 && (n.split(' ').includes(x) || id === x)).length * 10;
+        const n = bare(String(p.name).replace(/\([^)]*\)/g, ' ')), id = bare(p.id);
+        const words = t.split(' ').filter(x => x.length > 3 && !GENERIC.has(x));
+        const sc = n === t || id === t ? 100 : (n.includes(t) || t.includes(n)) && !GENERIC.has(t) && !GENERIC.has(n) ? 50 + Math.min(n.length, t.length) : words.filter(x => n.split(' ').includes(x) || id === x).length * 10;
         if (sc > score) {
             score = sc;
             best = p.id;

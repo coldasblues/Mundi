@@ -2,6 +2,15 @@
 
 This is a fork of [tjalis/Mundi](https://github.com/tjalis/Mundi) (AGPL-3.0). Changes made in this fork are listed here, with their dates, as the license asks.
 
+## 0.2.0-ps.28 — 2026-11-04
+
+### Fixed
+
+- **Being taken to the bathroom.** When the story says someone is taking you somewhere ("going: Eden → …"), the place is matched to a room by its name. Any one shared word was enough, generic ones included. So "the room on the second floor" or "the guest room" picked the first room whose name has "room" or "floor" in it, and in the Shared House that is often a bathroom: "Bathroom (Floor 2)", "Shower room (Floor 2)". Now:
+  - Generic words (room, floor, place, house, hall, upstairs, guest…) never pick a room on their own.
+  - The "(Floor 2)" part of a room's name is not matched at all.
+  - A place nobody can name keeps you where you are, instead of moving you to the wrong room.
+
 ## 0.2.0-ps.27 — 2026-11-04
 
 ### Added
